@@ -11,7 +11,8 @@
 -- Use the database
 -- \c adrsdb;
 
--- Enable UUID extension
+-- Enable UUID extension (PostgreSQL-specific command)
+-- Note: VS Code SQL linter may show errors - this is valid PostgreSQL syntax
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- =====================================================

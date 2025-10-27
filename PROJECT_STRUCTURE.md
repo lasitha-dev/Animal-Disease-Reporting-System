@@ -129,7 +129,7 @@ Currently using Thymeleaf templates in `backend/src/main/resources/templates/`
 
 ### Backend (`/backend`)
 - **Framework:** Spring Boot 3.2.0
-- **Language:** Java 17
+- **Language:** Java 21
 - **Build Tool:** Maven
 - **Database:** PostgreSQL 15
 - **Template Engine:** Thymeleaf

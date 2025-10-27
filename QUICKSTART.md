@@ -4,7 +4,7 @@ Get the Animal Disease Reporting System up and running in minutes!
 
 ## 🎯 Prerequisites Checklist
 
-- [ ] Java 17+ installed
+- [ ] Java 21+ installed
 - [ ] Maven 3.6+ installed
 - [ ] PostgreSQL 15+ installed
 - [ ] Git installed

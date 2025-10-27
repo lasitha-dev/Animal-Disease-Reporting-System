@@ -169,7 +169,7 @@ chmod +x start.sh
    - File → Open → Select the `backend` folder
    
 2. **Configure JDK:**
-   - File → Project Structure → Project → SDK: Java 17
+   - File → Project Structure → Project → SDK: Java 21
 
 3. **Enable annotation processing:**
    - Settings → Build, Execution, Deployment → Compiler → Annotation Processors
@@ -190,7 +190,7 @@ chmod +x start.sh
    - File → Open Folder → Select the root directory
 
 3. **Configure Java home:**
-   - Settings → Java: Home → Set to JDK 17 path
+   - Settings → Java: Home → Set to JDK 21 path
 
 ### Running Tests
 

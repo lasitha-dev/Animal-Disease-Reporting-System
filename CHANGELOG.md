@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Upgraded Java runtime from Java 17 to Java 21 LTS
+- Updated Maven compiler plugin to target Java 21
+
 ### Planned Features
 - User authentication and authorization with Spring Security
 - Farm management CRUD operations
@@ -82,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTTPS ready configuration
 
 ### Technical Stack
-- Java 17
+- Java 21
 - Spring Boot 3.2.0
 - PostgreSQL 15
 - Thymeleaf
