@@ -1,0 +1,17 @@
+# Services
+
+This directory contains business logic service classes.
+
+## Purpose
+
+Services implement the core business logic of the application.
+
+## Planned Services:
+
+- `UserService.java` - User management
+- `FarmService.java` - Farm operations
+- `AnimalService.java` - Animal management
+- `DiseaseService.java` - Disease reporting
+- `AuthenticationService.java` - Authentication logic
+- `ReportingService.java` - Report generation
+- `MapService.java` - Map data processing

@@ -1,0 +1,17 @@
+# Models / Entities
+
+This directory contains JPA entity classes.
+
+## Purpose
+
+Entity classes represent database tables and relationships.
+
+## Planned Entities:
+
+- `User.java`
+- `Farm.java`
+- `Animal.java`
+- `AnimalType.java`
+- `Disease.java`
+- `DiseaseReport.java`
+- `BaseEntity.java` - Common fields (id, timestamps, audit)
