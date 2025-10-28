@@ -1,6 +1,5 @@
 package com.adrs.service.impl;
 
-import com.adrs.config.JwtTokenProvider;
 import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
@@ -44,14 +43,13 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
-
     /**
-     * Authenticates a user and generates a JWT token.
+     * Authenticates a user and updates last login time.
+     * Note: This method is kept for backward compatibility but is not used
+     * in form-based authentication. Spring Security handles authentication.
      *
      * @param loginRequest the login request
-     * @return AuthResponse with token and user details
+     * @return AuthResponse with user details (token will be empty)
      */
     @Override
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
@@ -65,7 +63,6 @@ public class UserServiceImpl implements UserService {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.generateToken(authentication);
 
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -76,8 +73,9 @@ public class UserServiceImpl implements UserService {
 
         logger.info("User authenticated successfully: {}", loginRequest.getUsername());
 
+        // Return AuthResponse without JWT token (using empty string)
         return new AuthResponse(
-                jwt,
+                "",  // No JWT token in form-based auth
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),

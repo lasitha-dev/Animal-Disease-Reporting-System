@@ -16,6 +16,10 @@
   padding: var(--spacing-md);
 }
 
+.modal-overlay.hidden {
+  display: none;
+}
+
 .modal {
   background-color: var(--color-white);
   border-radius: var(--radius-lg);

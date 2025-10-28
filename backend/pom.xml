@@ -55,7 +55,7 @@
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
 
-        <!-- JWT Dependencies -->
+        <!-- JWT Dependencies - COMMENTED OUT (Using form-based authentication)
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -73,6 +73,7 @@
             <version>0.12.3</version>
             <scope>runtime</scope>
         </dependency>
+        -->
 
         <!-- Spring Boot Starter Validation -->
         <dependency>
@@ -187,6 +188,12 @@
                     <source>21</source>
                     <target>21</target>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Maven Surefire Plugin (for running tests) -->

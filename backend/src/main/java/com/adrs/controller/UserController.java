@@ -3,124 +3,174 @@ package com.adrs.controller;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
 import com.adrs.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
 /**
- * REST controller for user management endpoints.
+ * MVC controller for user management pages.
+ * Handles Thymeleaf template rendering and form submissions.
  */
-@RestController
-@RequestMapping("/api/users")
-@SecurityRequirement(name = "Bearer Authentication")
-@Tag(name = "User Management", description = "User management APIs")
+@Controller
+@RequestMapping("/users")
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    private static final String USERS_VIEW = "users/user-management";
+    private static final String REDIRECT_USERS = "redirect:/users";
+    private static final String SUCCESS_MESSAGE = "successMessage";
+    private static final String ERROR_MESSAGE = "errorMessage";
 
     @Autowired
     private UserService userService;
 
     /**
-     * Creates a new user (admin only).
+     * Displays the user management page with all users.
      *
-     * @param userRequest the user creation request
-     * @return the created user
-     */
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Create user", description = "Creates a new user (Admin only)")
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        logger.info("Create user request received for: {}", userRequest.getUsername());
-        UserResponse createdUser = userService.createUser(userRequest);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-    }
-
-    /**
-     * Retrieves all users.
-     *
-     * @return a list of all users
+     * @param model the model for the view
+     * @return the user management view name
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all users", description = "Retrieves all users (Admin only)")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        logger.info("Get all users request received");
+    public String listUsers(Model model) {
+        logger.info("User management page requested");
         List<UserResponse> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        model.addAttribute("users", users);
+        model.addAttribute("userRequest", new UserRequest());
+        return USERS_VIEW;
     }
 
     /**
-     * Retrieves a user by ID.
+     * Creates a new user.
      *
-     * @param id the user ID
-     * @return the user details
+     * @param userRequest        the user creation request
+     * @param bindingResult      validation results
+     * @param redirectAttributes redirect attributes for flash messages
+     * @return redirect to users page
      */
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    @Operation(summary = "Get user by ID", description = "Retrieves a user by ID")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        logger.info("Get user by ID request received for ID: {}", id);
-        UserResponse user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+    @PostMapping("/create")
+    public String createUser(
+            @Valid @ModelAttribute("userRequest") UserRequest userRequest,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        
+        logger.info("Create user request received for: {}", userRequest.getUsername());
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed. Please check the form.");
+            return REDIRECT_USERS;
+        }
+
+        try {
+            userService.createUser(userRequest);
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, 
+                "User created successfully: " + userRequest.getUsername());
+        } catch (Exception e) {
+            logger.error("Error creating user: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, 
+                "Error creating user: " + e.getMessage());
+        }
+
+        return REDIRECT_USERS;
     }
 
     /**
-     * Updates a user (admin only).
+     * Updates an existing user.
      *
-     * @param id          the user ID
-     * @param userRequest the user update request
-     * @return the updated user
+     * @param id                 the user ID
+     * @param userRequest        the user update request
+     * @param bindingResult      validation results
+     * @param redirectAttributes redirect attributes for flash messages
+     * @return redirect to users page
      */
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Update user", description = "Updates a user (Admin only)")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,
-                                                    @Valid @RequestBody UserRequest userRequest) {
+    @PostMapping("/update/{id}")
+    public String updateUser(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("userRequest") UserRequest userRequest,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
+        
         logger.info("Update user request received for ID: {}", id);
-        UserResponse updatedUser = userService.updateUser(id, userRequest);
-        return ResponseEntity.ok(updatedUser);
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed. Please check the form.");
+            return REDIRECT_USERS;
+        }
+
+        try {
+            userService.updateUser(id, userRequest);
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "User updated successfully");
+        } catch (Exception e) {
+            logger.error("Error updating user: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, 
+                "Error updating user: " + e.getMessage());
+        }
+
+        return REDIRECT_USERS;
     }
 
     /**
-     * Deletes a user (admin only).
+     * Deletes a user.
      *
-     * @param id the user ID
-     * @return success message
+     * @param id                 the user ID
+     * @param redirectAttributes redirect attributes for flash messages
+     * @return redirect to users page
      */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Delete user", description = "Deletes a user (Admin only)")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    @PostMapping("/delete/{id}")
+    public String deleteUser(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        
         logger.info("Delete user request received for ID: {}", id);
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+
+        try {
+            userService.deleteUser(id);
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "User deleted successfully");
+        } catch (Exception e) {
+            logger.error("Error deleting user: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, 
+                "Error deleting user: " + e.getMessage());
+        }
+
+        return REDIRECT_USERS;
     }
 
     /**
-     * Toggles the active status of a user (admin only).
+     * Toggles the active status of a user.
      *
-     * @param id     the user ID
-     * @param active the new active status
-     * @return the updated user
+     * @param id                 the user ID
+     * @param active             the new active status
+     * @param redirectAttributes redirect attributes for flash messages
+     * @return redirect to users page
      */
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Toggle user status", description = "Activates or deactivates a user (Admin only)")
-    public ResponseEntity<UserResponse> toggleUserStatus(@PathVariable Long id,
-                                                          @RequestParam Boolean active) {
+    @PostMapping("/toggle-status/{id}")
+    public String toggleUserStatus(
+            @PathVariable Long id,
+            @RequestParam Boolean active,
+            RedirectAttributes redirectAttributes) {
+        
         logger.info("Toggle user status request received for ID: {} to {}", id, active);
-        UserResponse updatedUser = userService.toggleUserStatus(id, active);
-        return ResponseEntity.ok(updatedUser);
+
+        try {
+            userService.toggleUserStatus(id, active);
+            String status = Boolean.TRUE.equals(active) ? "activated" : "deactivated";
+            redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, 
+                "User " + status + " successfully");
+        } catch (Exception e) {
+            logger.error("Error toggling user status: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, 
+                "Error toggling user status: " + e.getMessage());
+        }
+
+        return REDIRECT_USERS;
     }
 }
