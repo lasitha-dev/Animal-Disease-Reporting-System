@@ -61,4 +61,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return a list of active users
      */
     List<User> findByActive(Boolean active);
+
+    /**
+     * Count all active users.
+     *
+     * @return count of active users
+     */
+    Long countByActiveTrue();
+
+    /**
+     * Count all inactive users.
+     *
+     * @return count of inactive users
+     */
+    Long countByActiveFalse();
+
+    /**
+     * Count users by role.
+     *
+     * @param role the user role
+     * @return count of users with specified role
+     */
+    Long countByRole(User.Role role);
 }
