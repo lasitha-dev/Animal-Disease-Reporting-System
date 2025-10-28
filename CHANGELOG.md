@@ -7,9 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Complete JWT-based authentication system
+- User management system for admins
+- React frontend with modern component architecture
+- Protected routes and role-based access control
+- User CRUD operations (Create, Read, Update, Delete, Toggle Status)
+- Login page with error handling
+- Admin dashboard with user management
+- Complete CSS variables system for consistent theming
+- PropTypes validation for all React components
+- Comprehensive documentation (Setup, Implementation, Troubleshooting)
+
 ### Changed
 - Upgraded Java runtime from Java 17 to Java 21 LTS
 - Updated Maven compiler plugin to target Java 21
+- Enhanced security with BCrypt password hashing
+- Implemented stateless JWT session management
+- Applied SOLID principles throughout codebase
+
+### Fixed
+- Duplicate string literals in Java code (DRY principle)
+- Unnecessary boolean literals in conditional expressions
+- Missing PropTypes validation in React components
+- Non-optimized React context causing unnecessary re-renders
+- Promise rejection with non-Error objects
+- Accessibility issues in modal components
+- PowerShell script linting warnings
+
+### Security
+- JWT token-based authentication (256-bit secret)
+- Role-based access control (ADMIN, VETERINARY_OFFICER)
+- No public registration - admin-only user creation
+- BCrypt password encryption
+- Token expiration and refresh handling
+- CORS configuration for secure frontend-backend communication
 
 ### Planned Features
 - User authentication and authorization with Spring Security
