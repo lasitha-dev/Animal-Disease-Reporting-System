@@ -37,6 +37,30 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles ConfigurationNotFoundException.
+     *
+     * @param ex the exception
+     * @return error response
+     */
+    @ExceptionHandler(ConfigurationNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleConfigurationNotFoundException(ConfigurationNotFoundException ex) {
+        logger.error("Configuration not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    /**
+     * Handles ConfigurationInUseException.
+     *
+     * @param ex the exception
+     * @return error response
+     */
+    @ExceptionHandler(ConfigurationInUseException.class)
+    public ResponseEntity<Map<String, Object>> handleConfigurationInUseException(ConfigurationInUseException ex) {
+        logger.error("Configuration in use: {} (usage count: {})", ex.getMessage(), ex.getUsageCount());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    /**
      * Handles IllegalArgumentException.
      *
      * @param ex the exception
