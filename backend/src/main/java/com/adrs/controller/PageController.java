@@ -2,6 +2,7 @@ package com.adrs.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -77,5 +78,24 @@ public class PageController {
     public String root() {
         logger.debug("Root path accessed, redirecting to dashboard");
         return "redirect:/dashboard";
+    }
+
+    /**
+     * Displays the configuration management page.
+     * Admin-only access.
+     *
+     * @param model the model for the view
+     * @return the configuration view name
+     */
+    @GetMapping("/configuration")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String configuration(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Configuration page accessed by admin: {}", username);
+        
+        model.addAttribute("username", username);
+        return "configuration/configuration";
     }
 }
