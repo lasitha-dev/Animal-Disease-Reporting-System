@@ -65,6 +65,13 @@
                             <span>Users</span>
                         </a>
                     </li>
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/configuration}" 
+                           th:classappend="${#strings.startsWith(#request.requestURI, '/configuration')} ? 'active' : ''">
+                            <span>⚙️</span>
+                            <span>Configuration</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
             

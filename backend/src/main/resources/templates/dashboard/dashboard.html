@@ -1,137 +1,183 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/default}"
+      lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>Dashboard - ADRS</title>
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" th:href="@{/css/variables.css}">
-    <link rel="stylesheet" th:href="@{/css/global.css}">
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
-    <link rel="stylesheet" th:href="@{/css/button.css}">
-    <link rel="stylesheet" th:href="@{/css/form.css}">
+    <!-- Chart.js CDN -->
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard">
-        <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
-            <div class="dashboard-header">
-                <div class="dashboard-logo">
-                    <span>🐄</span>
-                    <span>ADRS</span>
-                </div>
-            </div>
-            
-            <nav class="dashboard-nav">
-                <ul>
-                    <li>
-                        <a th:href="@{/dashboard}" class="active">
-                            <span>📊</span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a th:href="@{/farms}">
-                            <span>🏡</span>
-                            <span>Farms</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a th:href="@{/animals}">
-                            <span>🐮</span>
-                            <span>Animals</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a th:href="@{/diseases}">
-                            <span>🦠</span>
-                            <span>Diseases</span>
-                        </a>
-                    </li>
-                    <li sec:authorize="hasRole('ADMIN')">
-                        <a th:href="@{/users}">
-                            <span>👥</span>
-                            <span>Users</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="dashboard-user">
-                <div class="dashboard-user-info">
-                    <div class="dashboard-user-avatar" 
-                         th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">
-                        U
-                    </div>
-                    <div class="dashboard-user-details">
-                        <div class="dashboard-user-name" th:text="${#authentication.name}">Username</div>
-                        <div class="dashboard-user-role" 
-                             th:text="${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
-                            Role
-                        </div>
-                    </div>
-                </div>
-                <form th:action="@{/logout}" method="post">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit" class="btn btn-outline btn-block btn-sm">
-                        <span>🚪</span>
-                        <span>Logout</span>
-                    </button>
-                </form>
-            </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="dashboard-main">
-            <div class="dashboard-topbar">
-                <h1>Dashboard</h1>
-            </div>
-            
-            <div class="dashboard-content">
-                <!-- Welcome Card -->
-                <div class="dashboard-card mb-lg">
-                    <h2 style="margin-bottom: var(--spacing-md);" 
-                        th:text="'Welcome back, ' + ${#authentication.name} + '!'">
-                        Welcome back!
-                    </h2>
-                    <p style="color: var(--color-text-secondary);" 
-                       th:text="'You are logged in as ' + ${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', ' ')}">
-                        You are logged in as User
-                    </p>
-                </div>
-                
-                <!-- Dashboard Stats/Cards -->
-                <div class="dashboard-grid">
-                    <div class="dashboard-stat">
-                        <div class="dashboard-stat-icon">🏡</div>
-                        <h3 class="dashboard-stat-title">Farms</h3>
-                        <p class="dashboard-stat-description">Manage farm information</p>
-                    </div>
-                    
-                    <div class="dashboard-stat">
-                        <div class="dashboard-stat-icon">🐮</div>
-                        <h3 class="dashboard-stat-title">Animals</h3>
-                        <p class="dashboard-stat-description">Track animal records</p>
-                    </div>
-                    
-                    <div class="dashboard-stat">
-                        <div class="dashboard-stat-icon">🦠</div>
-                        <h3 class="dashboard-stat-title">Diseases</h3>
-                        <p class="dashboard-stat-description">Report and monitor diseases</p>
-                    </div>
-                    
-                    <div class="dashboard-stat" sec:authorize="hasRole('ADMIN')">
-                        <div class="dashboard-stat-icon">👥</div>
-                        <h3 class="dashboard-stat-title">Users</h3>
-                        <p class="dashboard-stat-description">Manage system users</p>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div layout:fragment="content">
+    <!-- Welcome Card -->
+    <div class="dashboard-card mb-lg">
+        <h2 style="margin-bottom: var(--spacing-md);" 
+            th:text="'Welcome back, ' + ${#authentication.name} + '!'">
+            Welcome back!
+        </h2>
+        <p style="color: var(--color-text-secondary);" 
+           th:text="'You are logged in as ' + ${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
+            You are logged in as User
+        </p>
     </div>
+
+    <!-- Statistics Cards -->
+    <div class="dashboard-grid mb-lg">
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🏡</div>
+            <h3 class="dashboard-stat-title">Farms</h3>
+            <p class="dashboard-stat-value" id="total-farms">-</p>
+            <p class="dashboard-stat-description">Total registered</p>
+        </div>
+        
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🐮</div>
+            <h3 class="dashboard-stat-title">Animals</h3>
+            <p class="dashboard-stat-value" id="total-animals">-</p>
+            <p class="dashboard-stat-description">Total tracked</p>
+        </div>
+        
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🦠</div>
+            <h3 class="dashboard-stat-title">Disease Reports</h3>
+            <p class="dashboard-stat-value" id="total-reports">-</p>
+            <p class="dashboard-stat-description">Active reports</p>
+        </div>
+        
+        <div class="dashboard-stat" sec:authorize="hasRole('ADMIN')">
+            <div class="dashboard-stat-icon">👥</div>
+            <h3 class="dashboard-stat-title">Users</h3>
+            <p class="dashboard-stat-value" id="total-users">-</p>
+            <p class="dashboard-stat-description">System users</p>
+        </div>
+    </div>
+
+    <!-- Configuration Statistics (Admin Only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="dashboard-grid mb-lg">
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🏷️</div>
+            <h3 class="dashboard-stat-title">Farm Types</h3>
+            <p class="dashboard-stat-value" id="total-farm-types">-</p>
+            <p class="dashboard-stat-description">Active types</p>
+        </div>
+        
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🏷️</div>
+            <h3 class="dashboard-stat-title">Animal Types</h3>
+            <p class="dashboard-stat-value" id="total-animal-types">-</p>
+            <p class="dashboard-stat-description">Active types</p>
+        </div>
+        
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">🏷️</div>
+            <h3 class="dashboard-stat-title">Diseases</h3>
+            <p class="dashboard-stat-value" id="total-diseases">-</p>
+            <p class="dashboard-stat-description">Active diseases</p>
+        </div>
+        
+        <div class="dashboard-stat">
+            <div class="dashboard-stat-icon">⚠️</div>
+            <h3 class="dashboard-stat-title">Notifiable</h3>
+            <p class="dashboard-stat-value" id="notifiable-diseases">-</p>
+            <p class="dashboard-stat-description">Notifiable diseases</p>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-lg">
+        <!-- Farm Type Distribution -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">📊 Farm Type Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="farmTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Severity Distribution -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">🦠 Disease Severity</h3>
+                <div class="chart-container">
+                    <canvas id="diseaseSeverityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Charts -->
+    <div sec:authorize="hasRole('ADMIN')" class="row mb-lg">
+        <!-- User Role Distribution -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">👥 User Distribution by Role</h3>
+                <div class="chart-container">
+                    <canvas id="userRoleChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Status Distribution -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">✓ User Status</h3>
+                <div class="chart-container">
+                    <canvas id="userStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Charts -->
+    <div class="row mb-lg">
+        <!-- Farm Registration Trend -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">📈 Farm Registrations (6 Months)</h3>
+                <div class="chart-container">
+                    <canvas id="farmTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Report Trend -->
+        <div class="col-md-6 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">📈 Disease Reports (6 Months)</h3>
+                <div class="chart-container">
+                    <canvas id="diseaseReportTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Registration Trend (Admin Only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="row mb-lg">
+        <div class="col-md-12 mb-md">
+            <div class="dashboard-card">
+                <h3 style="margin-bottom: var(--spacing-md);">📈 User Registrations (6 Months)</h3>
+                <div class="chart-container">
+                    <canvas id="userTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scripts">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Dashboard Charts Script -->
+    <script th:src="@{/js/dashboard-charts.js}"></script>
+</div>
 </body>
 </html>
