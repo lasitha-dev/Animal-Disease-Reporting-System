@@ -1,0 +1,17 @@
+# Controllers
+
+This directory contains REST and web controllers.
+
+## Purpose
+
+Controllers handle HTTP requests and return responses.
+
+## Planned Controllers:
+
+- `AuthController.java` - Authentication and login
+- `FarmController.java` - Farm management
+- `AnimalController.java` - Animal management
+- `DiseaseController.java` - Disease reporting
+- `DashboardController.java` - Dashboard views
+- `MapController.java` - Map visualization
+- `AdminController.java` - Admin operations

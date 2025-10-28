@@ -1,0 +1,17 @@
+# DTOs (Data Transfer Objects)
+
+This directory contains DTO classes for data transfer.
+
+## Purpose
+
+DTOs are used to transfer data between layers and to/from clients.
+
+## Planned DTOs:
+
+- `UserDTO.java`
+- `FarmDTO.java`
+- `AnimalDTO.java`
+- `DiseaseReportDTO.java`
+- `LoginRequest.java`
+- `LoginResponse.java`
+- `ErrorResponse.java`

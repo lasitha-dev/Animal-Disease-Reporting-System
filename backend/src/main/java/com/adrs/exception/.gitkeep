@@ -1,0 +1,15 @@
+# Exceptions
+
+This directory contains custom exception classes.
+
+## Purpose
+
+Custom exceptions for better error handling and messaging.
+
+## Planned Exceptions:
+
+- `ResourceNotFoundException.java`
+- `UnauthorizedException.java`
+- `BadRequestException.java`
+- `DuplicateResourceException.java`
+- `GlobalExceptionHandler.java` - @ControllerAdvice handler

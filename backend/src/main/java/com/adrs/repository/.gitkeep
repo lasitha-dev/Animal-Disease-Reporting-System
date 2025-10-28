@@ -1,0 +1,16 @@
+# Repositories
+
+This directory contains Spring Data JPA repository interfaces.
+
+## Purpose
+
+Repositories provide data access layer for database operations.
+
+## Planned Repositories:
+
+- `UserRepository.java`
+- `FarmRepository.java`
+- `AnimalRepository.java`
+- `AnimalTypeRepository.java`
+- `DiseaseRepository.java`
+- `DiseaseReportRepository.java`

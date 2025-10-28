@@ -1,0 +1,19 @@
+# Configuration Classes
+
+This directory contains Spring Boot configuration classes.
+
+## Purpose
+
+Configuration classes should be placed here, including:
+- Security configuration
+- Database configuration
+- Web MVC configuration
+- Bean definitions
+- Custom properties classes
+
+## Example Files (to be created):
+
+- `SecurityConfig.java` - Spring Security configuration
+- `WebConfig.java` - Web MVC configuration
+- `AppConfig.java` - Application-wide configuration
+- `DatabaseConfig.java` - Database and JPA configuration
