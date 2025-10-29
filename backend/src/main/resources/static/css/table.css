@@ -99,3 +99,13 @@
   background-color: var(--color-warning-light);
   color: var(--color-warning);
 }
+
+.badge-danger {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.badge-secondary {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}

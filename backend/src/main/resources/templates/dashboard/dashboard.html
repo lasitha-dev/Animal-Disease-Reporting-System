@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
@@ -6,12 +6,115 @@
       lang="en">
 <head>
     <title>Dashboard - ADRS</title>
-    <!-- Chart.js CDN -->
     <style>
+        .filter-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+        
+        .filter-button {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid var(--color-border);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .filter-button:hover {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+        
+        .filter-button.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        
+        .data-section {
+            display: none;
+        }
+        
+        .data-section.active {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .stat-card {
+            background: var(--color-bg-primary);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--color-primary);
+            margin: var(--spacing-sm) 0;
+        }
+        
+        .stat-label {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            background: var(--color-bg-primary);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: var(--color-bg-secondary);
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--color-border);
+        }
+        
+        .data-table td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .data-table tr:hover {
+            background: var(--color-bg-secondary);
+        }
+        
         .chart-container {
-            position: relative;
-            height: 300px;
-            margin-top: 1rem;
+            background: var(--color-bg-primary);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .chart-canvas {
+            max-height: 400px;
         }
     </style>
 </head>
@@ -29,155 +132,213 @@
         </p>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="dashboard-grid mb-lg">
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🏡</div>
-            <h3 class="dashboard-stat-title">Farms</h3>
-            <p class="dashboard-stat-value" id="total-farms">-</p>
-            <p class="dashboard-stat-description">Total registered</p>
+    <!-- Filter Controls -->
+    <div class="filter-controls">
+        <button class="filter-button active" data-filter="all">📊 Overview</button>
+        <button class="filter-button" data-filter="farm-types">🏗️ Farm Types</button>
+        <button class="filter-button" data-filter="animal-types">🐮 Animal Types</button>
+        <button class="filter-button" data-filter="diseases">🦠 Diseases</button>
+        <button class="filter-button" data-filter="users">👥 Users</button>
+    </div>
+
+    <!-- Overview Section (Default) -->
+    <div id="section-all" class="data-section active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🏗️</div>
+                <div class="stat-value" id="stat-farm-types">-</div>
+                <div class="stat-label">Farm Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🐮</div>
+                <div class="stat-value" id="stat-animal-types">-</div>
+                <div class="stat-label">Animal Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🦠</div>
+                <div class="stat-value" id="stat-diseases">-</div>
+                <div class="stat-label">Diseases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="stat-notifiable">-</div>
+                <div class="stat-label">Notifiable Diseases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👨‍⚕️</div>
+                <div class="stat-value" id="stat-admins">-</div>
+                <div class="stat-label">Administrators</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🔬</div>
+                <div class="stat-value" id="stat-vets">-</div>
+                <div class="stat-label">Veterinary Officers</div>
+            </div>
         </div>
         
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🐮</div>
-            <h3 class="dashboard-stat-title">Animals</h3>
-            <p class="dashboard-stat-value" id="total-animals">-</p>
-            <p class="dashboard-stat-description">Total tracked</p>
-        </div>
-        
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🦠</div>
-            <h3 class="dashboard-stat-title">Disease Reports</h3>
-            <p class="dashboard-stat-value" id="total-reports">-</p>
-            <p class="dashboard-stat-description">Active reports</p>
-        </div>
-        
-        <div class="dashboard-stat" sec:authorize="hasRole('ADMIN')">
-            <div class="dashboard-stat-icon">👥</div>
-            <h3 class="dashboard-stat-title">Users</h3>
-            <p class="dashboard-stat-value" id="total-users">-</p>
-            <p class="dashboard-stat-description">System users</p>
+        <div class="chart-container">
+            <h3 style="margin-bottom: var(--spacing-md);">System Configuration Overview</h3>
+            <canvas id="overview-chart" class="chart-canvas"></canvas>
         </div>
     </div>
 
-    <!-- Configuration Statistics (Admin Only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="dashboard-grid mb-lg">
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🏷️</div>
-            <h3 class="dashboard-stat-title">Farm Types</h3>
-            <p class="dashboard-stat-value" id="total-farm-types">-</p>
-            <p class="dashboard-stat-description">Active types</p>
+    <!-- Farm Types Section -->
+    <div id="section-farm-types" class="data-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🏗️</div>
+                <div class="stat-value" id="stat-total-farm-types">-</div>
+                <div class="stat-label">Total Farm Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="stat-active-farm-types">-</div>
+                <div class="stat-label">Active Farm Types</div>
+            </div>
         </div>
         
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🏷️</div>
-            <h3 class="dashboard-stat-title">Animal Types</h3>
-            <p class="dashboard-stat-value" id="total-animal-types">-</p>
-            <p class="dashboard-stat-description">Active types</p>
+        <div class="data-table">
+            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
+                Farm Types List
+            </h3>
+            <table id="farm-types-table">
+                <thead>
+                    <tr>
+                        <th>Type Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: var(--spacing-xl);">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Animal Types Section -->
+    <div id="section-animal-types" class="data-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🐮</div>
+                <div class="stat-value" id="stat-total-animal-types">-</div>
+                <div class="stat-label">Total Animal Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="stat-active-animal-types">-</div>
+                <div class="stat-label">Active Animal Types</div>
+            </div>
         </div>
         
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">🏷️</div>
-            <h3 class="dashboard-stat-title">Diseases</h3>
-            <p class="dashboard-stat-value" id="total-diseases">-</p>
-            <p class="dashboard-stat-description">Active diseases</p>
+        <div class="data-table">
+            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
+                Animal Types List
+            </h3>
+            <table id="animal-types-table">
+                <thead>
+                    <tr>
+                        <th>Type Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: var(--spacing-xl);">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Diseases Section -->
+    <div id="section-diseases" class="data-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🦠</div>
+                <div class="stat-value" id="stat-total-diseases">-</div>
+                <div class="stat-label">Total Diseases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="stat-notifiable-diseases">-</div>
+                <div class="stat-label">Notifiable Diseases</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔴</div>
+                <div class="stat-value" id="stat-critical-diseases">-</div>
+                <div class="stat-label">Critical Severity</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🟠</div>
+                <div class="stat-value" id="stat-high-diseases">-</div>
+                <div class="stat-label">High Severity</div>
+            </div>
         </div>
         
-        <div class="dashboard-stat">
-            <div class="dashboard-stat-icon">⚠️</div>
-            <h3 class="dashboard-stat-title">Notifiable</h3>
-            <p class="dashboard-stat-value" id="notifiable-diseases">-</p>
-            <p class="dashboard-stat-description">Notifiable diseases</p>
+        <div class="chart-container">
+            <h3 style="margin-bottom: var(--spacing-md);">Disease Severity Distribution</h3>
+            <canvas id="disease-chart" class="chart-canvas"></canvas>
+        </div>
+        
+        <div class="data-table">
+            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
+                Diseases List
+            </h3>
+            <table id="diseases-table">
+                <thead>
+                    <tr>
+                        <th>Disease Name</th>
+                        <th>Severity</th>
+                        <th>Notifiable</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: var(--spacing-xl);">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="row mb-lg">
-        <!-- Farm Type Distribution -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">📊 Farm Type Distribution</h3>
-                <div class="chart-container">
-                    <canvas id="farmTypeChart"></canvas>
-                </div>
+    <!-- Users Section -->
+    <div id="section-users" class="data-section">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👨‍⚕️</div>
+                <div class="stat-value" id="stat-admin-count">-</div>
+                <div class="stat-label">Administrators</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🔬</div>
+                <div class="stat-value" id="stat-vet-count">-</div>
+                <div class="stat-label">Veterinary Officers</div>
             </div>
         </div>
-
-        <!-- Disease Severity Distribution -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">🦠 Disease Severity</h3>
-                <div class="chart-container">
-                    <canvas id="diseaseSeverityChart"></canvas>
-                </div>
-            </div>
+        
+        <div class="chart-container">
+            <h3 style="margin-bottom: var(--spacing-md);">User Role Distribution</h3>
+            <canvas id="users-chart" class="chart-canvas"></canvas>
         </div>
     </div>
 
-    <!-- Admin Charts -->
-    <div sec:authorize="hasRole('ADMIN')" class="row mb-lg">
-        <!-- User Role Distribution -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">👥 User Distribution by Role</h3>
-                <div class="chart-container">
-                    <canvas id="userRoleChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Status Distribution -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">✓ User Status</h3>
-                <div class="chart-container">
-                    <canvas id="userStatusChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Trend Charts -->
-    <div class="row mb-lg">
-        <!-- Farm Registration Trend -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">📈 Farm Registrations (6 Months)</h3>
-                <div class="chart-container">
-                    <canvas id="farmTrendChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Disease Report Trend -->
-        <div class="col-md-6 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">📈 Disease Reports (6 Months)</h3>
-                <div class="chart-container">
-                    <canvas id="diseaseReportTrendChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- User Registration Trend (Admin Only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="row mb-lg">
-        <div class="col-md-12 mb-md">
-            <div class="dashboard-card">
-                <h3 style="margin-bottom: var(--spacing-md);">📈 User Registrations (6 Months)</h3>
-                <div class="chart-container">
-                    <canvas id="userTrendChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div layout:fragment="scripts">
-    <!-- Chart.js Library -->
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Dashboard Charts Script -->
-    <script th:src="@{/js/dashboard-charts.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
 </div>
 </body>
 </html>

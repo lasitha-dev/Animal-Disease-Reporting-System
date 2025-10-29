@@ -246,13 +246,15 @@ public class DashboardServiceImpl implements DashboardService {
         logger.debug("Fetching summary counts");
         
         Map<String, Long> counts = new HashMap<>();
-        counts.put("totalUsers", userRepository.count());
+        counts.put("adminCount", userRepository.countByRole(User.Role.ADMIN));
+        counts.put("vetCount", userRepository.countByRole(User.Role.VETERINARY_OFFICER));
         counts.put("totalFarms", farmRepository.count());
         counts.put("totalAnimals", animalRepository.count());
         counts.put("totalDiseaseReports", diseaseReportRepository.count());
-        counts.put("totalFarmTypes", farmTypeRepository.count());
-        counts.put("totalAnimalTypes", animalTypeRepository.count());
-        counts.put("totalDiseases", diseaseRepository.count());
+        counts.put("activeFarmTypes", farmTypeRepository.countByIsActiveTrue());
+        counts.put("activeAnimalTypes", animalTypeRepository.countByIsActiveTrue());
+        counts.put("activeDiseases", diseaseRepository.countByIsActiveTrue());
+        counts.put("notifiableDiseases", diseaseRepository.countByIsNotifiableTrue());
         
         return counts;
     }

@@ -6,19 +6,19 @@
 -- =====================================================
 
 -- Insert common farm types
-INSERT INTO farm_types (type_name, description, is_active) VALUES
-('Dairy', 'Farms primarily focused on milk production from dairy cattle or buffalo', TRUE),
-('Beef', 'Farms focused on raising cattle for meat production', TRUE),
-('Poultry', 'Farms raising chickens, ducks, turkeys, or other birds for eggs or meat', TRUE),
-('Mixed', 'Farms with multiple types of livestock (cattle, poultry, goats, etc.)', TRUE),
-('Sheep', 'Farms specializing in sheep for wool, meat, or milk production', TRUE),
-('Goat', 'Farms raising goats for milk, meat, or fiber production', TRUE),
-('Pig', 'Farms focused on pig/swine production for meat', TRUE),
-('Aquaculture', 'Fish and aquatic animal farming operations', TRUE),
-('Horse', 'Farms for breeding, training, or maintaining horses', TRUE),
-('Rabbit', 'Farms raising rabbits for meat or fur', TRUE),
-('Apiary', 'Bee farms for honey and pollination services', TRUE),
-('Other', 'Other types of livestock or specialty farming operations', TRUE)
+INSERT INTO farm_types (id, type_name, description, is_active, created_at) VALUES
+(gen_random_uuid(), 'Dairy', 'Farms primarily focused on milk production from dairy cattle or buffalo', TRUE, NOW()),
+(gen_random_uuid(), 'Beef', 'Farms focused on raising cattle for meat production', TRUE, NOW()),
+(gen_random_uuid(), 'Poultry', 'Farms raising chickens, ducks, turkeys, or other birds for eggs or meat', TRUE, NOW()),
+(gen_random_uuid(), 'Mixed', 'Farms with multiple types of livestock (cattle, poultry, goats, etc.)', TRUE, NOW()),
+(gen_random_uuid(), 'Sheep', 'Farms specializing in sheep for wool, meat, or milk production', TRUE, NOW()),
+(gen_random_uuid(), 'Goat', 'Farms raising goats for milk, meat, or fiber production', TRUE, NOW()),
+(gen_random_uuid(), 'Pig', 'Farms focused on pig/swine production for meat', TRUE, NOW()),
+(gen_random_uuid(), 'Aquaculture', 'Fish and aquatic animal farming operations', TRUE, NOW()),
+(gen_random_uuid(), 'Horse', 'Farms for breeding, training, or maintaining horses', TRUE, NOW()),
+(gen_random_uuid(), 'Rabbit', 'Farms raising rabbits for meat or fur', TRUE, NOW()),
+(gen_random_uuid(), 'Apiary', 'Bee farms for honey and pollination services', TRUE, NOW()),
+(gen_random_uuid(), 'Other', 'Other types of livestock or specialty farming operations', TRUE, NOW())
 ON CONFLICT (type_name) DO NOTHING;
 
 -- =====================================================
