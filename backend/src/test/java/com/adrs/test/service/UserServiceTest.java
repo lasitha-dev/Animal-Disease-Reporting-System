@@ -1,6 +1,5 @@
 package com.adrs.test.service;
 
-import com.adrs.config.JwtTokenProvider;
 import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
@@ -44,7 +43,6 @@ class UserServiceTest {
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_PASSWORD = "password123";
     private static final String HASHED_PASSWORD = "$2a$10$hashedPassword";
-    private static final String TEST_JWT_TOKEN = "test.jwt.token";
 
     @Mock
     private UserRepository userRepository;
@@ -54,9 +52,6 @@ class UserServiceTest {
 
     @Mock
     private AuthenticationManager authenticationManager;
-
-    @Mock
-    private JwtTokenProvider tokenProvider;
 
     @Mock
     private Authentication authentication;
@@ -103,7 +98,6 @@ class UserServiceTest {
         
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(tokenProvider.generateToken(authentication)).thenReturn(TEST_JWT_TOKEN);
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
@@ -112,13 +106,12 @@ class UserServiceTest {
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.getToken()).isEqualTo(TEST_JWT_TOKEN);
+        assertThat(response.getToken()).isEmpty(); // No JWT token in form-based auth
         assertThat(response.getUsername()).isEqualTo(TEST_USERNAME);
         assertThat(response.getEmail()).isEqualTo(TEST_EMAIL);
         assertThat(response.getRole()).isEqualTo("VETERINARY_OFFICER");
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(tokenProvider).generateToken(authentication);
         verify(userRepository).findByUsername(TEST_USERNAME);
         verify(userRepository).save(any(User.class));
     }
@@ -131,7 +124,6 @@ class UserServiceTest {
         
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
-        when(tokenProvider.generateToken(authentication)).thenReturn(TEST_JWT_TOKEN);
         when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
 
         // When/Then

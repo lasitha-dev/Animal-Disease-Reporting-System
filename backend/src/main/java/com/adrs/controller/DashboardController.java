@@ -3,10 +3,19 @@ package com.adrs.controller;
 import com.adrs.dto.ChartDataDTO;
 import com.adrs.dto.DashboardStatsDTO;
 import com.adrs.service.DashboardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +26,11 @@ import java.util.Map;
  * Provides endpoints for statistics, charts, and summary data.
  * Available to all authenticated users, but some endpoints are admin-only.
  */
+@Tag(name = "Dashboard Analytics", description = "APIs for dashboard statistics, charts, and trend data")
 @RestController
 @RequestMapping("/api/dashboard")
+@Validated
+@SecurityRequirement(name = "session-auth")
 public class DashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
@@ -36,6 +48,12 @@ public class DashboardController {
      *
      * @return dashboard statistics
      */
+    @Operation(summary = "Get dashboard statistics", 
+               description = "Retrieves comprehensive statistics including user counts, farms, animals, and disease reports")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved dashboard statistics"),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
     @GetMapping("/stats")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DashboardStatsDTO> getDashboardStatistics() {
@@ -49,6 +67,12 @@ public class DashboardController {
      *
      * @return summary counts map
      */
+    @Operation(summary = "Get summary counts", 
+               description = "Retrieves quick summary counts for dashboard overview cards")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved summary counts"),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
     @GetMapping("/summary")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Map<String, Long>> getSummaryCounts() {
@@ -68,7 +92,7 @@ public class DashboardController {
      * @return chart data for pie chart
      */
     @GetMapping("/charts/user-roles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ChartDataDTO> getUserRoleDistribution() {
         logger.info("GET /api/dashboard/charts/user-roles - Fetching user role distribution");
         ChartDataDTO chartData = dashboardService.getUserRoleDistribution();
@@ -139,13 +163,13 @@ public class DashboardController {
      * Get user registration trend for line chart.
      * Shows user registrations over time.
      *
-     * @param months number of months to include (default 6)
+     * @param months number of months to include (default 6, must be >= 1)
      * @return chart data for line chart
      */
     @GetMapping("/charts/user-trend")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ChartDataDTO> getUserRegistrationTrend(
-            @RequestParam(value = "months", defaultValue = "6") int months) {
+            @RequestParam(value = "months", defaultValue = "6") @Min(1) int months) {
         logger.info("GET /api/dashboard/charts/user-trend?months={} - Fetching user registration trend", months);
         ChartDataDTO chartData = dashboardService.getUserRegistrationTrend(months);
         return ResponseEntity.ok(chartData);
@@ -155,13 +179,13 @@ public class DashboardController {
      * Get farm registration trend for line chart.
      * Shows farm registrations over time.
      *
-     * @param months number of months to include (default 6)
+     * @param months number of months to include (default 6, must be >= 1)
      * @return chart data for line chart
      */
     @GetMapping("/charts/farm-trend")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ChartDataDTO> getFarmRegistrationTrend(
-            @RequestParam(value = "months", defaultValue = "6") int months) {
+            @RequestParam(value = "months", defaultValue = "6") @Min(1) int months) {
         logger.info("GET /api/dashboard/charts/farm-trend?months={} - Fetching farm registration trend", months);
         ChartDataDTO chartData = dashboardService.getFarmRegistrationTrend(months);
         return ResponseEntity.ok(chartData);
@@ -171,13 +195,13 @@ public class DashboardController {
      * Get disease report trend for line chart.
      * Shows disease reports over time.
      *
-     * @param months number of months to include (default 6)
+     * @param months number of months to include (default 6, must be >= 1)
      * @return chart data for line chart
      */
     @GetMapping("/charts/disease-report-trend")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ChartDataDTO> getDiseaseReportTrend(
-            @RequestParam(value = "months", defaultValue = "6") int months) {
+            @RequestParam(value = "months", defaultValue = "6") @Min(1) int months) {
         logger.info("GET /api/dashboard/charts/disease-report-trend?months={} - Fetching disease report trend", months);
         ChartDataDTO chartData = dashboardService.getDiseaseReportTrend(months);
         return ResponseEntity.ok(chartData);

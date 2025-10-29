@@ -121,4 +121,26 @@
   --container-max-width: 1280px;
   --sidebar-width: 250px;
   --header-height: 64px;
+
+  /* Additional Variables for Configuration Page */
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --card-bg: var(--color-bg-primary);
+  --border-radius-lg: var(--radius-lg);
+  --border-radius-md: var(--radius-md);
+  --border-radius-sm: var(--radius-sm);
+  --bg-secondary: var(--color-bg-secondary);
+  --border-color: var(--color-border);
+  --hover-bg: var(--color-gray-100);
+  --primary-color: var(--color-primary);
+  --primary-light: var(--color-primary-lighter);
+  --success-light: var(--color-success-light);
+  --success-color: var(--color-success);
+  --danger-light: var(--color-error-light);
+  --danger-color: var(--color-error);
+  --warning-light: var(--color-warning-light);
+  --warning-color: var(--color-warning);
+  --info-light: var(--color-info-light);
+  --info-color: var(--color-info);
+  --input-bg: var(--color-white);
 }

@@ -3,9 +3,18 @@ package com.adrs.controller;
 import com.adrs.dto.FarmTypeDTO;
 import com.adrs.dto.AnimalTypeDTO;
 import com.adrs.dto.DiseaseDTO;
+import com.adrs.model.Disease;
 import com.adrs.service.FarmTypeService;
 import com.adrs.service.AnimalTypeService;
 import com.adrs.service.DiseaseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +32,11 @@ import java.util.UUID;
  * Provides CRUD endpoints for farm types, animal types, and diseases.
  * All endpoints are restricted to ADMIN role only.
  */
+@Tag(name = "Configuration Management", description = "APIs for managing system configuration including farm types, animal types, and diseases")
 @RestController
 @RequestMapping("/api/configuration")
 @PreAuthorize("hasRole('ADMIN')")
+@SecurityRequirement(name = "session-auth")
 public class ConfigurationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
@@ -51,6 +62,11 @@ public class ConfigurationController {
      *
      * @return list of all farm types
      */
+    @Operation(summary = "Get all farm types", description = "Retrieves a list of all farm types in the system")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of farm types"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required", content = @Content)
+    })
     @GetMapping("/farm-types")
     public ResponseEntity<List<FarmTypeDTO>> getAllFarmTypes() {
         logger.info("GET /api/configuration/farm-types - Fetching all farm types");
@@ -64,8 +80,16 @@ public class ConfigurationController {
      * @param id the farm type ID
      * @return the farm type
      */
+    @Operation(summary = "Get farm type by ID", description = "Retrieves a specific farm type by its UUID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved farm type"),
+            @ApiResponse(responseCode = "404", description = "Farm type not found", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required", content = @Content)
+    })
     @GetMapping("/farm-types/{id}")
-    public ResponseEntity<FarmTypeDTO> getFarmTypeById(@PathVariable UUID id) {
+    public ResponseEntity<FarmTypeDTO> getFarmTypeById(
+            @Parameter(description = "UUID of the farm type to retrieve", required = true)
+            @PathVariable UUID id) {
         logger.info("GET /api/configuration/farm-types/{} - Fetching farm type", id);
         FarmTypeDTO farmType = farmTypeService.getFarmTypeById(id);
         return ResponseEntity.ok(farmType);
@@ -77,6 +101,12 @@ public class ConfigurationController {
      * @param farmTypeDTO the farm type data
      * @return the created farm type
      */
+    @Operation(summary = "Create farm type", description = "Creates a new farm type configuration")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Farm type created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin role required", content = @Content)
+    })
     @PostMapping("/farm-types")
     public ResponseEntity<FarmTypeDTO> createFarmType(@Valid @RequestBody FarmTypeDTO farmTypeDTO) {
         logger.info("POST /api/configuration/farm-types - Creating farm type: {}", farmTypeDTO.getTypeName());
@@ -154,6 +184,19 @@ public class ConfigurationController {
     public ResponseEntity<List<AnimalTypeDTO>> getAllAnimalTypes() {
         logger.info("GET /api/configuration/animal-types - Fetching all animal types");
         List<AnimalTypeDTO> animalTypes = animalTypeService.getAllAnimalTypes();
+        return ResponseEntity.ok(animalTypes);
+    }
+
+    /**
+     * Get active animal types only.
+     *
+     * @return list of active animal types
+     */
+    @GetMapping("/animal-types/active")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VETERINARY_OFFICER', 'FARMER')")
+    public ResponseEntity<List<AnimalTypeDTO>> getActiveAnimalTypes() {
+        logger.info("GET /api/configuration/animal-types/active - Fetching active animal types");
+        List<AnimalTypeDTO> animalTypes = animalTypeService.getActiveAnimalTypes();
         return ResponseEntity.ok(animalTypes);
     }
 
@@ -254,6 +297,26 @@ public class ConfigurationController {
         logger.info("GET /api/configuration/diseases - Fetching all diseases");
         List<DiseaseDTO> diseases = diseaseService.getAllDiseases();
         return ResponseEntity.ok(diseases);
+    }
+
+    /**
+     * Get diseases by severity level.
+     *
+     * @param severity the severity level
+     * @return list of diseases with specified severity
+     */
+    @GetMapping("/diseases/severity/{severity}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'VETERINARY_OFFICER', 'FARMER')")
+    public ResponseEntity<List<DiseaseDTO>> getDiseasesBySeverity(@PathVariable String severity) {
+        logger.info("GET /api/configuration/diseases/severity/{} - Fetching diseases by severity", severity);
+        try {
+            Disease.Severity severityEnum = Disease.Severity.valueOf(severity.toUpperCase());
+            List<DiseaseDTO> diseases = diseaseService.getDiseasesBySeverity(severityEnum);
+            return ResponseEntity.ok(diseases);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid severity level: " + severity + 
+                ". Valid values are: LOW, MEDIUM, HIGH, CRITICAL");
+        }
     }
 
     /**

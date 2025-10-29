@@ -1,5 +1,6 @@
 package com.adrs.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -8,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -22,6 +24,18 @@ public class PageController {
     private static final String LOGOUT_PARAM = "logout";
     private static final String LOGIN_VIEW = "auth/login";
     private static final String DASHBOARD_VIEW = "dashboard/dashboard";
+
+    /**
+     * Adds the current URI to the model for all requests.
+     * This is used for determining active menu items in the layout.
+     *
+     * @param request the HTTP request
+     * @return the current request URI
+     */
+    @ModelAttribute("currentUri")
+    public String getCurrentUri(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
 
     /**
      * Displays the login page.

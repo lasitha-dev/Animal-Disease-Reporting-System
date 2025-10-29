@@ -150,36 +150,37 @@
                 <h3 id="farm-type-modal-title">Add Farm Type</h3>
                 <button class="modal-close" data-modal="farm-type-modal">&times;</button>
             </div>
-            <form id="farm-type-form">
-                <input type="hidden" id="farm-type-id" name="id">
-                
-                <div class="form-group">
-                    <label for="farm-type-name">Type Name <span class="required">*</span></label>
-                    <input type="text" id="farm-type-name" name="typeName" class="form-control" 
-                           required maxlength="100" placeholder="e.g., Dairy Farm">
-                    <span class="error-message" id="farm-type-name-error"></span>
-                </div>
+            <div class="modal-body">
+                <form id="farm-type-form">
+                    <input type="hidden" id="farm-type-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="farm-type-name" class="required">Type Name</label>
+                        <input type="text" id="farm-type-name" name="typeName" class="form-control" 
+                               required maxlength="100" placeholder="e.g., Dairy Farm">
+                        <span class="error-message" id="farm-type-name-error"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label for="farm-type-description">Description</label>
-                    <textarea id="farm-type-description" name="description" class="form-control" 
-                              rows="3" maxlength="500" 
-                              placeholder="Brief description of this farm type"></textarea>
-                    <span class="error-message" id="farm-type-description-error"></span>
-                </div>
+                    <div class="form-group">
+                        <label for="farm-type-description">Description</label>
+                        <textarea id="farm-type-description" name="description" class="form-control" 
+                                  rows="4" maxlength="500" 
+                                  placeholder="Brief description of this farm type"></textarea>
+                        <span class="error-message" id="farm-type-description-error"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="farm-type-active" name="isActive" checked>
-                        <span>Active</span>
-                    </label>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-modal="farm-type-modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="farm-type-active" name="isActive" checked>
+                            <span>Active</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal="farm-type-modal">Cancel</button>
+                <button type="submit" form="farm-type-form" class="btn btn-primary">Save</button>
+            </div>
         </div>
     </div>
 
@@ -190,43 +191,44 @@
                 <h3 id="animal-type-modal-title">Add Animal Type</h3>
                 <button class="modal-close" data-modal="animal-type-modal">&times;</button>
             </div>
-            <form id="animal-type-form">
-                <input type="hidden" id="animal-type-id" name="id">
-                
-                <div class="form-group">
-                    <label for="animal-type-name">Type Name <span class="required">*</span></label>
-                    <input type="text" id="animal-type-name" name="typeName" class="form-control" 
-                           required maxlength="100" placeholder="e.g., Dairy Cattle">
-                    <span class="error-message" id="animal-type-name-error"></span>
-                </div>
+            <div class="modal-body">
+                <form id="animal-type-form">
+                    <input type="hidden" id="animal-type-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="animal-type-name" class="required">Type Name</label>
+                        <input type="text" id="animal-type-name" name="typeName" class="form-control" 
+                               required maxlength="100" placeholder="e.g., Dairy Cattle">
+                        <span class="error-message" id="animal-type-name-error"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label for="animal-type-species">Species <span class="required">*</span></label>
-                    <input type="text" id="animal-type-species" name="species" class="form-control" 
-                           required maxlength="100" placeholder="e.g., Bos taurus">
-                    <span class="error-message" id="animal-type-species-error"></span>
-                </div>
+                    <div class="form-group">
+                        <label for="animal-type-species" class="required">Species</label>
+                        <input type="text" id="animal-type-species" name="species" class="form-control" 
+                               required maxlength="100" placeholder="e.g., Bos taurus">
+                        <span class="error-message" id="animal-type-species-error"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label for="animal-type-description">Description</label>
-                    <textarea id="animal-type-description" name="description" class="form-control" 
-                              rows="3" maxlength="500" 
-                              placeholder="Brief description of this animal type"></textarea>
-                    <span class="error-message" id="animal-type-description-error"></span>
-                </div>
+                    <div class="form-group">
+                        <label for="animal-type-description">Description</label>
+                        <textarea id="animal-type-description" name="description" class="form-control" 
+                                  rows="4" maxlength="500" 
+                                  placeholder="Brief description of this animal type"></textarea>
+                        <span class="error-message" id="animal-type-description-error"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="animal-type-active" name="isActive" checked>
-                        <span>Active</span>
-                    </label>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-modal="animal-type-modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="animal-type-active" name="isActive" checked>
+                            <span>Active</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal="animal-type-modal">Cancel</button>
+                <button type="submit" form="animal-type-form" class="btn btn-primary">Save</button>
+            </div>
         </div>
     </div>
 
@@ -237,78 +239,79 @@
                 <h3 id="disease-modal-title">Add Disease</h3>
                 <button class="modal-close" data-modal="disease-modal">&times;</button>
             </div>
-            <form id="disease-form">
-                <input type="hidden" id="disease-id" name="id">
-                
-                <div class="form-group">
-                    <label for="disease-name">Disease Name <span class="required">*</span></label>
-                    <input type="text" id="disease-name" name="diseaseName" class="form-control" 
-                           required maxlength="100" placeholder="e.g., Foot and Mouth Disease">
-                    <span class="error-message" id="disease-name-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="disease-code">Disease Code</label>
-                    <input type="text" id="disease-code" name="diseaseCode" class="form-control" 
-                           maxlength="20" placeholder="e.g., FMD-001">
-                    <span class="error-message" id="disease-code-error"></span>
-                </div>
-
-                <div class="form-row">
+            <div class="modal-body">
+                <form id="disease-form">
+                    <input type="hidden" id="disease-id" name="id">
+                    
                     <div class="form-group">
-                        <label for="disease-severity">Severity <span class="required">*</span></label>
-                        <select id="disease-severity" name="severity" class="form-control" required>
-                            <option value="">Select severity...</option>
-                            <option value="LOW">Low</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="HIGH">High</option>
-                            <option value="CRITICAL">Critical</option>
-                        </select>
-                        <span class="error-message" id="disease-severity-error"></span>
+                        <label for="disease-name" class="required">Disease Name</label>
+                        <input type="text" id="disease-name" name="diseaseName" class="form-control" 
+                               required maxlength="100" placeholder="e.g., Foot and Mouth Disease">
+                        <span class="error-message" id="disease-name-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disease-code">Disease Code</label>
+                        <input type="text" id="disease-code" name="diseaseCode" class="form-control" 
+                               maxlength="20" placeholder="e.g., FMD-001">
+                        <span class="error-message" id="disease-code-error"></span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="disease-severity" class="required">Severity</label>
+                            <select id="disease-severity" name="severity" class="form-control" required>
+                                <option value="">Select severity...</option>
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="HIGH">High</option>
+                                <option value="CRITICAL">Critical</option>
+                            </select>
+                            <span class="error-message" id="disease-severity-error"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="disease-notifiable" name="isNotifiable">
+                                <span>Notifiable Disease</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disease-description">Description</label>
+                        <textarea id="disease-description" name="description" class="form-control" 
+                                  rows="3" maxlength="1000" 
+                                  placeholder="Brief description of this disease"></textarea>
+                        <span class="error-message" id="disease-description-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disease-symptoms">Symptoms</label>
+                        <textarea id="disease-symptoms" name="symptoms" class="form-control" 
+                                  rows="2" maxlength="1000" 
+                                  placeholder="Common symptoms"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disease-treatment">Treatment</label>
+                        <textarea id="disease-treatment" name="treatment" class="form-control" 
+                                  rows="2" maxlength="1000" 
+                                  placeholder="Treatment recommendations"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="disease-notifiable" name="isNotifiable">
-                            <span>Notifiable Disease</span>
+                            <input type="checkbox" id="disease-active" name="isActive" checked>
+                            <span>Active</span>
                         </label>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="disease-description">Description</label>
-                    <textarea id="disease-description" name="description" class="form-control" 
-                              rows="3" maxlength="1000" 
-                              placeholder="Brief description of this disease"></textarea>
-                    <span class="error-message" id="disease-description-error"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="disease-symptoms">Symptoms</label>
-                    <textarea id="disease-symptoms" name="symptoms" class="form-control" 
-                              rows="2" maxlength="1000" 
-                              placeholder="Common symptoms"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="disease-treatment">Treatment</label>
-                    <textarea id="disease-treatment" name="treatment" class="form-control" 
-                              rows="2" maxlength="1000" 
-                              placeholder="Treatment recommendations"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="disease-active" name="isActive" checked>
-                        <span>Active</span>
-                    </label>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-modal="disease-modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal="disease-modal">Cancel</button>
+                <button type="submit" form="disease-form" class="btn btn-primary">Save</button>
+            </div>
         </div>
     </div>
 

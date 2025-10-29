@@ -49,9 +49,11 @@ public class Disease {
 
     /**
      * Array of animal type IDs that can be affected by this disease.
-     * Stored as TEXT[] in PostgreSQL for flexibility.
+     * Note: In PostgreSQL, this is stored as TEXT[]. 
+     * In H2 (for testing), Hibernate serializes it as binary.
+     * For production, use PostgreSQL where it's properly stored as an array.
      */
-    @Column(name = "affected_animal_types", columnDefinition = "TEXT[]")
+    @Column(name = "affected_animal_types")
     private String[] affectedAnimalTypes;
 
     /**

@@ -55,6 +55,12 @@
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
 
+        <!-- Thymeleaf Layout Dialect -->
+        <dependency>
+            <groupId>nz.net.ultraq.thymeleaf</groupId>
+            <artifactId>thymeleaf-layout-dialect</artifactId>
+        </dependency>
+
         <!-- JWT Dependencies - COMMENTED OUT (Using form-based authentication)
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -142,6 +148,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Spring Boot Testcontainers Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Spring Security Test -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -153,6 +166,26 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers (for integration testing with real PostgreSQL) -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
 
@@ -188,12 +221,6 @@
                     <source>21</source>
                     <target>21</target>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>default-testCompile</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- Maven Surefire Plugin (for running tests) -->

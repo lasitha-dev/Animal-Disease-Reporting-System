@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="${pageTitle} ?: 'Animal Disease Reporting System'">ADRS</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Animal Disease Reporting System</title>
     
     <!-- CSS Files -->
     <link rel="stylesheet" th:href="@{/css/variables.css}">
@@ -16,6 +17,11 @@
     <link rel="stylesheet" th:href="@{/css/form.css}">
     <link rel="stylesheet" th:href="@{/css/table.css}">
     <link rel="stylesheet" th:href="@{/css/modal.css}">
+    
+    <!-- Page-specific CSS and other head content -->
+    <th:block layout:fragment="head">
+        <!-- Additional head content will be inserted here -->
+    </th:block>
 </head>
 <body>
     <div class="dashboard">
@@ -32,42 +38,21 @@
                 <ul>
                     <li>
                         <a th:href="@{/dashboard}" 
-                           th:classappend="${#request.requestURI == '/dashboard'} ? 'active' : ''">
+                           th:classappend="${currentUri == '/dashboard'} ? 'active' : ''">
                             <span>📊</span>
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    <li>
-                        <a th:href="@{/farms}" 
-                           th:classappend="${#strings.startsWith(#request.requestURI, '/farms')} ? 'active' : ''">
-                            <span>🏡</span>
-                            <span>Farms</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a th:href="@{/animals}" 
-                           th:classappend="${#strings.startsWith(#request.requestURI, '/animals')} ? 'active' : ''">
-                            <span>🐮</span>
-                            <span>Animals</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a th:href="@{/diseases}" 
-                           th:classappend="${#strings.startsWith(#request.requestURI, '/diseases')} ? 'active' : ''">
-                            <span>🦠</span>
-                            <span>Diseases</span>
-                        </a>
-                    </li>
                     <li sec:authorize="hasRole('ADMIN')">
                         <a th:href="@{/users}" 
-                           th:classappend="${#strings.startsWith(#request.requestURI, '/users')} ? 'active' : ''">
+                           th:classappend="${#strings.startsWith(currentUri, '/users')} ? 'active' : ''">
                             <span>👥</span>
                             <span>Users</span>
                         </a>
                     </li>
                     <li sec:authorize="hasRole('ADMIN')">
                         <a th:href="@{/configuration}" 
-                           th:classappend="${#strings.startsWith(#request.requestURI, '/configuration')} ? 'active' : ''">
+                           th:classappend="${#strings.startsWith(currentUri, '/configuration')} ? 'active' : ''">
                             <span>⚙️</span>
                             <span>Configuration</span>
                         </a>

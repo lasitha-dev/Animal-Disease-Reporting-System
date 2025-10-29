@@ -3,6 +3,7 @@ package com.adrs.controller;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
 import com.adrs.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,18 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    /**
+     * Adds the current URI to the model for all requests.
+     * This is used for determining active menu items in the layout.
+     *
+     * @param request the HTTP request
+     * @return the current request URI
+     */
+    @ModelAttribute("currentUri")
+    public String getCurrentUri(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
 
     /**
      * Displays the user management page with all users.
