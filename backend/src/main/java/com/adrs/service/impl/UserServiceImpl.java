@@ -112,6 +112,8 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setProvince(userRequest.getProvince());
+        user.setDistrict(userRequest.getDistrict());
         user.setRole(userRequest.getRole());
         user.setActive(Boolean.TRUE.equals(userRequest.getActive()));
 
@@ -155,6 +157,8 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setProvince(userRequest.getProvince());
+        user.setDistrict(userRequest.getDistrict());
         user.setRole(userRequest.getRole());
         user.setActive(userRequest.getActive());
 

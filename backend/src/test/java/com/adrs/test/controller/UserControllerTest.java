@@ -3,6 +3,8 @@ package com.adrs.test.controller;
 import com.adrs.controller.UserController;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -67,6 +69,8 @@ class UserControllerTest {
         userRequest.setFirstName("Test");
         userRequest.setLastName("User");
         userRequest.setPhoneNumber("+94771234567");
+        userRequest.setProvince(Province.WESTERN);
+        userRequest.setDistrict(District.COLOMBO);
         userRequest.setRole(User.Role.VETERINARY_OFFICER);
         userRequest.setActive(true);
 
@@ -77,6 +81,8 @@ class UserControllerTest {
         userResponse.setFirstName("Test");
         userResponse.setLastName("User");
         userResponse.setPhoneNumber("+94771234567");
+        userResponse.setProvince(Province.WESTERN.name());
+        userResponse.setDistrict(District.COLOMBO.name());
         userResponse.setRole("VETERINARY_OFFICER");
         userResponse.setActive(true);
         userResponse.setCreatedAt(LocalDateTime.now());

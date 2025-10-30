@@ -1,5 +1,7 @@
 package com.adrs.test.repository;
 
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +46,8 @@ class UserRepositoryTest {
         testUser.setFirstName("Test");
         testUser.setLastName("User");
         testUser.setPhoneNumber("+94771234567");
+        testUser.setProvince(Province.WESTERN);
+        testUser.setDistrict(District.COLOMBO);
         testUser.setRole(User.Role.VETERINARY_OFFICER);
         testUser.setActive(true);
     }

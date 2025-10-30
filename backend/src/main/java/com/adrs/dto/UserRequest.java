@@ -1,5 +1,7 @@
 package com.adrs.dto;
 
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -39,6 +41,10 @@ public class UserRequest {
 
     @Size(max = 20, message = "Phone number must not exceed 20 characters")
     private String phoneNumber;
+
+    private Province province;
+
+    private District district;
 
     @NotNull(message = "Role is required")
     private User.Role role;

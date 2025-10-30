@@ -22,6 +22,8 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+    private String province;
+    private String district;
     private String role;
     private Boolean active;
     private LocalDateTime createdAt;
@@ -42,6 +44,8 @@ public class UserResponse {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getPhoneNumber(),
+                user.getProvince() != null ? user.getProvince().name() : null,
+                user.getDistrict() != null ? user.getDistrict().name() : null,
                 user.getRole().name(),
                 user.getActive(),
                 user.getCreatedAt(),

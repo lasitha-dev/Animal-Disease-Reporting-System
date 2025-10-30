@@ -5,6 +5,8 @@ import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
 import com.adrs.exception.ResourceNotFoundException;
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.UserRepository;
 import com.adrs.service.impl.UserServiceImpl;
@@ -75,6 +77,8 @@ class UserServiceTest {
         testUser.setFirstName("Test");
         testUser.setLastName("User");
         testUser.setPhoneNumber("+94771234567");
+        testUser.setProvince(Province.WESTERN);
+        testUser.setDistrict(District.COLOMBO);
         testUser.setRole(User.Role.VETERINARY_OFFICER);
         testUser.setActive(true);
         testUser.setCreatedAt(LocalDateTime.now());
@@ -86,6 +90,8 @@ class UserServiceTest {
         userRequest.setFirstName("Test");
         userRequest.setLastName("User");
         userRequest.setPhoneNumber("+94771234567");
+        userRequest.setProvince(Province.WESTERN);
+        userRequest.setDistrict(District.COLOMBO);
         userRequest.setRole(User.Role.VETERINARY_OFFICER);
         userRequest.setActive(true);
     }
