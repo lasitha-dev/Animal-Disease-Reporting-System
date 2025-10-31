@@ -2,9 +2,11 @@ package com.adrs.service;
 
 import com.adrs.dto.ChartDataDTO;
 import com.adrs.dto.DashboardStatsDTO;
+import com.adrs.dto.ProvinceUserDistributionDTO;
 import com.adrs.model.Disease;
 import com.adrs.model.User;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -85,4 +87,32 @@ public interface DashboardService {
      * @return map of key metrics
      */
     Map<String, Long> getSummaryCounts();
+
+    /**
+     * Get user distribution by province with district breakdown.
+     * Optionally filter by user role.
+     *
+     * @param role the user role to filter by (null for all users)
+     * @return list of province distribution data with user counts and district breakdown
+     */
+    List<ProvinceUserDistributionDTO> getUserDistributionByProvince(User.Role role);
+
+    /**
+     * Get user distribution by district (all 25 districts across Sri Lanka).
+     * Optionally filter by user role.
+     *
+     * @param role the user role to filter by (null for all users)
+     * @return list of district distribution data with user counts
+     */
+    List<com.adrs.dto.DistrictUserDistributionDTO> getUserDistributionByDistrict(User.Role role);
+
+    /**
+     * Get all active users in a specific district.
+     * Optionally filter by user role.
+     *
+     * @param district the district to get users from
+     * @param role     the user role to filter by (null for all users)
+     * @return list of users in the district
+     */
+    List<User> getUsersByDistrictAndRole(com.adrs.model.District district, User.Role role);
 }

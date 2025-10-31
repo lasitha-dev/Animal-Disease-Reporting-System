@@ -2,6 +2,10 @@ package com.adrs.service.impl;
 
 import com.adrs.dto.ChartDataDTO;
 import com.adrs.dto.DashboardStatsDTO;
+import com.adrs.dto.DistrictUserDistributionDTO;
+import com.adrs.dto.ProvinceUserDistributionDTO;
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.*;
 import com.adrs.service.DashboardService;
@@ -257,5 +261,118 @@ public class DashboardServiceImpl implements DashboardService {
         counts.put("notifiableDiseases", diseaseRepository.countByIsNotifiableTrue());
         
         return counts;
+    }
+
+    @Override
+    public List<ProvinceUserDistributionDTO> getUserDistributionByProvince(User.Role role) {
+        logger.debug("Fetching user distribution by province" + (role != null ? " for role: " + role : ""));
+        
+        List<ProvinceUserDistributionDTO> distribution = new ArrayList<>();
+        
+        // Get province-level counts
+        List<Object[]> provinceCounts = (role != null) 
+            ? userRepository.countUsersByProvinceAndRole(role)
+            : userRepository.countUsersByProvince();
+        
+        // Build distribution with district breakdown for each province
+        for (Object[] row : provinceCounts) {
+            Province province = (Province) row[0];
+            Long userCount = (Long) row[1];
+            
+            // Get district breakdown for this province
+            Map<String, Long> districtBreakdown = getDistrictBreakdown(province, role);
+            
+            ProvinceUserDistributionDTO dto = new ProvinceUserDistributionDTO(
+                province.name(),
+                province.getDisplayName(),
+                userCount,
+                districtBreakdown
+            );
+            
+            distribution.add(dto);
+        }
+        
+        // Sort by province name for consistent ordering
+        distribution.sort(Comparator.comparing(ProvinceUserDistributionDTO::getProvince));
+        
+        logger.info("Fetched user distribution for {} provinces" + (role != null ? " (role: " + role + ")" : ""), 
+                   distribution.size());
+        
+        return distribution;
+    }
+
+    /**
+     * Helper method to get district breakdown for a specific province.
+     *
+     * @param province the province to get district breakdown for
+     * @param role     the optional role filter
+     * @return map of district display names to user counts
+     */
+    private Map<String, Long> getDistrictBreakdown(Province province, User.Role role) {
+        List<Object[]> districtCounts = (role != null)
+            ? userRepository.countUsersByDistrictAndRole(province, role)
+            : userRepository.countUsersByDistrict(province);
+        
+        Map<String, Long> breakdown = new LinkedHashMap<>();
+        for (Object[] row : districtCounts) {
+            District district = (District) row[0];
+            Long count = (Long) row[1];
+            breakdown.put(district.getDisplayName(), count);
+        }
+        
+        return breakdown;
+    }
+
+    @Override
+    public List<DistrictUserDistributionDTO> getUserDistributionByDistrict(User.Role role) {
+        logger.debug("Fetching user distribution by district" + (role != null ? " for role: " + role : ""));
+        
+        List<DistrictUserDistributionDTO> distribution = new ArrayList<>();
+        
+        // Iterate through all 25 districts in the District enum
+        for (District district : District.values()) {
+            Long count = (role == null) 
+                ? userRepository.countActiveUsersByDistrict(district)
+                : userRepository.countActiveUsersByDistrictAndRole(district, role);
+            
+            DistrictUserDistributionDTO dto = new DistrictUserDistributionDTO(
+                district.name(),
+                district.getDisplayName(),
+                count
+            );
+            
+            distribution.add(dto);
+        }
+        
+        // Sort by display name for consistent ordering
+        distribution.sort(Comparator.comparing(DistrictUserDistributionDTO::getDisplayName));
+        
+        logger.info("Fetched user distribution for {} districts" + (role != null ? " (role: " + role + ")" : ""), 
+                   distribution.size());
+        
+        return distribution;
+    }
+
+    @Override
+    public List<User> getUsersByDistrictAndRole(District district, User.Role role) {
+        logger.debug("Fetching users for district: {} with role: {}", 
+                    district != null ? district.name() : "null", 
+                    role != null ? role.name() : "all");
+        
+        if (district == null) {
+            logger.warn("Attempted to fetch users with null district");
+            return Collections.emptyList();
+        }
+        
+        List<User> users = (role == null)
+            ? userRepository.findActiveUsersByDistrict(district)
+            : userRepository.findActiveUsersByDistrictAndRole(district, role);
+        
+        logger.info("Found {} users in district {} {}", 
+                   users.size(), 
+                   district.getDisplayName(),
+                   role != null ? "with role " + role : "");
+        
+        return users;
     }
 }

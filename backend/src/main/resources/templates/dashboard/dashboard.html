@@ -6,6 +6,7 @@
       lang="en">
 <head>
     <title>Dashboard - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/map.css}">
     <style>
         .filter-controls {
             display: flex;
@@ -334,10 +335,75 @@
             <h3 style="margin-bottom: var(--spacing-md);">User Role Distribution</h3>
             <canvas id="users-chart" class="chart-canvas"></canvas>
         </div>
+
+        <!-- Province Map Section -->
+        <div class="map-container">
+            <h3>User Distribution by Province</h3>
+            
+            <!-- Role Filter Buttons -->
+            <div class="map-filters">
+                <button class="map-filter-btn active" data-role="">
+                    <span>📊</span> All Users
+                </button>
+                <button class="map-filter-btn" data-role="ADMIN">
+                    <span>👨‍⚕️</span> Administrators
+                </button>
+                <button class="map-filter-btn" data-role="VETERINARY_OFFICER">
+                    <span>👨‍🔬</span> Veterinary Officers
+                </button>
+            </div>
+            
+            <!-- Map Loading State -->
+            <div id="map-loading" class="map-loading" style="display: none;">
+                Loading map data
+            </div>
+            
+            <!-- Map Container -->
+            <div id="sri-lanka-map" class="province-map"></div>
+            
+            <!-- Color Legend -->
+            <div class="map-legend">
+                <span>Low</span>
+                <div class="legend-gradient"></div>
+                <span>High</span>
+            </div>
+        </div>
     </div>
 
+    <!-- Province User List Modal -->
+    <div id="province-modal" class="province-modal">
+        <div class="province-modal-content">
+            <div class="province-modal-header">
+                <h3 id="province-modal-title">Province Users</h3>
+                <button class="province-modal-close" id="close-province-modal" aria-label="Close">
+                    ×
+                </button>
+            </div>
+            <div class="province-modal-body">
+                <!-- Stats -->
+                <div class="province-modal-stats" id="province-modal-stats"></div>
+                
+                <!-- Loading State -->
+                <div id="province-modal-loading" class="province-modal-loading" style="display: none;">
+                    Loading users...
+                </div>
+                
+                <!-- Error State -->
+                <div id="province-modal-error" class="province-modal-error" style="display: none;">
+                    Failed to load users. Please try again.
+                </div>
+                
+                <!-- User List -->
+                <ul id="province-user-list" class="province-user-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raphael.js CDN for SVG map rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/sri-lanka-map.js}"></script>
     <script th:src="@{/js/dashboard.js}"></script>
 </div>
 </body>

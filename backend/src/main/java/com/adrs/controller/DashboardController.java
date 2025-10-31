@@ -2,7 +2,14 @@ package com.adrs.controller;
 
 import com.adrs.dto.ChartDataDTO;
 import com.adrs.dto.DashboardStatsDTO;
+import com.adrs.dto.DistrictUserDistributionDTO;
+import com.adrs.dto.ProvinceUserDistributionDTO;
+import com.adrs.dto.UserResponse;
+import com.adrs.model.District;
+import com.adrs.model.Province;
+import com.adrs.model.User;
 import com.adrs.service.DashboardService;
+import com.adrs.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,12 +41,13 @@ import java.util.Map;
 public class DashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
-    private static final int DEFAULT_TREND_MONTHS = 6;
     
     private final DashboardService dashboardService;
+    private final UserService userService;
 
-    public DashboardController(DashboardService dashboardService) {
+    public DashboardController(DashboardService dashboardService, UserService userService) {
         this.dashboardService = dashboardService;
+        this.userService = userService;
     }
 
     /**
@@ -257,5 +265,188 @@ public class DashboardController {
         );
         
         return ResponseEntity.ok(pieCharts);
+    }
+
+    // ========================================
+    // GEOGRAPHIC DISTRIBUTION ENDPOINTS
+    // ========================================
+
+    /**
+     * Get user distribution by province with district breakdown.
+     * Optionally filter by user role.
+     *
+     * @param role optional role filter (ADMIN, VETERINARY_OFFICER)
+     * @return list of province distribution data
+     */
+    @Operation(summary = "Get user distribution by province",
+               description = "Retrieves user counts grouped by province with district-level breakdown. Supports role filtering.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved province distribution"),
+            @ApiResponse(responseCode = "400", description = "Invalid role parameter", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
+    @GetMapping("/users/province-distribution")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ProvinceUserDistributionDTO>> getUserProvinceDistribution(
+            @Parameter(description = "User role to filter by (ADMIN or VETERINARY_OFFICER)")
+            @RequestParam(required = false) String role) {
+        
+        logger.info("GET /api/dashboard/users/province-distribution - Fetching user province distribution" 
+                   + (role != null ? " for role: " + role : ""));
+        
+        User.Role userRole = null;
+        if (role != null && !role.isEmpty()) {
+            try {
+                userRole = User.Role.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid role parameter: {}", role);
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        
+        List<ProvinceUserDistributionDTO> distribution = dashboardService.getUserDistributionByProvince(userRole);
+        return ResponseEntity.ok(distribution);
+    }
+
+    /**
+     * Get users by province with optional role filter.
+     * Used by the modal to display user details for a specific province.
+     *
+     * @param province the province enum name
+     * @param role     optional role filter
+     * @return list of users in the province
+     */
+    @Operation(summary = "Get users by province",
+               description = "Retrieves detailed user list for a specific province, optionally filtered by role")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
+            @ApiResponse(responseCode = "400", description = "Invalid province or role parameter", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
+    @GetMapping("/users/by-province")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<UserResponse>> getUsersByProvince(
+            @Parameter(description = "Province enum name (e.g., WESTERN, CENTRAL)")
+            @RequestParam String province,
+            @Parameter(description = "User role to filter by (ADMIN or VETERINARY_OFFICER)")
+            @RequestParam(required = false) String role) {
+        
+        logger.info("GET /api/dashboard/users/by-province - Province: {}, Role: {}", province, role);
+        
+        Province provinceEnum;
+        try {
+            provinceEnum = Province.valueOf(province.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid province parameter: {}", province);
+            return ResponseEntity.badRequest().build();
+        }
+        
+        User.Role userRole = null;
+        if (role != null && !role.isEmpty()) {
+            try {
+                userRole = User.Role.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid role parameter: {}", role);
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        
+        List<UserResponse> users = userService.getUsersByProvinceAndRole(provinceEnum, userRole);
+        return ResponseEntity.ok(users);
+    }
+
+    // ========================================
+    // DISTRICT-LEVEL USER DISTRIBUTION
+    // ========================================
+
+    /**
+     * Get user distribution by district (all 25 districts).
+     * Optionally filter by user role.
+     * Used by the interactive Sri Lanka map visualization.
+     *
+     * @param role optional role filter
+     * @return list of district distribution data
+     */
+    @Operation(summary = "Get user distribution by district",
+               description = "Retrieves user counts for all 25 districts in Sri Lanka. Supports role filtering.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved district distribution"),
+            @ApiResponse(responseCode = "400", description = "Invalid role parameter", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
+    @GetMapping("/users/district-distribution")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<DistrictUserDistributionDTO>> getUserDistrictDistribution(
+            @Parameter(description = "User role to filter by (ADMIN or VETERINARY_OFFICER)")
+            @RequestParam(required = false) String role) {
+        
+        logger.info("GET /api/dashboard/users/district-distribution - Fetching user district distribution" 
+                   + (role != null ? " for role: " + role : ""));
+        
+        User.Role userRole = null;
+        if (role != null && !role.isEmpty()) {
+            try {
+                userRole = User.Role.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid role parameter: {}", role);
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        
+        List<DistrictUserDistributionDTO> distribution = dashboardService.getUserDistributionByDistrict(userRole);
+        return ResponseEntity.ok(distribution);
+    }
+
+    /**
+     * Get users by district with optional role filter.
+     * Used by the map modal to display user details for a specific district.
+     *
+     * @param district the district enum name
+     * @param role     optional role filter
+     * @return list of users in the district
+     */
+    @Operation(summary = "Get users by district",
+               description = "Retrieves detailed user list for a specific district, optionally filtered by role")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved users"),
+            @ApiResponse(responseCode = "400", description = "Invalid district or role parameter", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Authentication required", content = @Content)
+    })
+    @GetMapping("/users/by-district")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<UserResponse>> getUsersByDistrict(
+            @Parameter(description = "District enum name (e.g., COLOMBO, GAMPAHA, KANDY)")
+            @RequestParam String district,
+            @Parameter(description = "User role to filter by (ADMIN or VETERINARY_OFFICER)")
+            @RequestParam(required = false) String role) {
+        
+        logger.info("GET /api/dashboard/users/by-district - District: {}, Role: {}", district, role);
+        
+        District districtEnum;
+        try {
+            districtEnum = District.valueOf(district.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid district parameter: {}", district);
+            return ResponseEntity.badRequest().build();
+        }
+        
+        User.Role userRole = null;
+        if (role != null && !role.isEmpty()) {
+            try {
+                userRole = User.Role.valueOf(role.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid role parameter: {}", role);
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        
+        List<User> users = dashboardService.getUsersByDistrictAndRole(districtEnum, userRole);
+        
+        // Convert to UserResponse DTOs
+        List<UserResponse> userResponses = users.stream()
+                .map(UserResponse::fromUser)
+                .collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(userResponses);
     }
 }

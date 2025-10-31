@@ -365,7 +365,244 @@ async function loadUsersData() {
     
     // Load chart
     loadUsersChart(stats.adminCount || 0, stats.vetCount || 0);
+    
+    // Initialize and load district map
+    await initDistrictMap();
 }
+
+// Initialize district map
+async function initDistrictMap() {
+    // Initialize the map using the new district map implementation
+    const mapContainer = document.getElementById('sri-lanka-map');
+    if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+    }
+    
+    // Initialize map with click handler
+    window.districtMapInstance = initializeDistrictMap('sri-lanka-map', handleDistrictClick);
+    
+    // Load initial data (all users)
+    await loadDistrictMapData();
+    
+    // Setup role filter buttons
+    setupMapFilters();
+    
+    // Setup modal handlers
+    setupDistrictModal();
+}
+
+// Handle district click event
+function handleDistrictClick(districtKey, districtName) {
+    const activeFilter = document.querySelector('.map-filter-btn.active');
+    const role = activeFilter ? activeFilter.getAttribute('data-role') : null;
+    
+    showDistrictModal({
+        district: districtKey,
+        displayName: districtName,
+        role: role
+    });
+}
+
+// Load district map data
+async function loadDistrictMapData(role = null) {
+    try {
+        // Show loading state
+        const loadingEl = document.getElementById('map-loading');
+        if (loadingEl) loadingEl.style.display = 'block';
+        
+        // Build URL with optional role parameter
+        let url = `${API_DASHBOARD}/users/district-distribution`;
+        if (role) {
+            url += `?role=${role}`;
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to load district data');
+        
+        const data = await response.json();
+        
+        // Update district colors based on user count
+        updateDistrictColors(window.districtMapInstance, data);
+        
+        // Hide loading state
+        if (loadingEl) loadingEl.style.display = 'none';
+        
+    } catch (error) {
+        console.error('Error loading district map data:', error);
+        const loadingEl = document.getElementById('map-loading');
+        if (loadingEl) {
+            loadingEl.textContent = 'Failed to load map data';
+            loadingEl.style.color = 'var(--color-error)';
+        }
+    }
+}
+
+// Setup map filter buttons
+function setupMapFilters() {
+    const filterButtons = document.querySelectorAll('.map-filter-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // Update active button
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Get selected role
+            const role = button.getAttribute('data-role');
+            
+            // Reload map with filter
+            await loadDistrictMapData(role || null);
+        });
+    });
+}
+
+// Setup district modal
+function setupDistrictModal() {
+    const modal = document.getElementById('province-modal');
+    const closeBtn = document.getElementById('close-province-modal');
+    
+    // Close button handler
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Listen for district click events from the map (legacy event name maintained for compatibility)
+    document.addEventListener('districtClicked', async (e) => {
+        await showDistrictModal(e.detail);
+    });
+}
+
+// Show district modal with user list
+async function showDistrictModal(detail) {
+    const modal = document.getElementById('province-modal');
+    const title = document.getElementById('province-modal-title');
+    const statsContainer = document.getElementById('province-modal-stats');
+    const userList = document.getElementById('province-user-list');
+    const loading = document.getElementById('province-modal-loading');
+    const errorDiv = document.getElementById('province-modal-error');
+    
+    // Set title
+    title.textContent = `Users in ${detail.displayName}`;
+    
+    // Clear previous content
+    statsContainer.innerHTML = '';
+    userList.innerHTML = '';
+    
+    // Show modal and loading state
+    modal.classList.add('active');
+    loading.style.display = 'block';
+    errorDiv.style.display = 'none';
+    
+    try {
+        // Fetch users for this district
+        let url = `${API_DASHBOARD}/users/by-district?district=${detail.district}`;
+        if (detail.role) {
+            url += `&role=${detail.role}`;
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to load users');
+        
+        const users = await response.json();
+        
+        // Hide loading
+        loading.style.display = 'none';
+        
+        // Display stats
+        displayDistrictStats(users, statsContainer);
+        
+        // Display user list
+        displayDistrictUsers(users, userList);
+        
+    } catch (error) {
+        console.error('Error loading district users:', error);
+        loading.style.display = 'none';
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Display district statistics
+function displayDistrictStats(users, container) {
+    const totalUsers = users.length;
+    const adminCount = users.filter(u => u.role === 'ADMIN').length;
+    const vetCount = users.filter(u => u.role === 'VETERINARY_OFFICER').length;
+    
+    const statsHTML = `
+        <div class="province-modal-stat">
+            <div class="province-modal-stat-value">${totalUsers}</div>
+            <div class="province-modal-stat-label">Total Users</div>
+        </div>
+        <div class="province-modal-stat">
+            <div class="province-modal-stat-value">${adminCount}</div>
+            <div class="province-modal-stat-label">Administrators</div>
+        </div>
+        <div class="province-modal-stat">
+            <div class="province-modal-stat-value">${vetCount}</div>
+            <div class="province-modal-stat-label">Veterinary Officers</div>
+        </div>
+    `;
+    
+    container.innerHTML = statsHTML;
+}
+
+// Display district users
+function displayDistrictUsers(users, container) {
+    if (users.length === 0) {
+        container.innerHTML = '<li class="province-modal-loading">No users found in this district.</li>';
+        return;
+    }
+    
+    const userItems = users.map(user => {
+        const roleClass = user.role === 'ADMIN' ? 'admin' : 'veterinary-officer';
+        const roleDisplay = user.role === 'ADMIN' ? 'Admin' : 'Vet Officer';
+        
+        return `
+            <li class="province-user-item">
+                <div class="province-user-name">
+                    ${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}
+                </div>
+                <div class="province-user-details">
+                    <div class="province-user-detail">
+                        <span>👤</span>
+                        <span>${escapeHtml(user.username)}</span>
+                    </div>
+                    <div class="province-user-detail">
+                        <span>📧</span>
+                        <span>${escapeHtml(user.email)}</span>
+                    </div>
+                    ${user.phoneNumber ? `
+                    <div class="province-user-detail">
+                        <span>📞</span>
+                        <span>${escapeHtml(user.phoneNumber)}</span>
+                    </div>
+                    ` : ''}
+                    ${user.district ? `
+                    <div class="province-user-detail">
+                        <span>📍</span>
+                        <span>${escapeHtml(user.district)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="province-user-detail">
+                        <span class="province-user-role ${roleClass}">${roleDisplay}</span>
+                    </div>
+                </div>
+            </li>
+        `;
+    }).join('');
+    
+    container.innerHTML = userItems;
+}
+
 
 // Load users chart
 function loadUsersChart(adminCount, vetCount) {
