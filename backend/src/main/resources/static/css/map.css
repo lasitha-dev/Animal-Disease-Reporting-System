@@ -77,6 +77,18 @@
     user-select: none;
 }
 
+/* District Count Badges */
+.district-badge {
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.district-count-text {
+    pointer-events: none;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
 /* Map Tooltip */
 .map-tooltip {
     position: absolute;

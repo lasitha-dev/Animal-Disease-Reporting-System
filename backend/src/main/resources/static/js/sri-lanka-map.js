@@ -120,6 +120,7 @@ function initializeDistrictMap(containerId, onDistrictClick) {
 
     const paper = Raphael(containerId, 450, 793);
     const districts = [];
+    const labels = [];
 
     // Create district paths
     for (const [districtKey, districtData] of Object.entries(DISTRICT_MAPPING)) {
@@ -132,6 +133,35 @@ function initializeDistrictMap(containerId, onDistrictClick) {
         });
         district.data('district', districtKey);
         district.data('name', districtData.name);
+
+        // Get bounding box for centering
+        const bbox = district.getBBox();
+        const centerX = bbox.x + bbox.width / 2;
+        const centerY = bbox.y + bbox.height / 2;
+
+        // Create badge circle (initially hidden)
+        const badge = paper.circle(centerX, centerY, 14);
+        badge.attr({
+            fill: '#1E293B',
+            stroke: '#FFFFFF',
+            'stroke-width': 2,
+            opacity: 0
+        });
+        badge.data('district', districtKey);
+
+        // Create count text (initially hidden)
+        const countText = paper.text(centerX, centerY, '');
+        countText.attr({
+            'font-size': 12,
+            'font-weight': 'bold',
+            'fill': '#FFFFFF',
+            'font-family': 'var(--font-family), sans-serif',
+            opacity: 0
+        });
+        countText.data('district', districtKey);
+
+        // Store label elements
+        labels.push({ badge, countText, districtKey });
 
         // Hover effects
         district.hover(
@@ -155,12 +185,12 @@ function initializeDistrictMap(containerId, onDistrictClick) {
         districts.push(district);
     }
 
-    return { paper, districts };
+    return { paper, districts, labels };
 }
 
 /**
  * Update district colors based on user counts
- * @param {Object} mapInstance - The map instance returned from initializeDistrictMap (contains paper and districts)
+ * @param {Object} mapInstance - The map instance returned from initializeDistrictMap (contains paper, districts, and labels)
  * @param {Object} distributionData - Array of {district, displayName, userCount}
  */
 function updateDistrictColors(mapInstance, distributionData) {
@@ -170,6 +200,21 @@ function updateDistrictColors(mapInstance, distributionData) {
         if (count <= 5) return '#E0F2FE';       // Light blue
         if (count <= 15) return '#38BDF8';      // Medium blue
         return '#0369A1';                        // Dark blue
+    };
+
+    // Determine if we need dark or light text based on background color
+    const getTextColor = (bgColor) => {
+        // Convert hex to RGB
+        const hex = bgColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calculate luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return dark text for light backgrounds, light text for dark backgrounds
+        return luminance > 0.6 ? '#1E293B' : '#FFFFFF';
     };
 
     // Create a map of district keys to user counts
@@ -183,7 +228,44 @@ function updateDistrictColors(mapInstance, distributionData) {
         mapInstance.districts.forEach(district => {
             const districtKey = district.data('district');
             const userCount = countsByDistrict[districtKey] || 0;
-            district.attr({ fill: getColor(userCount) });
+            const bgColor = getColor(userCount);
+            district.attr({ fill: bgColor });
+        });
+    }
+
+    // Update labels (badges and text)
+    if (mapInstance && mapInstance.labels) {
+        mapInstance.labels.forEach(label => {
+            const districtKey = label.districtKey;
+            const userCount = countsByDistrict[districtKey] || 0;
+            
+            if (userCount > 0) {
+                // Show badge and text for districts with users
+                const bgColor = getColor(userCount);
+                const textColor = getTextColor(bgColor);
+                
+                // Update badge color to match district but slightly darker
+                const badgeColor = userCount <= 5 ? '#0EA5E9' : '#1E293B';
+                
+                label.badge.attr({
+                    fill: badgeColor,
+                    opacity: 0.95
+                });
+                
+                label.countText.attr({
+                    text: userCount.toString(),
+                    fill: textColor,
+                    opacity: 1
+                });
+                
+                // Bring labels to front
+                label.badge.toFront();
+                label.countText.toFront();
+            } else {
+                // Hide badge and text for districts with no users
+                label.badge.attr({ opacity: 0 });
+                label.countText.attr({ opacity: 0 });
+            }
         });
     }
 }
