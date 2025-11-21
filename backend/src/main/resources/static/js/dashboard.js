@@ -15,50 +15,63 @@ const API_CONFIG = '/api/configuration';
 let overviewChart = null;
 let diseaseChart = null;
 let usersChart = null;
+let usersDataLoaded = false;
+
+const RECENT_ITEMS_LIMIT = 5;
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', () => {
-    setupFilterControls();
+    setupDashboardViews();
     loadDashboardData();
 });
-
-// Setup filter button controls
-function setupFilterControls() {
-    const filterButtons = document.querySelectorAll('.filter-button');
-    
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Update active button
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Show corresponding section
-            const filter = button.getAttribute('data-filter');
-            showSection(filter);
-        });
-    });
-}
-
-// Show section based on filter
-function showSection(filter) {
-    // Hide all sections
-    const sections = document.querySelectorAll('.data-section');
-    sections.forEach(section => section.classList.remove('active'));
-    
-    // Show selected section
-    const section = document.getElementById(`section-${filter}`);
-    if (section) {
-        section.classList.add('active');
-        
-        // Load data for the section
-        loadSectionData(filter);
-    }
-}
 
 // Load all dashboard data
 async function loadDashboardData() {
     await loadSummaryStats();
     await loadOverviewChart();
+    
+    // Load overview sections immediately
+    loadFarmTypesData();
+    loadAnimalTypesData();
+    loadDiseasesData();
+}
+
+// Setup overview/users view toggle
+function setupDashboardViews() {
+    const viewButtons = document.querySelectorAll('.view-button');
+    const views = document.querySelectorAll('.dashboard-view');
+    if (!viewButtons.length || !views.length) {
+        return;
+    }
+
+    for (const button of viewButtons) {
+        button.addEventListener('click', async () => {
+            const targetId = button.dataset.target;
+            if (!targetId) {
+                return;
+            }
+
+            for (const btn of viewButtons) {
+                btn.classList.remove('active');
+            }
+            button.classList.add('active');
+
+            for (const view of views) {
+                if (view.id === targetId) {
+                    view.classList.add('active');
+                    view.removeAttribute('hidden');
+                } else {
+                    view.classList.remove('active');
+                    view.setAttribute('hidden', 'hidden');
+                }
+            }
+
+            if (targetId === 'users-content' && !usersDataLoaded) {
+                await loadUsersData();
+                usersDataLoaded = true;
+            }
+        });
+    }
 }
 
 // Load summary statistics
@@ -78,7 +91,7 @@ async function loadSummaryStats() {
         updateStat('stat-vets', stats.vetCount || 0);
         
         // Store stats for section-specific displays
-        window.dashboardStats = stats;
+        globalThis.dashboardStats = stats;
         
     } catch (error) {
         console.error('Error loading summary stats:', error);
@@ -95,7 +108,7 @@ function updateStat(id, value) {
 
 // Load overview chart
 async function loadOverviewChart() {
-    const stats = window.dashboardStats || {};
+    const stats = globalThis.dashboardStats || {};
     
     const ctx = document.getElementById('overview-chart');
     if (!ctx) return;
@@ -147,27 +160,6 @@ async function loadOverviewChart() {
     });
 }
 
-// Load section-specific data
-async function loadSectionData(filter) {
-    switch (filter) {
-        case 'all':
-            await loadOverviewChart();
-            break;
-        case 'farm-types':
-            await loadFarmTypesData();
-            break;
-        case 'animal-types':
-            await loadAnimalTypesData();
-            break;
-        case 'diseases':
-            await loadDiseasesData();
-            break;
-        case 'users':
-            await loadUsersData();
-            break;
-    }
-}
-
 // Load farm types data
 async function loadFarmTypesData() {
     try {
@@ -194,19 +186,18 @@ function populateFarmTypesTable(farmTypes) {
     const tbody = document.querySelector('#farm-types-table tbody');
     if (!tbody) return;
     
-    if (farmTypes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No farm types found</td></tr>';
+    const recentTypes = getRecentItems(farmTypes);
+    if (recentTypes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No farm types found</td></tr>';
         return;
     }
     
-    tbody.innerHTML = farmTypes.map(ft => `
+    tbody.innerHTML = recentTypes.map(ft => `
         <tr>
             <td>${escapeHtml(ft.typeName)}</td>
-            <td>${escapeHtml(ft.description || '-')}</td>
             <td><span class="badge ${ft.isActive ? 'badge-success' : 'badge-secondary'}">
                 ${ft.isActive ? 'Active' : 'Inactive'}
             </span></td>
-            <td>${formatDate(ft.createdAt)}</td>
         </tr>
     `).join('');
 }
@@ -237,19 +228,18 @@ function populateAnimalTypesTable(animalTypes) {
     const tbody = document.querySelector('#animal-types-table tbody');
     if (!tbody) return;
     
-    if (animalTypes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No animal types found</td></tr>';
+    const recentAnimals = getRecentItems(animalTypes);
+    if (recentAnimals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center;">No animal types found</td></tr>';
         return;
     }
     
-    tbody.innerHTML = animalTypes.map(at => `
+    tbody.innerHTML = recentAnimals.map(at => `
         <tr>
             <td>${escapeHtml(at.typeName)}</td>
-            <td>${escapeHtml(at.description || '-')}</td>
             <td><span class="badge ${at.isActive ? 'badge-success' : 'badge-secondary'}">
                 ${at.isActive ? 'Active' : 'Inactive'}
             </span></td>
-            <td>${formatDate(at.createdAt)}</td>
         </tr>
     `).join('');
 }
@@ -336,7 +326,7 @@ function populateDiseasesTable(diseases) {
     if (!tbody) return;
     
     if (diseases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No diseases found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No diseases found</td></tr>';
         return;
     }
     
@@ -346,18 +336,16 @@ function populateDiseasesTable(diseases) {
             <td><span class="badge badge-${getSeverityClass(d.severity)}">
                 ${d.severity}
             </span></td>
-            <td>${d.isNotifiable ? '⚠️ Yes' : 'No'}</td>
             <td><span class="badge ${d.isActive ? 'badge-success' : 'badge-secondary'}">
                 ${d.isActive ? 'Active' : 'Inactive'}
             </span></td>
-            <td>${formatDate(d.createdAt)}</td>
         </tr>
     `).join('');
 }
 
 // Load users data
 async function loadUsersData() {
-    const stats = window.dashboardStats || {};
+    const stats = globalThis.dashboardStats || {};
     
     // Update stats
     updateStat('stat-admin-count', stats.adminCount || 0);
@@ -368,6 +356,7 @@ async function loadUsersData() {
     
     // Initialize and load district map
     await initDistrictMap();
+    usersDataLoaded = true;
 }
 
 // Initialize district map
@@ -380,7 +369,7 @@ async function initDistrictMap() {
     }
     
     // Initialize map with click handler
-    window.districtMapInstance = initializeDistrictMap('sri-lanka-map', handleDistrictClick);
+    globalThis.districtMapInstance = initializeDistrictMap('sri-lanka-map', handleDistrictClick);
     
     // Load initial data (all users)
     await loadDistrictMapData();
@@ -395,7 +384,7 @@ async function initDistrictMap() {
 // Handle district click event
 function handleDistrictClick(districtKey, districtName) {
     const activeFilter = document.querySelector('.map-filter-btn.active');
-    const role = activeFilter ? activeFilter.getAttribute('data-role') : null;
+    const role = activeFilter ? activeFilter.dataset.role : null;
     
     showDistrictModal({
         district: districtKey,
@@ -423,7 +412,7 @@ async function loadDistrictMapData(role = null) {
         const data = await response.json();
         
         // Update district colors based on user count
-        updateDistrictColors(window.districtMapInstance, data);
+        updateDistrictColors(globalThis.districtMapInstance, data);
         
         // Hide loading state
         if (loadingEl) loadingEl.style.display = 'none';
@@ -442,19 +431,21 @@ async function loadDistrictMapData(role = null) {
 function setupMapFilters() {
     const filterButtons = document.querySelectorAll('.map-filter-btn');
     
-    filterButtons.forEach(button => {
+    for (const button of filterButtons) {
         button.addEventListener('click', async () => {
             // Update active button
-            filterButtons.forEach(btn => btn.classList.remove('active'));
+            for (const btn of filterButtons) {
+                btn.classList.remove('active');
+            }
             button.classList.add('active');
             
             // Get selected role
-            const role = button.getAttribute('data-role');
+            const { role } = button.dataset;
             
             // Reload map with filter
             await loadDistrictMapData(role || null);
         });
-    });
+    }
 }
 
 // Setup district modal
@@ -638,16 +629,31 @@ function loadUsersChart(adminCount, vetCount) {
     });
 }
 
-// Utility functions
+function getRecentItems(items) {
+    if (!Array.isArray(items)) {
+        return [];
+    }
+    const sortedItems = [...items].sort((a, b) => getTimestamp(b?.createdAt) - getTimestamp(a?.createdAt));
+    return sortedItems.slice(0, RECENT_ITEMS_LIMIT);
+}
+
+function getTimestamp(value) {
+    if (!value) {
+        return 0;
+    }
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe
         .toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replaceAll('&', "&amp;")
+        .replaceAll('<', "&lt;")
+        .replaceAll('>', "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 function formatDate(dateString) {

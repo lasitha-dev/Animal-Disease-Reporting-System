@@ -8,73 +8,161 @@
     <title>Dashboard - ADRS</title>
     <link rel="stylesheet" th:href="@{/css/map.css}">
     <style>
-        .filter-controls {
-            display: flex;
-            gap: var(--spacing-md);
+        .dashboard-view-toggle {
+            display: inline-flex;
+            gap: var(--spacing-sm);
             margin-bottom: var(--spacing-lg);
             flex-wrap: wrap;
         }
-        
-        .filter-button {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: 2px solid var(--color-border);
+
+        .view-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--color-border);
             background: var(--color-bg-primary);
             color: var(--color-text-primary);
-            border-radius: var(--border-radius-sm);
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
-        
-        .filter-button:hover {
-            border-color: var(--color-primary);
-            background: var(--color-primary-light);
-        }
-        
-        .filter-button.active {
+
+        .view-button.active {
             background: var(--color-primary);
-            color: white;
             border-color: var(--color-primary);
+            color: #fff;
         }
-        
-        .data-section {
+
+        .dashboard-view {
             display: none;
         }
-        
-        .data-section.active {
+
+        .dashboard-view.active {
             display: block;
         }
-        
+
+        .overview-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-auto-rows: minmax(280px, auto);
+            gap: var(--spacing-lg);
+            align-items: stretch;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .overview-panel {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            min-height: 280px;
+        }
+
+        .overview-panel h3 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: var(--spacing-sm);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(320px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .dashboard-section {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            max-height: 480px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #users-content .dashboard-section {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .dashboard-section h3,
+        .dashboard-section h4 {
+            margin: 0 0 var(--spacing-md);
+            position: sticky;
+            top: 0;
+            background: var(--color-bg-primary);
+            z-index: 10;
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            position: sticky;
+            top: 0;
+            background: var(--color-bg-primary);
+            z-index: 10;
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-header h3 {
+            margin: 0;
+            position: static;
+            border: none;
+            padding: 0;
+        }
+
+        .link-button {
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            text-decoration: none;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .link-button:hover {
+            background: var(--color-primary-light);
+        }
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
         }
         
         .stat-card {
-            background: var(--color-bg-primary);
-            padding: var(--spacing-lg);
+            background: var(--color-bg-secondary);
+            padding: var(--spacing-md);
             border-radius: var(--border-radius-md);
             border: 1px solid var(--color-border);
             text-align: center;
         }
         
         .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: var(--spacing-sm);
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
         }
         
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: var(--color-primary);
-            margin: var(--spacing-sm) 0;
+            margin: var(--spacing-xs) 0;
         }
         
         .stat-label {
             color: var(--color-text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.75rem;
         }
         
         .data-table {
@@ -82,40 +170,74 @@
             background: var(--color-bg-primary);
             border-radius: var(--border-radius-md);
             overflow: hidden;
-        }
-        
-        .data-table table {
-            width: 100%;
-            border-collapse: collapse;
+            font-size: 0.875rem;
         }
         
         .data-table th {
             background: var(--color-bg-secondary);
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             text-align: left;
             font-weight: 600;
             border-bottom: 2px solid var(--color-border);
+            position: sticky;
+            top: 0;
         }
         
         .data-table td {
-            padding: var(--spacing-md);
+            padding: var(--spacing-sm);
             border-bottom: 1px solid var(--color-border);
         }
-        
-        .data-table tr:hover {
-            background: var(--color-bg-secondary);
-        }
-        
+
         .chart-container {
             background: var(--color-bg-primary);
-            padding: var(--spacing-lg);
+            padding: var(--spacing-md);
             border-radius: var(--border-radius-md);
             border: 1px solid var(--color-border);
-            margin-bottom: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            height: 250px;
+            display: flex;
+            flex-direction: column;
         }
         
         .chart-canvas {
-            max-height: 400px;
+            flex: 1;
+            max-height: 200px;
+        }
+
+        .overview-panel .chart-container {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        #section-users h3,
+        #section-users h4 {
+            position: static;
+            top: auto;
+            background: transparent;
+            z-index: 1;
+        }
+
+        .role-chart-container {
+            height: 380px;
+            margin-bottom: calc(var(--spacing-xl));
+            padding-bottom: var(--spacing-sm);
+        }
+
+        .role-chart-container .chart-canvas {
+            max-height: 320px;
+        }
+
+        .section-note {
+            margin-top: var(--spacing-sm);
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .overview-layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -133,239 +255,242 @@
         </p>
     </div>
 
-    <!-- Filter Controls -->
-    <div class="filter-controls">
-        <button class="filter-button active" data-filter="all">📊 Overview</button>
-        <button class="filter-button" data-filter="farm-types">🏗️ Farm Types</button>
-        <button class="filter-button" data-filter="animal-types">🐮 Animal Types</button>
-        <button class="filter-button" data-filter="diseases">🦠 Diseases</button>
-        <button class="filter-button" data-filter="users">👥 Users</button>
+    <div class="dashboard-view-toggle">
+        <button class="view-button active" type="button" data-target="overview-content">
+            📊 Overview
+        </button>
+        <button class="view-button" type="button" data-target="users-content">
+            👥 Users
+        </button>
     </div>
 
-    <!-- Overview Section (Default) -->
-    <div id="section-all" class="data-section active">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🏗️</div>
-                <div class="stat-value" id="stat-farm-types">-</div>
-                <div class="stat-label">Farm Types</div>
+    <div id="overview-content" class="dashboard-view active">
+        <!-- Overview Section (Top Summary) -->
+        <div class="overview-layout">
+            <div class="overview-panel" id="overview-stats">
+                <h3>Configuration Snapshot</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏗️</div>
+                        <div class="stat-value" id="stat-farm-types">-</div>
+                        <div class="stat-label">Farm Types</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🐮</div>
+                        <div class="stat-value" id="stat-animal-types">-</div>
+                        <div class="stat-label">Animal Types</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🦠</div>
+                        <div class="stat-value" id="stat-diseases">-</div>
+                        <div class="stat-label">Diseases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-value" id="stat-notifiable">-</div>
+                        <div class="stat-label">Notifiable Diseases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👨‍⚕️</div>
+                        <div class="stat-value" id="stat-admins">-</div>
+                        <div class="stat-label">Administrators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👨‍🔬</div>
+                        <div class="stat-value" id="stat-vets">-</div>
+                        <div class="stat-label">Veterinary Officers</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🐮</div>
-                <div class="stat-value" id="stat-animal-types">-</div>
-                <div class="stat-label">Animal Types</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🦠</div>
-                <div class="stat-value" id="stat-diseases">-</div>
-                <div class="stat-label">Diseases</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div class="stat-value" id="stat-notifiable">-</div>
-                <div class="stat-label">Notifiable Diseases</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👨‍⚕️</div>
-                <div class="stat-value" id="stat-admins">-</div>
-                <div class="stat-label">Administrators</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👨‍🔬</div>
-                <div class="stat-value" id="stat-vets">-</div>
-                <div class="stat-label">Veterinary Officers</div>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <h3 style="margin-bottom: var(--spacing-md);">System Configuration Overview</h3>
-            <canvas id="overview-chart" class="chart-canvas"></canvas>
-        </div>
-    </div>
 
-    <!-- Farm Types Section -->
-    <div id="section-farm-types" class="data-section">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🏗️</div>
-                <div class="stat-value" id="stat-total-farm-types">-</div>
-                <div class="stat-label">Total Farm Types</div>
+            <div class="overview-panel" id="overview-chart-panel">
+                <h3>System Configuration Overview</h3>
+                <div class="chart-container">
+                    <canvas id="overview-chart" class="chart-canvas"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-value" id="stat-active-farm-types">-</div>
-                <div class="stat-label">Active Farm Types</div>
-            </div>
-        </div>
-        
-        <div class="data-table">
-            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
-                Farm Types List
-            </h3>
-            <table id="farm-types-table">
-                <thead>
-                    <tr>
-                        <th>Type Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: var(--spacing-xl);">
-                            Loading...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <!-- Animal Types Section -->
-    <div id="section-animal-types" class="data-section">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🐮</div>
-                <div class="stat-value" id="stat-total-animal-types">-</div>
-                <div class="stat-label">Total Animal Types</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-value" id="stat-active-animal-types">-</div>
-                <div class="stat-label">Active Animal Types</div>
-            </div>
-        </div>
-        
-        <div class="data-table">
-            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
-                Animal Types List
-            </h3>
-            <table id="animal-types-table">
-                <thead>
-                    <tr>
-                        <th>Type Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: var(--spacing-xl);">
-                            Loading...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Diseases Section -->
-    <div id="section-diseases" class="data-section">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🦠</div>
-                <div class="stat-value" id="stat-total-diseases">-</div>
-                <div class="stat-label">Total Diseases</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div class="stat-value" id="stat-notifiable-diseases">-</div>
-                <div class="stat-label">Notifiable Diseases</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔴</div>
-                <div class="stat-value" id="stat-critical-diseases">-</div>
-                <div class="stat-label">Critical Severity</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🟠</div>
-                <div class="stat-value" id="stat-high-diseases">-</div>
-                <div class="stat-label">High Severity</div>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <h3 style="margin-bottom: var(--spacing-md);">Disease Severity Distribution</h3>
-            <canvas id="disease-chart" class="chart-canvas"></canvas>
-        </div>
-        
-        <div class="data-table">
-            <h3 style="padding: var(--spacing-lg); margin: 0; background: var(--color-bg-secondary);">
-                Diseases List
-            </h3>
-            <table id="diseases-table">
-                <thead>
-                    <tr>
-                        <th>Disease Name</th>
-                        <th>Severity</th>
-                        <th>Notifiable</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: var(--spacing-xl);">
-                            Loading...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Users Section -->
-    <div id="section-users" class="data-section">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👨‍⚕️</div>
-                <div class="stat-value" id="stat-admin-count">-</div>
-                <div class="stat-label">Administrators</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">👨‍🔬</div>
-                <div class="stat-value" id="stat-vet-count">-</div>
-                <div class="stat-label">Veterinary Officers</div>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <h3 style="margin-bottom: var(--spacing-md);">User Role Distribution</h3>
-            <canvas id="users-chart" class="chart-canvas"></canvas>
         </div>
 
-        <!-- Province Map Section -->
-        <div class="map-container">
-            <h3>User Distribution by Province</h3>
-            
-            <!-- Role Filter Buttons -->
-            <div class="map-filters">
-                <button class="map-filter-btn active" data-role="">
-                    <span>📊</span> All Users
-                </button>
-                <button class="map-filter-btn" data-role="ADMIN">
-                    <span>👨‍⚕️</span> Administrators
-                </button>
-                <button class="map-filter-btn" data-role="VETERINARY_OFFICER">
-                    <span>👨‍🔬</span> Veterinary Officers
-                </button>
+        <div class="dashboard-grid">
+        <!-- Farm Types Section -->
+        <div id="section-farm-types" class="dashboard-section">
+            <div class="section-header">
+                <h3>Farm Types</h3>
+                <a class="link-button" th:href="@{/configuration(tab='farm-types')}">
+                    Manage all
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏗️</div>
+                    <div class="stat-value" id="stat-total-farm-types">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="stat-active-farm-types">-</div>
+                    <div class="stat-label">Active</div>
+                </div>
             </div>
             
-            <!-- Map Loading State -->
-            <div id="map-loading" class="map-loading" style="display: none;">
-                Loading map data
+            <div class="data-table">
+                <table id="farm-types-table">
+                    <thead>
+                        <tr>
+                            <th>Type Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: var(--spacing-xl);">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="section-note">Showing the most recent farm types. View all from Configuration.</p>
+        </div>
+
+        <!-- Animal Types Section -->
+        <div id="section-animal-types" class="dashboard-section">
+            <div class="section-header">
+                <h3>Animal Types</h3>
+                <a class="link-button" th:href="@{/configuration(tab='animal-types')}">
+                    Manage all
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🐮</div>
+                    <div class="stat-value" id="stat-total-animal-types">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="stat-active-animal-types">-</div>
+                    <div class="stat-label">Active</div>
+                </div>
             </div>
             
-            <!-- Map Container -->
-            <div id="sri-lanka-map" class="province-map"></div>
+            <div class="data-table">
+                <table id="animal-types-table">
+                    <thead>
+                        <tr>
+                            <th>Type Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: var(--spacing-xl);">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="section-note">Showing the most recent animal types. View all from Configuration.</p>
+        </div>
+
+        <!-- Diseases Section -->
+        <div id="section-diseases" class="dashboard-section">
+            <h3>Diseases</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🦠</div>
+                    <div class="stat-value" id="stat-total-diseases">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="stat-notifiable-diseases">-</div>
+                    <div class="stat-label">Notifiable</div>
+                </div>
+            </div>
             
-            <!-- Color Legend -->
-            <div class="map-legend">
-                <span>Low</span>
-                <div class="legend-gradient"></div>
-                <span>High</span>
+            <div class="chart-container">
+                <h4 style="margin-bottom: var(--spacing-sm);">Severity Distribution</h4>
+                <canvas id="disease-chart" class="chart-canvas"></canvas>
+            </div>
+            
+            <div class="data-table">
+                <table id="diseases-table">
+                    <thead>
+                        <tr>
+                            <th>Disease Name</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: var(--spacing-xl);">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+    <div id="users-content" class="dashboard-view" hidden>
+        <div id="section-users" class="dashboard-section">
+            <h3>Users</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍⚕️</div>
+                    <div class="stat-value" id="stat-admin-count">-</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍🔬</div>
+                    <div class="stat-value" id="stat-vet-count">-</div>
+                    <div class="stat-label">Vets</div>
+                </div>
+            </div>
+            
+            <div class="chart-container role-chart-container">
+                <h4 style="margin-bottom: var(--spacing-sm);">Role Distribution</h4>
+                <canvas id="users-chart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- Province Map Section -->
+            <div class="map-container">
+                <h4>User Distribution by Province</h4>
+                
+                <!-- Role Filter Buttons -->
+                <div class="map-filters">
+                    <button class="map-filter-btn active" data-role="">
+                        <span>📊</span> All
+                    </button>
+                    <button class="map-filter-btn" data-role="ADMIN">
+                        <span>👨‍⚕️</span> Admins
+                    </button>
+                    <button class="map-filter-btn" data-role="VETERINARY_OFFICER">
+                        <span>👨‍🔬</span> Vets
+                    </button>
+                </div>
+                
+                <!-- Map Loading State -->
+                <div id="map-loading" class="map-loading" style="display: none;">
+                    Loading map data
+                </div>
+                
+                <!-- Map Container -->
+                <div id="sri-lanka-map" class="province-map"></div>
+                
+                <!-- Color Legend -->
+                <div class="map-legend">
+                    <span>Low</span>
+                    <div class="legend-gradient"></div>
+                    <span>High</span>
+                </div>
             </div>
         </div>
     </div>

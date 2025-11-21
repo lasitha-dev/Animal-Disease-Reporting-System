@@ -12,6 +12,7 @@ const API_BASE = '/api/configuration';
 const FARM_TYPES_API = `${API_BASE}/farm-types`;
 const ANIMAL_TYPES_API = `${API_BASE}/animal-types`;
 const DISEASES_API = `${API_BASE}/diseases`;
+const CONFIG_TABS = ['farm-types', 'animal-types', 'diseases'];
 
 // Current state
 let currentTab = 'farm-types';
@@ -23,8 +24,9 @@ let currentDeleteType = null;
 document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     initializeModals();
-    loadFarmTypes();
-    
+    const initialTab = getInitialTab();
+    switchTab(initialTab);
+
     // Set up form submissions
     document.getElementById('farm-type-form').addEventListener('submit', handleFarmTypeSubmit);
     document.getElementById('animal-type-form').addEventListener('submit', handleAnimalTypeSubmit);
@@ -43,33 +45,53 @@ document.addEventListener('DOMContentLoaded', () => {
 // TAB MANAGEMENT
 // ========================================
 
+function getInitialTab() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedTab = params.get('tab');
+    return getValidTabName(requestedTab);
+}
+
+function getValidTabName(tabName) {
+    if (!tabName) {
+        return CONFIG_TABS[0];
+    }
+    return CONFIG_TABS.includes(tabName) ? tabName : CONFIG_TABS[0];
+}
+
 function initializeTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
-    
-    tabButtons.forEach(button => {
+    for (const button of tabButtons) {
         button.addEventListener('click', () => {
-            const tabName = button.getAttribute('data-tab');
+            const tabName = button.dataset.tab;
             switchTab(tabName);
         });
-    });
+    }
 }
 
 function switchTab(tabName) {
-    // Update buttons
-    document.querySelectorAll('.tab-button').forEach(btn => {
+    const validTab = getValidTabName(tabName);
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    for (const btn of tabButtons) {
         btn.classList.remove('active');
-    });
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    }
+    const activeButton = document.querySelector(`[data-tab="${validTab}"]`);
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
     
-    // Update content
-    document.querySelectorAll('.tab-content').forEach(content => {
+    for (const content of tabContents) {
         content.classList.remove('active');
-    });
-    document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+    const targetContent = document.getElementById(`${validTab}-tab`);
+    if (targetContent) {
+        targetContent.classList.add('active');
+    }
     
     // Load data for the tab
-    currentTab = tabName;
-    switch (tabName) {
+    currentTab = validTab;
+    switch (validTab) {
         case 'farm-types':
             loadFarmTypes();
             break;
