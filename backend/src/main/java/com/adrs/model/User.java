@@ -56,6 +56,14 @@ public class User {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "province", length = 30)
+    private Province province;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "district", length = 30)
+    private District district;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
 

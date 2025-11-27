@@ -1,0 +1,431 @@
+/**
+ * Dashboard styles
+ */
+
+.dashboard {
+  display: flex;
+  height: 100vh;
+  background-color: var(--color-bg-secondary);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.dashboard-sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--color-white);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dashboard-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.dashboard-nav {
+  flex: 1;
+  padding: var(--spacing-md);
+}
+
+.dashboard-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-nav li {
+  margin-bottom: var(--spacing-sm);
+}
+
+.dashboard-nav a {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.dashboard-nav a:hover,
+.dashboard-nav a.active {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary);
+}
+
+.dashboard-user {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.dashboard-user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.dashboard-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+}
+
+.dashboard-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard-topbar {
+  height: var(--header-height);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+}
+
+.dashboard-card {
+  background-color: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.dashboard-stat {
+  background-color: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-stat-icon {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.dashboard-stat-title {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+.dashboard-stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin: var(--spacing-sm) 0;
+}
+
+.dashboard-stat-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Grid utilities for responsive layouts */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 calc(var(--spacing-md) * -0.5);
+  gap: var(--spacing-md);
+}
+
+.col-md-6 {
+  flex: 0 0 calc(50% - var(--spacing-md) / 2);
+  max-width: calc(50% - var(--spacing-md) / 2);
+  padding: 0;
+}
+
+.col-md-12 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0;
+}
+
+/* View Toggle Buttons */
+.view-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--color-white);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: var(--touch-target-min);
+}
+
+.view-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-lighter);
+}
+
+.view-button.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* Dashboard Views */
+.dashboard-view {
+  display: none;
+}
+
+.dashboard-view.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Chart Containers */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  min-height: 200px;
+}
+
+.chart-card {
+  background-color: var(--color-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+
+.chart-card h3 {
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+/* Responsive grid for tablet */
+@media (max-width: 1024px) {
+  .col-md-6 {
+    flex: 0 0 calc(50% - var(--spacing-sm) / 2);
+    max-width: calc(50% - var(--spacing-sm) / 2);
+  }
+  
+  .row {
+    gap: var(--spacing-sm);
+  }
+}
+
+/* Responsive grid for mobile */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin: 0;
+  }
+
+  .col-md-6,
+  .col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .view-buttons {
+    width: 100%;
+  }
+
+  .view-button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* Diseases Section - Two Column Layout */
+.diseases-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  width: 100%;
+  max-width: 100%;
+  align-items: start;
+}
+
+.diseases-content-grid .chart-container {
+  height: auto;
+  min-height: 280px;
+  min-width: 0; /* Prevent grid blowout */
+}
+
+.diseases-content-grid .data-table {
+  min-width: 0; /* Prevent grid blowout */
+  /* No max-height - show all content without scroll */
+}
+
+.diseases-content-grid .data-table h4 {
+  background: var(--color-bg-primary);
+  padding-bottom: var(--spacing-sm);
+  margin: 0;
+}
+
+/* Tablet: Stack columns */
+@media (max-width: 1024px) {
+  .diseases-content-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    width: 100%;
+  }
+  
+  .diseases-content-grid .chart-container {
+    height: auto;
+    min-height: 250px;
+    width: 100%;
+  }
+  
+  .diseases-content-grid .data-table {
+    width: 100%;
+  }
+}
+
+/* Mobile: Adjust chart height */
+@media (max-width: 768px) {
+  .diseases-content-grid {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .diseases-content-grid .chart-container {
+    height: auto;
+    min-height: 220px;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .diseases-content-grid .data-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-container {
+    height: auto;
+    min-height: 200px;
+  }
+
+  .view-button {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-xs);
+  }
+  
+  .diseases-content-grid .chart-container {
+    min-height: 180px;
+  }
+  
+  .diseases-content-grid .data-table {
+    /* Show all content without scroll */
+  }
+}

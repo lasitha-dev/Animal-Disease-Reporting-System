@@ -1,0 +1,567 @@
+/**
+ * Sri Lanka Province Map Styles
+ * Styling for interactive province map, tooltips, legend, and user modal
+ */
+
+/* Map Container */
+.map-container {
+    background: var(--color-bg-primary);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-lg);
+}
+
+.map-container h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+}
+
+/* Role Filter Buttons */
+.map-filters {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.map-filter-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 2px solid var(--color-border);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.map-filter-btn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.map-filter-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* Province Map SVG */
+.province-map {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+    /* Aspect ratio matches the SVG viewBox (450:793) */
+    aspect-ratio: 450 / 793;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Raphael.js canvas - make it responsive */
+.province-map > svg,
+.province-map > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.sri-lanka-map-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-width: 100%;
+}
+
+.province-path {
+    transition: all 0.3s ease;
+}
+
+.province-path:hover {
+    filter: brightness(1.1);
+    stroke-width: 3;
+}
+
+.province-label {
+    font-family: var(--font-family);
+    user-select: none;
+}
+
+/* District Count Badges */
+.district-badge {
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+.district-count-text {
+    pointer-events: none;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+/* Map Tooltip */
+.map-tooltip {
+    position: absolute;
+    background: rgba(30, 41, 59, 0.95);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 250px;
+    line-height: 1.5;
+}
+
+.map-tooltip strong {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: 1rem;
+    color: #FBBF24;
+}
+
+.map-tooltip .tooltip-count {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.map-tooltip .tooltip-districts {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.8125rem;
+}
+
+.map-tooltip .tooltip-districts strong {
+    font-size: 0.875rem;
+    color: #E0F2FE;
+    margin-bottom: var(--spacing-xs);
+}
+
+.map-tooltip small {
+    display: block;
+    margin-top: var(--spacing-sm);
+    font-style: italic;
+}
+
+/* Map Legend */
+.map-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-sm);
+}
+
+.map-legend span {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.legend-gradient {
+    width: 200px;
+    height: 20px;
+    background: linear-gradient(to right, #E0F2FE, #0EA5E9, #0369A1);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+}
+
+/* User List Modal */
+.province-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    overflow-y: auto;
+}
+
+.province-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.province-modal-content {
+    background: var(--color-bg-primary);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.province-modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.province-modal-header h3 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: 1.25rem;
+}
+
+.province-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.province-modal-close:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.province-modal-body {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+}
+
+.province-modal-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.province-modal-stat {
+    background: var(--color-bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+}
+
+.province-modal-stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+.province-modal-stat-label {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.province-modal-loading {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+.province-modal-error {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-error);
+}
+
+.province-user-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.province-user-item {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-sm);
+    background: var(--color-bg-primary);
+    transition: all 0.2s ease;
+}
+
+.province-user-item:hover {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-primary);
+}
+
+.province-user-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.province-user-details {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.province-user-detail {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.province-user-role {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.province-user-role.admin {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.province-user-role.veterinary-officer {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+/* ========================================
+   Responsive Design - Tablet
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .map-container {
+        padding: var(--spacing-md);
+    }
+
+    .province-map {
+        max-width: 380px;
+    }
+}
+
+/* ========================================
+   Responsive Design - Mobile
+   ======================================== */
+
+@media (max-width: 768px) {
+    .map-container {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .map-container h3,
+    .map-container h4 {
+        font-size: var(--font-size-base);
+        text-align: center;
+    }
+
+    .map-filters {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .map-filter-btn {
+        flex: 1;
+        min-width: calc(50% - var(--spacing-xs));
+        max-width: calc(50% - var(--spacing-xs));
+        min-height: var(--touch-target-min);
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-sm);
+    }
+
+    .province-map {
+        max-width: 100%;
+        padding: var(--spacing-xs);
+        /* Limit height on mobile to keep it usable */
+        max-height: 60vh;
+    }
+    
+    /* Make Raphael canvas scale properly on mobile */
+    .province-map > svg,
+    .province-map > div {
+        /* Inherits from parent - no need to override */
+    }
+
+    .map-legend {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm);
+    }
+
+    .map-legend span {
+        font-size: var(--font-size-xs);
+    }
+
+    .legend-gradient {
+        width: 100%;
+        max-width: 180px;
+        height: 16px;
+    }
+
+    /* Province modal - Full screen on mobile */
+    .province-modal.active {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .province-modal-content {
+        width: 100%;
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+
+    .province-modal-header {
+        padding: var(--spacing-md);
+        position: sticky;
+        top: 0;
+        background: var(--color-bg-primary);
+        z-index: 10;
+    }
+
+    .province-modal-header h3 {
+        font-size: var(--font-size-base);
+    }
+
+    .province-modal-close {
+        width: var(--touch-target-min);
+        height: var(--touch-target-min);
+    }
+
+    .province-modal-body {
+        padding: var(--spacing-md);
+    }
+
+    .province-modal-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-sm);
+    }
+
+    .province-modal-stat {
+        padding: var(--spacing-sm);
+    }
+
+    .province-modal-stat-value {
+        font-size: var(--font-size-lg);
+    }
+
+    .province-modal-stat-label {
+        font-size: var(--font-size-xs);
+    }
+
+    .province-user-item {
+        padding: var(--spacing-sm);
+    }
+
+    .province-user-name {
+        font-size: var(--font-size-sm);
+    }
+
+    .province-user-details {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .province-user-detail {
+        font-size: var(--font-size-xs);
+    }
+
+    .province-user-role {
+        font-size: 0.625rem;
+    }
+
+    /* Map tooltip adjustments */
+    .map-tooltip {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-sm);
+        max-width: 200px;
+    }
+
+    .map-tooltip strong {
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* ========================================
+   Responsive Design - Small Mobile
+   ======================================== */
+
+@media (max-width: 480px) {
+    .map-filter-btn {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .province-map {
+        padding: 0;
+        /* Further constrain height on small screens */
+        max-height: 50vh;
+    }
+
+    .province-modal-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .province-modal-stat-value {
+        font-size: var(--font-size-base);
+    }
+}
+
+/* Loading State */
+.map-loading {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+.map-loading::after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '.';
+    }
+    40% {
+        content: '..';
+    }
+    60%, 100% {
+        content: '...';
+    }
+}
+
+/* Empty State */
+.map-empty {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+.map-empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+

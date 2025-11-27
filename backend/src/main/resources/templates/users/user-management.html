@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/default}">
+<head>
+    <title>User Management</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success mb-md" th:text="${successMessage}">
+        Success message
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-error mb-md" th:text="${errorMessage}">
+        Error message
+    </div>
+                
+                <!-- User Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2 class="table-title">All Users</h2>
+                        <div class="table-actions">
+                            <button class="btn btn-primary" onclick="openCreateModal()">
+                                + Create User
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(users)}">
+                                    <td colspan="7" style="text-align: center; padding: var(--spacing-xl);">
+                                        No users found
+                                    </td>
+                                </tr>
+                                <tr th:each="user : ${users}">
+                                    <td data-label="Username" th:text="${user.username}">username</td>
+                                    <td data-label="Name" th:text="${user.firstName + ' ' + user.lastName}">Name</td>
+                                    <td data-label="Email" th:text="${user.email}">email@example.com</td>
+                                    <td data-label="Phone" th:text="${user.phoneNumber} ?: '-'">-</td>
+                                    <td data-label="Role">
+                                        <span th:class="${user.role == 'ADMIN'} ? 'badge badge-info' : 'badge badge-success'"
+                                              th:text="${#strings.replace(user.role, '_', ' ')}">
+                                            ROLE
+                                        </span>
+                                    </td>
+                                    <td data-label="Status">
+                                        <span th:class="${user.active} ? 'badge badge-success' : 'badge badge-error'"
+                                              th:text="${user.active} ? 'Active' : 'Inactive'">
+                                            Status
+                                        </span>
+                                    </td>
+                                    <td data-label="Actions">
+                                        <div class="table-actions-cell">
+                                            <button class="btn btn-sm btn-outline btn-edit-user"
+                                                    th:data-user-id="${user.id}"
+                                                    th:data-username="${user.username}"
+                                                    th:data-email="${user.email}"
+                                                    th:data-first-name="${user.firstName}"
+                                                    th:data-last-name="${user.lastName}"
+                                                    th:data-phone="${user.phoneNumber}"
+                                                    th:data-province="${user.province}"
+                                                    th:data-district="${user.district}"
+                                                    th:data-role="${user.role}">
+                                                Edit
+                                            </button>
+                                            <form th:action="@{/users/toggle-status/{id}(id=${user.id})}" method="post" style="display: inline;">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                <input type="hidden" name="active" th:value="${!user.active}"/>
+                                                <button type="submit" class="btn btn-sm btn-outline"
+                                                        th:text="${user.active} ? 'Deactivate' : 'Activate'">
+                                                    Toggle
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
+                                                  class="delete-user-form"
+                                                  style="display: inline;"
+                                                  th:data-username="${user.username}">
+                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+    <!-- Create User Modal -->
+    <div id="createModal" class="modal-overlay hidden" onclick="closeCreateModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New User</h3>
+                <button type="button" class="modal-close" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form th:action="@{/users/create}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    
+                    <div class="form-group">
+                        <label for="create-username" class="form-label required">Username</label>
+                        <input type="text" id="create-username" name="username" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-email" class="form-label required">Email</label>
+                        <input type="email" id="create-email" name="email" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-password" class="form-label required">Password</label>
+                        <input type="password" id="create-password" name="password" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-firstName" class="form-label required">First Name</label>
+                        <input type="text" id="create-firstName" name="firstName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-lastName" class="form-label required">Last Name</label>
+                        <input type="text" id="create-lastName" name="lastName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-phoneNumber" class="form-label">Phone Number</label>
+                        <input type="tel" id="create-phoneNumber" name="phoneNumber" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-province" class="form-label">Province</label>
+                        <select id="create-province" name="province" class="form-select">
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-district" class="form-label">District</label>
+                        <select id="create-district" name="district" class="form-select" disabled>
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="create-role" class="form-label required">Role</label>
+                        <select id="create-role" name="role" class="form-select" required>
+                            <option value="">Select Role</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="VETERINARY_OFFICER">Veterinary Officer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal-overlay hidden" onclick="closeEditModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit User</h3>
+                <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    
+                    <div class="form-group">
+                        <label for="edit-username" class="form-label required">Username</label>
+                        <input type="text" id="edit-username" name="username" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-email" class="form-label required">Email</label>
+                        <input type="email" id="edit-email" name="email" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-password" class="form-label">Password (leave blank to keep current)</label>
+                        <input type="password" id="edit-password" name="password" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-firstName" class="form-label required">First Name</label>
+                        <input type="text" id="edit-firstName" name="firstName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-lastName" class="form-label required">Last Name</label>
+                        <input type="text" id="edit-lastName" name="lastName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-phoneNumber" class="form-label">Phone Number</label>
+                        <input type="tel" id="edit-phoneNumber" name="phoneNumber" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-province" class="form-label">Province</label>
+                        <select id="edit-province" name="province" class="form-select">
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-district" class="form-label">District</label>
+                        <select id="edit-district" name="district" class="form-select" disabled>
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-role" class="form-label required">Role</label>
+                        <select id="edit-role" name="role" class="form-select" required>
+                            <option value="">Select Role</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="VETERINARY_OFFICER">Veterinary Officer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/user-management.js}"></script>
+</div>
+</body>
+</html>

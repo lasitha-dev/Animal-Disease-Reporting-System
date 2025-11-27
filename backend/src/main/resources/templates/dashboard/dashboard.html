@@ -1,0 +1,658 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/default}"
+      lang="en">
+<head>
+    <title>Dashboard - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/map.css}">
+    <style>
+        .dashboard-view-toggle {
+            display: inline-flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .view-button {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .view-button.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #fff;
+        }
+
+        .dashboard-view {
+            display: none;
+        }
+
+        .dashboard-view.active {
+            display: block;
+        }
+
+        .overview-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-auto-rows: minmax(280px, auto);
+            gap: var(--spacing-lg);
+            align-items: stretch;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .overview-panel {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            min-height: 280px;
+        }
+
+        .overview-panel h3 {
+            margin-top: 0;
+            margin-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: var(--spacing-sm);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(320px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .dashboard-section {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            max-height: 480px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #users-content .dashboard-section {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .dashboard-section h3,
+        .dashboard-section h4 {
+            margin: 0 0 var(--spacing-md);
+            position: sticky;
+            top: 0;
+            background: var(--color-bg-primary);
+            z-index: 10;
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            position: sticky;
+            top: 0;
+            background: var(--color-bg-primary);
+            z-index: 10;
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .section-header h3 {
+            margin: 0;
+            position: static;
+            border: none;
+            padding: 0;
+        }
+
+        .link-button {
+            font-size: 0.85rem;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            text-decoration: none;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .link-button:hover {
+            background: var(--color-primary-light);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .stat-card {
+            background: var(--color-bg-secondary);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-primary);
+            margin: var(--spacing-xs) 0;
+        }
+        
+        .stat-label {
+            color: var(--color-text-secondary);
+            font-size: 0.75rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            background: var(--color-bg-primary);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            font-size: 0.875rem;
+        }
+        
+        .data-table th {
+            background: var(--color-bg-secondary);
+            padding: var(--spacing-sm);
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--color-border);
+            position: sticky;
+            top: 0;
+        }
+        
+        .data-table td {
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .chart-container {
+            background: var(--color-bg-primary);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-md);
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chart-canvas {
+            flex: 1;
+            max-height: 200px;
+        }
+
+        .overview-panel .chart-container {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        #section-users h3,
+        #section-users h4 {
+            position: static;
+            top: auto;
+            background: transparent;
+            z-index: 1;
+        }
+
+        .role-chart-container {
+            height: 380px;
+            margin-bottom: calc(var(--spacing-xl));
+            padding-bottom: var(--spacing-sm);
+        }
+
+        .role-chart-container .chart-canvas {
+            max-height: 320px;
+        }
+
+        .section-note {
+            margin-top: var(--spacing-sm);
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .overview-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-view-toggle {
+                width: 100%;
+            }
+
+            .view-button {
+                flex: 1;
+                text-align: center;
+                padding: var(--spacing-sm) var(--spacing-md);
+                min-height: 44px;
+            }
+
+            .overview-layout {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+
+            .overview-panel {
+                min-height: auto;
+                padding: var(--spacing-sm);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+
+            .dashboard-section {
+                max-height: none;
+                padding: var(--spacing-sm);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-xs);
+            }
+
+            .stat-card {
+                padding: var(--spacing-sm);
+            }
+
+            .stat-icon {
+                font-size: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-label {
+                font-size: 0.625rem;
+            }
+
+            .chart-container {
+                height: 200px;
+                padding: var(--spacing-sm);
+            }
+
+            .chart-canvas {
+                max-height: 160px;
+            }
+
+            .role-chart-container {
+                height: 280px;
+            }
+
+            .role-chart-container .chart-canvas {
+                max-height: 220px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: var(--spacing-xs);
+                font-size: 0.75rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+
+            .link-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card {
+                padding: var(--spacing-xs);
+            }
+
+            .stat-icon {
+                font-size: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1rem;
+            }
+
+            .chart-container {
+                height: 180px;
+            }
+
+            .role-chart-container {
+                height: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Welcome Card -->
+    <div class="dashboard-card mb-lg">
+        <h2 style="margin-bottom: var(--spacing-md);" 
+            th:text="'Welcome back, ' + ${#authentication.name} + '!'">
+            Welcome back!
+        </h2>
+        <p style="color: var(--color-text-secondary);" 
+           th:text="'You are logged in as ' + ${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
+            You are logged in as User
+        </p>
+    </div>
+
+    <div class="dashboard-view-toggle">
+        <button class="view-button active" type="button" data-target="overview-content">
+            📊 Overview
+        </button>
+        <button class="view-button" type="button" data-target="users-content">
+            👥 Users
+        </button>
+    </div>
+
+    <div id="overview-content" class="dashboard-view active">
+        <!-- Overview Section (Top Summary) -->
+        <div class="overview-layout">
+            <div class="overview-panel" id="overview-stats">
+                <h3>Configuration Snapshot</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏗️</div>
+                        <div class="stat-value" id="stat-farm-types">-</div>
+                        <div class="stat-label">Farm Types</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🐮</div>
+                        <div class="stat-value" id="stat-animal-types">-</div>
+                        <div class="stat-label">Animal Types</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🦠</div>
+                        <div class="stat-value" id="stat-diseases">-</div>
+                        <div class="stat-label">Diseases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-value" id="stat-notifiable">-</div>
+                        <div class="stat-label">Notifiable Diseases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👨‍⚕️</div>
+                        <div class="stat-value" id="stat-admins">-</div>
+                        <div class="stat-label">Administrators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👨‍🔬</div>
+                        <div class="stat-value" id="stat-vets">-</div>
+                        <div class="stat-label">Veterinary Officers</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overview-panel" id="overview-chart-panel">
+                <h3>System Configuration Overview</h3>
+                <div class="chart-container">
+                    <canvas id="overview-chart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="dashboard-grid">
+        <!-- Farm Types Section -->
+        <div id="section-farm-types" class="dashboard-section">
+            <div class="section-header">
+                <h3>Farm Types</h3>
+                <a class="link-button" th:href="@{/configuration(tab='farm-types')}">
+                    Manage all
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏗️</div>
+                    <div class="stat-value" id="stat-total-farm-types">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="stat-active-farm-types">-</div>
+                    <div class="stat-label">Active</div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table id="farm-types-table">
+                    <thead>
+                        <tr>
+                            <th>Type Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: var(--spacing-xl);">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="section-note">Showing the most recent farm types. View all from Configuration.</p>
+        </div>
+
+        <!-- Animal Types Section -->
+        <div id="section-animal-types" class="dashboard-section">
+            <div class="section-header">
+                <h3>Animal Types</h3>
+                <a class="link-button" th:href="@{/configuration(tab='animal-types')}">
+                    Manage all
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🐮</div>
+                    <div class="stat-value" id="stat-total-animal-types">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="stat-active-animal-types">-</div>
+                    <div class="stat-label">Active</div>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <table id="animal-types-table">
+                    <thead>
+                        <tr>
+                            <th>Type Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: var(--spacing-xl);">
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="section-note">Showing the most recent animal types. View all from Configuration.</p>
+        </div>
+
+        <!-- Diseases Section -->
+        <div id="section-diseases" class="dashboard-section">
+            <div class="section-header">
+                <h3>Diseases</h3>
+                <a class="link-button" th:href="@{/configuration(tab='diseases')}">
+                    Manage all
+                </a>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🦠</div>
+                    <div class="stat-value" id="stat-total-diseases">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="stat-notifiable-diseases">-</div>
+                    <div class="stat-label">Notifiable</div>
+                </div>
+            </div>
+            
+            <div class="diseases-content-grid">
+                <div class="chart-container">
+                    <h4 style="margin-bottom: var(--spacing-sm);">Severity Distribution (Recent)</h4>
+                    <canvas id="disease-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="data-table">
+                    <h4 style="margin-bottom: var(--spacing-sm);">Recently Added</h4>
+                    <table id="diseases-table">
+                        <thead>
+                            <tr>
+                                <th>Disease Name</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: var(--spacing-xl);">
+                                    Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="section-note">Showing the most recent diseases. View all from Configuration.</p>
+        </div>
+
+        </div>
+    </div>
+
+    <div id="users-content" class="dashboard-view" hidden>
+        <div id="section-users" class="dashboard-section">
+            <h3>Users</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍⚕️</div>
+                    <div class="stat-value" id="stat-admin-count">-</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍🔬</div>
+                    <div class="stat-value" id="stat-vet-count">-</div>
+                    <div class="stat-label">Vets</div>
+                </div>
+            </div>
+            
+            <div class="chart-container role-chart-container">
+                <h4 style="margin-bottom: var(--spacing-sm);">Role Distribution</h4>
+                <canvas id="users-chart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- Province Map Section -->
+            <div class="map-container">
+                <h4>User Distribution by Province</h4>
+                
+                <!-- Role Filter Buttons -->
+                <div class="map-filters">
+                    <button class="map-filter-btn active" data-role="">
+                        <span>📊</span> All
+                    </button>
+                    <button class="map-filter-btn" data-role="ADMIN">
+                        <span>👨‍⚕️</span> Admins
+                    </button>
+                    <button class="map-filter-btn" data-role="VETERINARY_OFFICER">
+                        <span>👨‍🔬</span> Vets
+                    </button>
+                </div>
+                
+                <!-- Map Loading State -->
+                <div id="map-loading" class="map-loading" style="display: none;">
+                    Loading map data
+                </div>
+                
+                <!-- Map Container -->
+                <div id="sri-lanka-map" class="province-map"></div>
+                
+                <!-- Color Legend -->
+                <div class="map-legend">
+                    <span>Low</span>
+                    <div class="legend-gradient"></div>
+                    <span>High</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Province User List Modal -->
+    <div id="province-modal" class="province-modal">
+        <div class="province-modal-content">
+            <div class="province-modal-header">
+                <h3 id="province-modal-title">Province Users</h3>
+                <button class="province-modal-close" id="close-province-modal" aria-label="Close">
+                    ×
+                </button>
+            </div>
+            <div class="province-modal-body">
+                <!-- Stats -->
+                <div class="province-modal-stats" id="province-modal-stats"></div>
+                
+                <!-- Loading State -->
+                <div id="province-modal-loading" class="province-modal-loading" style="display: none;">
+                    Loading users...
+                </div>
+                
+                <!-- Error State -->
+                <div id="province-modal-error" class="province-modal-error" style="display: none;">
+                    Failed to load users. Please try again.
+                </div>
+                
+                <!-- User List -->
+                <ul id="province-user-list" class="province-user-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Raphael.js CDN for SVG map rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/sri-lanka-map.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</div>
+</body>
+</html>

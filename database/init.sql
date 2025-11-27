@@ -42,11 +42,23 @@ CREATE TABLE IF NOT EXISTS users (
 -- FARM MANAGEMENT TABLES
 -- =====================================================
 
+-- Farm Types table (reference/lookup table)
+CREATE TABLE IF NOT EXISTS farm_types (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    type_name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID REFERENCES users(id),
+    updated_by UUID REFERENCES users(id)
+);
+
 -- Farms table
 CREATE TABLE IF NOT EXISTS farms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     farm_name VARCHAR(100) NOT NULL,
-    farm_type VARCHAR(50) NOT NULL,
+    farm_type_id UUID NOT NULL REFERENCES farm_types(id),
     owner_name VARCHAR(100) NOT NULL,
     owner_contact VARCHAR(20),
     address TEXT NOT NULL,
@@ -147,9 +159,13 @@ CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
 -- Farms indexes
 CREATE INDEX IF NOT EXISTS idx_farms_district ON farms(district);
 CREATE INDEX IF NOT EXISTS idx_farms_province ON farms(province);
-CREATE INDEX IF NOT EXISTS idx_farms_farm_type ON farms(farm_type);
+CREATE INDEX IF NOT EXISTS idx_farms_farm_type_id ON farms(farm_type_id);
 CREATE INDEX IF NOT EXISTS idx_farms_is_active ON farms(is_active);
 CREATE INDEX IF NOT EXISTS idx_farms_gps ON farms(gps_latitude, gps_longitude);
+
+-- Farm Types indexes
+CREATE INDEX IF NOT EXISTS idx_farm_types_is_active ON farm_types(is_active);
+CREATE INDEX IF NOT EXISTS idx_farm_types_type_name ON farm_types(type_name);
 
 -- Animals indexes
 CREATE INDEX IF NOT EXISTS idx_animals_farm_id ON animals(farm_id);
@@ -183,6 +199,9 @@ $$ language 'plpgsql';
 
 -- Apply triggers to all tables with updated_at column
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_farm_types_updated_at BEFORE UPDATE ON farm_types
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_farms_updated_at BEFORE UPDATE ON farms

@@ -4,6 +4,8 @@ import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
+import com.adrs.model.Province;
+import com.adrs.model.User;
 
 import java.util.List;
 
@@ -67,4 +69,13 @@ public interface UserService {
      * @return UserResponse containing the updated user details
      */
     UserResponse toggleUserStatus(Long id, Boolean active);
+
+    /**
+     * Retrieves users filtered by province and optionally by role.
+     *
+     * @param province the province to filter by
+     * @param role     the optional role to filter by (null for all roles)
+     * @return a list of users matching the filters
+     */
+    List<UserResponse> getUsersByProvinceAndRole(Province province, User.Role role);
 }

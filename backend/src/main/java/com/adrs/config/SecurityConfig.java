@@ -4,28 +4,19 @@ import com.adrs.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Security configuration class for the application.
- * Configures JWT-based authentication and authorization.
+ * Configures form-based authentication with Spring Security and Thymeleaf integration.
  */
 @Configuration
 @EnableWebSecurity
@@ -33,12 +24,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final String ROLE_ADMIN = "ADMIN";
+    private static final String LOGIN_URL = "/login";
+    private static final String DASHBOARD_URL = "/dashboard";
+    private static final String LOGOUT_URL = "/logout";
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * Configures the password encoder.
@@ -76,26 +67,8 @@ public class SecurityConfig {
     }
 
     /**
-     * Configures CORS settings.
-     *
-     * @return CorsConfigurationSource instance
-     */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    /**
      * Configures HTTP security for the application.
+     * Uses form-based authentication with Thymeleaf templates.
      *
      * @param http the HttpSecurity object
      * @return SecurityFilterChain instance
@@ -104,24 +77,39 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // Public resources
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                        .requestMatchers(LOGIN_URL, "/error").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         // Admin-only endpoints
-                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole(ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole(ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole(ROLE_ADMIN)
-                        // Authenticated endpoints
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/users/**").hasRole(ROLE_ADMIN)
+                        // All other pages require authentication
+                        .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .formLogin(form -> form
+                        .loginPage(LOGIN_URL)
+                        .loginProcessingUrl(LOGIN_URL)
+                        .defaultSuccessUrl(DASHBOARD_URL, true)
+                        .failureUrl(LOGIN_URL + "?error=true")
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl(LOGOUT_URL)
+                        .logoutSuccessUrl(LOGIN_URL + "?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
+                .authenticationProvider(authenticationProvider());
 
         return http.build();
     }

@@ -1,0 +1,416 @@
+/**
+ * Table styles
+ */
+
+.table-container {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.table-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.table-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--color-gray-50);
+}
+
+.table th {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-gray-50);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-actions-cell {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.badge-success {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.badge-error {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.badge-info {
+  background-color: var(--color-info-light);
+  color: var(--color-info);
+}
+
+.badge-warning {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning);
+}
+
+.badge-danger {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.badge-secondary {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+/* ========================================
+   Mobile Card View for Tables
+   ======================================== */
+
+/* Card view container */
+.table-card-view {
+  display: none;
+  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.table-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.table-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.table-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+  gap: var(--spacing-sm);
+}
+
+.table-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.table-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.table-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-border-light);
+  gap: var(--spacing-sm);
+}
+
+.table-card-row:last-child {
+  border-bottom: none;
+}
+
+.table-card-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.table-card-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-align: right;
+  word-break: break-word;
+}
+
+.table-card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.table-card-actions .btn,
+.table-card-actions .btn-icon {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+}
+
+/* Empty state for card view */
+.table-card-empty {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.table-card-empty-icon {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+/* ========================================
+   Responsive Table Styles
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .table th,
+  .table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .table-header {
+    padding: var(--spacing-md);
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-title {
+    font-size: var(--font-size-lg);
+    text-align: center;
+  }
+
+  .table-actions {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .table-actions .btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  /* Hide table, show card view */
+  .table-wrapper.responsive-cards .table {
+    display: none;
+  }
+
+  .table-wrapper.responsive-cards + .table-card-view,
+  .table-card-view.active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Transform .table to card view on mobile */
+  .table-container {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .table-wrapper {
+    overflow: visible;
+  }
+
+  .table {
+    background: transparent;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+  }
+
+  .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .table tbody tr:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* First cell becomes card header */
+  .table td:first-child {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    border-bottom: none;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .table td:first-child::before {
+    display: none;
+  }
+
+  /* Regular cells in card body */
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    gap: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    min-height: 44px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    min-width: 70px;
+  }
+
+  /* Actions cell styling */
+  .table td:last-child {
+    border-bottom: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-gray-50);
+  }
+
+  .table td[data-label="Actions"]::before {
+    display: none;
+  }
+
+  /* Make action buttons touch-friendly */
+  .table-actions-cell {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .table-actions-cell .btn,
+  .table-actions-cell .btn-icon {
+    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+  }
+
+  .table-actions-cell form {
+    flex: 1;
+    display: flex;
+  }
+
+  .table-actions-cell form .btn {
+    width: 100%;
+  }
+
+  /* Badge adjustments */
+  .badge {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: var(--spacing-sm);
+  }
+
+  .table-card {
+    padding: var(--spacing-sm);
+  }
+
+  .table-card-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .table-card-value {
+    text-align: left;
+  }
+}
+

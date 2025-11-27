@@ -37,6 +37,30 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles ConfigurationNotFoundException.
+     *
+     * @param ex the exception
+     * @return error response
+     */
+    @ExceptionHandler(ConfigurationNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleConfigurationNotFoundException(ConfigurationNotFoundException ex) {
+        logger.error("Configuration not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    /**
+     * Handles ConfigurationInUseException.
+     *
+     * @param ex the exception
+     * @return error response
+     */
+    @ExceptionHandler(ConfigurationInUseException.class)
+    public ResponseEntity<Map<String, Object>> handleConfigurationInUseException(ConfigurationInUseException ex) {
+        logger.error("Configuration in use: {} (usage count: {})", ex.getMessage(), ex.getUsageCount());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    /**
      * Handles IllegalArgumentException.
      *
      * @param ex the exception
@@ -96,6 +120,83 @@ public class GlobalExceptionHandler {
         response.put("errors", errors);
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles constraint violation exceptions from @Validated.
+     *
+     * @param ex the constraint violation exception
+     * @return error response with validation errors
+     */
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(
+            jakarta.validation.ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String propertyPath = violation.getPropertyPath().toString();
+            String message = violation.getMessage();
+            errors.put(propertyPath, message);
+        });
+
+        logger.error("Constraint violation: {}", errors);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Invalid Request Parameter");
+        response.put("errors", errors);
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles type mismatch exceptions when request parameters cannot be converted.
+     *
+     * @param ex the type mismatch exception
+     * @return error response with type mismatch details
+     */
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        String paramName = ex.getName();
+        String invalidValue = ex.getValue() != null ? ex.getValue().toString() : "null";
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+        
+        String message = String.format("Parameter '%s' with value '%s' could not be converted to type %s", 
+                                      paramName, invalidValue, requiredType);
+        
+        logger.error("Type mismatch: {}", message);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Type Mismatch");
+        response.put("message", message);
+        response.put("parameter", paramName);
+        response.put("invalidValue", invalidValue);
+        response.put("requiredType", requiredType);
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Handles access denied exceptions when user lacks required permissions.
+     *
+     * @param ex the access denied exception
+     * @return error response with 403 status
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex) {
+        logger.error("Access denied: {}", ex.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", "Access Denied");
+        response.put("message", "You do not have permission to access this resource");
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     /**

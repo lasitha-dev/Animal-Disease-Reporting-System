@@ -1,11 +1,11 @@
 package com.adrs.service.impl;
 
-import com.adrs.config.JwtTokenProvider;
 import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
 import com.adrs.exception.ResourceNotFoundException;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.UserRepository;
 import com.adrs.service.UserService;
@@ -44,14 +44,13 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
-
     /**
-     * Authenticates a user and generates a JWT token.
+     * Authenticates a user and updates last login time.
+     * Note: This method is kept for backward compatibility but is not used
+     * in form-based authentication. Spring Security handles authentication.
      *
      * @param loginRequest the login request
-     * @return AuthResponse with token and user details
+     * @return AuthResponse with user details (token will be empty)
      */
     @Override
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
@@ -65,7 +64,6 @@ public class UserServiceImpl implements UserService {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.generateToken(authentication);
 
         User user = userRepository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -76,8 +74,9 @@ public class UserServiceImpl implements UserService {
 
         logger.info("User authenticated successfully: {}", loginRequest.getUsername());
 
+        // Return AuthResponse without JWT token (using empty string)
         return new AuthResponse(
-                jwt,
+                "",  // No JWT token in form-based auth
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
@@ -114,6 +113,8 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setProvince(userRequest.getProvince());
+        user.setDistrict(userRequest.getDistrict());
         user.setRole(userRequest.getRole());
         user.setActive(Boolean.TRUE.equals(userRequest.getActive()));
 
@@ -157,6 +158,8 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setProvince(userRequest.getProvince());
+        user.setDistrict(userRequest.getDistrict());
         user.setRole(userRequest.getRole());
         user.setActive(userRequest.getActive());
 
@@ -234,5 +237,26 @@ public class UserServiceImpl implements UserService {
         logger.info("User status updated successfully: {}", updatedUser.getUsername());
 
         return UserResponse.fromUser(updatedUser);
+    }
+
+    /**
+     * Retrieves users filtered by province and optionally by role.
+     *
+     * @param province the province to filter by
+     * @param role     the optional role to filter by (null for all roles)
+     * @return list of user responses matching the filters
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> getUsersByProvinceAndRole(Province province, User.Role role) {
+        logger.info("Fetching users for province: {}" + (role != null ? " and role: " + role : ""), province);
+
+        List<User> users = (role != null)
+                ? userRepository.findByProvinceAndRole(province, role)
+                : userRepository.findByProvince(province);
+
+        return users.stream()
+                .map(UserResponse::fromUser)
+                .collect(Collectors.toList());
     }
 }

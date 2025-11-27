@@ -1,0 +1,691 @@
+/**
+ * Responsive Styles - Desktop First Approach
+ * Mobile navigation, touch-friendly elements, and responsive utilities
+ */
+
+/* ========================================
+   Mobile Bottom Navigation
+   ======================================== */
+
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-height);
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: var(--z-index-fixed);
+    padding: 0 var(--spacing-sm);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mobile-bottom-nav ul {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mobile-bottom-nav li {
+    flex: 1;
+}
+
+.mobile-bottom-nav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    height: 100%;
+    min-height: var(--touch-target-min);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-md);
+}
+
+.mobile-bottom-nav a:hover,
+.mobile-bottom-nav a.active {
+    color: var(--color-primary);
+    background-color: var(--color-primary-lighter);
+}
+
+.mobile-bottom-nav .nav-icon {
+    font-size: 1.5rem;
+}
+
+.mobile-bottom-nav .nav-label {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile menu toggle button */
+.mobile-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--touch-target-min);
+    height: var(--touch-target-min);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    font-size: 1.5rem;
+    padding: 0;
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+    background-color: var(--color-gray-100);
+}
+
+/* Hamburger icon */
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 24px;
+}
+
+.hamburger-icon span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    transition: all var(--transition-fast);
+}
+
+/* Mobile user profile in menu */
+.mobile-user-profile {
+    display: none;
+    padding: var(--spacing-md);
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.mobile-user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+/* ========================================
+   Sidebar Overlay for Mobile
+   ======================================== */
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--z-index-fixed) + 1);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+}
+
+/* ========================================
+   Responsive Utility Classes
+   ======================================== */
+
+/* Hide on specific breakpoints */
+.hide-mobile { display: block; }
+.hide-tablet { display: block; }
+.hide-desktop { display: none; }
+.show-mobile { display: none; }
+.show-tablet { display: none; }
+.show-desktop { display: block; }
+
+/* Flex utilities responsive */
+.flex-column-mobile { display: flex; }
+
+/* Text alignment responsive */
+.text-center-mobile { text-align: left; }
+
+/* Spacing utilities responsive */
+.p-mobile-sm { padding: initial; }
+.m-mobile-sm { margin: initial; }
+
+/* ========================================
+   Touch-Friendly Enhancements
+   ======================================== */
+
+/* Ensure minimum touch target sizes */
+.touch-target {
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+}
+
+/* Prevent text selection on touch */
+.no-select-touch {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ========================================
+   Tablet Breakpoint (max-width: 1024px)
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .hide-tablet {
+        display: none !important;
+    }
+    
+    .show-tablet {
+        display: block !important;
+    }
+
+    /* Reduce sidebar width on tablets */
+    .dashboard-sidebar {
+        width: 220px;
+    }
+
+    /* Adjust content padding */
+    .dashboard-content {
+        padding: var(--spacing-lg);
+    }
+
+    /* Adjust grid gaps */
+    .dashboard-grid {
+        gap: var(--spacing-md);
+    }
+}
+
+/* ========================================
+   Mobile Breakpoint (max-width: 768px)
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Prevent horizontal scroll on mobile */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    /* Ensure all content stays within viewport */
+    .dashboard,
+    .dashboard-main,
+    .dashboard-content {
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+    
+    /* Show/hide utilities */
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .show-mobile {
+        display: block !important;
+    }
+
+    .hide-desktop {
+        display: block !important;
+    }
+
+    /* Flex column on mobile */
+    .flex-column-mobile {
+        flex-direction: column;
+    }
+
+    /* Text center on mobile */
+    .text-center-mobile {
+        text-align: center;
+    }
+
+    /* Mobile spacing */
+    .p-mobile-sm {
+        padding: var(--spacing-sm) !important;
+    }
+
+    .m-mobile-sm {
+        margin: var(--spacing-sm) !important;
+    }
+
+    /* Show mobile bottom navigation */
+    .mobile-bottom-nav {
+        display: block;
+    }
+
+    /* Show mobile menu toggle */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    /* Hide desktop sidebar by default */
+    .dashboard-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 280px;
+        z-index: calc(var(--z-index-fixed) + 2);
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .dashboard-sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Show sidebar overlay when active */
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* Adjust main content for bottom nav */
+    .dashboard {
+        flex-direction: column;
+    }
+
+    .dashboard-main {
+        padding-bottom: var(--bottom-nav-height);
+    }
+
+    /* Adjust topbar */
+    .dashboard-topbar {
+        padding: 0 var(--spacing-md);
+        height: 56px;
+    }
+
+    .dashboard-topbar h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    /* Adjust content area */
+    .dashboard-content {
+        padding: var(--spacing-md);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Stack grid items */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Constrain all sections to prevent overflow */
+    .dashboard-section {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    /* Adjust stat cards */
+    .dashboard-stat {
+        padding: var(--spacing-md);
+    }
+
+    .dashboard-stat-value {
+        font-size: var(--font-size-xl);
+    }
+
+    .dashboard-stat-title {
+        font-size: var(--font-size-base);
+    }
+
+    /* Row layout adjustments */
+    .row {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .col-md-6,
+    .col-md-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 0;
+        margin-bottom: var(--spacing-md);
+        box-sizing: border-box;
+    }
+    
+    /* Stats grid - ensure proper wrapping */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Stat cards fit within grid */
+    .stat-card {
+        min-width: 0;
+        width: 100%;
+    }
+
+    /* Cards */
+    .dashboard-card {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Chart and data containers */
+    .chart-container,
+    .data-table {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Tables - allow horizontal scroll within container */
+    .data-table table {
+        min-width: 100%;
+    }
+    
+    /* Section headers */
+    .section-header {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+    
+    /* Section notes */
+    .section-note {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    /* Prevent images and SVGs from causing overflow */
+    img, svg, video, canvas, iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Ensure all containers respect viewport width */
+    .container,
+    .content-wrapper,
+    .page-content,
+    .main-content {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Prevent long text from causing overflow */
+    p, span, a, h1, h2, h3, h4, h5, h6 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    /* Link button adjustments */
+    .link-button {
+        white-space: nowrap;
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Overview panel */
+    .overview-panel {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    /* Typography adjustments */
+    h1 {
+        font-size: var(--font-size-2xl);
+    }
+
+    h2 {
+        font-size: var(--font-size-xl);
+    }
+
+    h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    /* Ensure touch-friendly buttons */
+    .btn {
+        min-height: var(--touch-target-min);
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .btn-sm {
+        min-height: 36px;
+    }
+
+    /* Full width buttons on mobile */
+    .btn-mobile-block {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Chart containers - use min-height to allow content to expand */
+    .chart-container,
+    .chart-card {
+        min-height: 200px;
+        height: auto;
+    }
+    
+    /* Diseases section - allow full content display without scroll */
+    .diseases-content-grid .chart-container,
+    .diseases-content-grid .data-table {
+        height: auto;
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    /* View toggle buttons */
+    .view-button {
+        flex: 1;
+        min-height: var(--touch-target-min);
+        font-size: var(--font-size-sm);
+    }
+
+    /* Badge adjustments */
+    .badge {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+}
+
+/* ========================================
+   Small Mobile Breakpoint (max-width: 480px)
+   ======================================== */
+
+@media (max-width: 480px) {
+    /* Ensure no horizontal scroll on small mobile */
+    html, body {
+        overflow-x: hidden !important;
+    }
+    
+    /* Further reduce padding */
+    .dashboard-content {
+        padding: var(--spacing-sm);
+        max-width: 100vw;
+    }
+
+    .dashboard-topbar {
+        padding: 0 var(--spacing-sm);
+    }
+    
+    /* Stats grid - single column on very small screens */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-xs);
+    }
+    
+    .stat-card {
+        padding: var(--spacing-sm);
+    }
+
+    /* Smaller stat cards */
+    .dashboard-stat {
+        padding: var(--spacing-sm);
+    }
+
+    .dashboard-stat-icon {
+        font-size: var(--font-size-2xl);
+    }
+
+    .dashboard-stat-value {
+        font-size: var(--font-size-lg);
+    }
+
+    .dashboard-stat-title {
+        font-size: var(--font-size-sm);
+    }
+
+    /* Bottom nav adjustments */
+    .mobile-bottom-nav a {
+        padding: var(--spacing-xs) 0;
+    }
+
+    .mobile-bottom-nav .nav-icon {
+        font-size: 1.25rem;
+    }
+
+    .mobile-bottom-nav .nav-label {
+        font-size: 0.5625rem;
+    }
+
+    /* Cards */
+    .dashboard-card {
+        padding: var(--spacing-sm);
+    }
+
+    /* Typography */
+    h1 {
+        font-size: var(--font-size-xl);
+    }
+
+    h2 {
+        font-size: var(--font-size-lg);
+    }
+
+    /* Tables in card view - ensure no overflow */
+    .table-wrapper {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Chart height - use min-height instead of fixed height */
+    .chart-container,
+    .chart-card {
+        min-height: 200px;
+        height: auto;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Diseases section - show all content */
+    .diseases-content-grid .chart-container,
+    .diseases-content-grid .data-table {
+        height: auto;
+        max-height: none;
+    }
+}
+
+/* ========================================
+   Landscape Phone Orientation
+   ======================================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce bottom nav height in landscape */
+    .mobile-bottom-nav {
+        height: 48px;
+    }
+
+    .mobile-bottom-nav .nav-icon {
+        font-size: 1.25rem;
+    }
+
+    .mobile-bottom-nav .nav-label {
+        display: none;
+    }
+
+    .dashboard-main {
+        padding-bottom: 48px;
+    }
+
+    /* Reduce topbar height */
+    .dashboard-topbar {
+        height: 48px;
+    }
+
+    /* Two column grid in landscape */
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Chart height in landscape - use min-height */
+    .chart-container,
+    .chart-card {
+        min-height: 180px;
+        height: auto;
+    }
+}
+
+/* ========================================
+   Safe Area Insets (Notch Support)
+   ======================================== */
+
+@supports (padding: max(0px)) {
+    .mobile-bottom-nav {
+        padding-bottom: max(var(--spacing-sm), env(safe-area-inset-bottom));
+    }
+
+    .dashboard-sidebar {
+        padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-content {
+            padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+            padding-right: max(var(--spacing-md), env(safe-area-inset-right));
+        }
+    }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .mobile-bottom-nav,
+    .mobile-menu-toggle,
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .dashboard-sidebar {
+        display: none !important;
+    }
+
+    .dashboard-main {
+        padding-bottom: 0 !important;
+    }
+
+    .dashboard {
+        display: block !important;
+    }
+}

@@ -55,7 +55,13 @@
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
 
-        <!-- JWT Dependencies -->
+        <!-- Thymeleaf Layout Dialect -->
+        <dependency>
+            <groupId>nz.net.ultraq.thymeleaf</groupId>
+            <artifactId>thymeleaf-layout-dialect</artifactId>
+        </dependency>
+
+        <!-- JWT Dependencies - COMMENTED OUT (Using form-based authentication)
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -73,6 +79,7 @@
             <version>0.12.3</version>
             <scope>runtime</scope>
         </dependency>
+        -->
 
         <!-- Spring Boot Starter Validation -->
         <dependency>
@@ -141,6 +148,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Spring Boot Testcontainers Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Spring Security Test -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -152,6 +166,26 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers (for integration testing with real PostgreSQL) -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.19.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
 
