@@ -101,3 +101,53 @@
 .btn-link:hover:not(:disabled) {
   color: var(--color-primary-dark);
 }
+
+/* ========================================
+   Responsive Button Styles
+   ======================================== */
+
+@media (max-width: 768px) {
+  .btn {
+    min-height: var(--touch-target-min);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .btn-lg {
+    min-height: 52px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  /* Stack buttons on mobile when in a button group */
+  .btn-group-mobile-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+  }
+
+  .btn-group-mobile-stack .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Full width button on mobile */
+  .btn-mobile-full {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    font-size: var(--font-size-sm);
+  }
+
+  .btn-sm {
+    font-size: var(--font-size-xs);
+  }
+}

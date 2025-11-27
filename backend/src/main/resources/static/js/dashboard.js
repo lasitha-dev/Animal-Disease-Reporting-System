@@ -252,27 +252,30 @@ async function loadDiseasesData() {
         
         const diseases = await response.json();
         
-        // Calculate severity counts
+        // Get recent diseases for the chart (last 5 added)
+        const recentDiseases = getRecentItems(diseases);
+        
+        // Calculate severity counts from RECENT diseases only
         const severityCounts = {
-            CRITICAL: diseases.filter(d => d.severity === 'CRITICAL').length,
-            HIGH: diseases.filter(d => d.severity === 'HIGH').length,
-            MEDIUM: diseases.filter(d => d.severity === 'MEDIUM').length,
-            LOW: diseases.filter(d => d.severity === 'LOW').length
+            CRITICAL: recentDiseases.filter(d => d.severity === 'CRITICAL').length,
+            HIGH: recentDiseases.filter(d => d.severity === 'HIGH').length,
+            MEDIUM: recentDiseases.filter(d => d.severity === 'MEDIUM').length,
+            LOW: recentDiseases.filter(d => d.severity === 'LOW').length
         };
         
         const notifiableCount = diseases.filter(d => d.isNotifiable).length;
         
-        // Update stats
+        // Update stats (still show totals)
         updateStat('stat-total-diseases', diseases.length);
         updateStat('stat-notifiable-diseases', notifiableCount);
-        updateStat('stat-critical-diseases', severityCounts.CRITICAL);
-        updateStat('stat-high-diseases', severityCounts.HIGH);
+        updateStat('stat-critical-diseases', diseases.filter(d => d.severity === 'CRITICAL').length);
+        updateStat('stat-high-diseases', diseases.filter(d => d.severity === 'HIGH').length);
         
-        // Load chart
+        // Load chart with recent diseases only
         loadDiseaseChart(severityCounts);
         
-        // Populate table
-        populateDiseasesTable(diseases);
+        // Populate table with recent diseases
+        populateDiseasesTable(recentDiseases);
         
     } catch (error) {
         console.error('Error loading diseases:', error);

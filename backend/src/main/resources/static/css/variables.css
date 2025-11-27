@@ -121,6 +121,18 @@
   --container-max-width: 1280px;
   --sidebar-width: 260px;
   --header-height: 64px;
+  --bottom-nav-height: 64px;
+
+  /* Responsive Breakpoints (desktop-first) */
+  --breakpoint-xl: 1200px;   /* Large desktops */
+  --breakpoint-lg: 1024px;   /* Small desktops / landscape tablets */
+  --breakpoint-md: 768px;    /* Tablets */
+  --breakpoint-sm: 576px;    /* Large phones */
+  --breakpoint-xs: 480px;    /* Small phones */
+
+  /* Touch-friendly minimum sizes */
+  --touch-target-min: 44px;  /* Minimum touch target size for accessibility */
+  --touch-spacing: 8px;      /* Minimum spacing between touch targets */
 
   /* Additional Variables for Configuration Page */
   --text-primary: var(--color-text-primary);

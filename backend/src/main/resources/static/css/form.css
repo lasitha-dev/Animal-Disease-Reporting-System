@@ -6,6 +6,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
 .form-label {
@@ -23,7 +28,7 @@
 .form-select,
 .form-textarea {
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-base);
+  font-size: 16px; /* Prevent zoom on iOS, minimum 16px */
   font-family: var(--font-family-primary);
   color: var(--color-text-primary);
   background-color: var(--color-white);
@@ -31,6 +36,7 @@
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
   width: 100%;
+  min-height: var(--touch-target-min);
 }
 
 .form-input:focus,
@@ -71,11 +77,87 @@
   align-items: center;
   gap: var(--spacing-sm);
   cursor: pointer;
+  min-height: var(--touch-target-min);
+  padding: var(--spacing-xs) 0;
 }
 
 .form-checkbox input,
 .form-radio input {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
+  flex-shrink: 0;
 }
+
+/* Form Row for multi-column layouts */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ========================================
+   Responsive Form Styles
+   ======================================== */
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .form-group {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: var(--spacing-md);
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Larger touch targets for checkboxes/radios */
+  .form-checkbox,
+  .form-radio {
+    padding: var(--spacing-sm) 0;
+  }
+
+  .form-checkbox input,
+  .form-radio input {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: var(--spacing-sm);
+  }
+}
+

@@ -47,23 +47,23 @@
                                     </td>
                                 </tr>
                                 <tr th:each="user : ${users}">
-                                    <td th:text="${user.username}">username</td>
-                                    <td th:text="${user.firstName + ' ' + user.lastName}">Name</td>
-                                    <td th:text="${user.email}">email@example.com</td>
-                                    <td th:text="${user.phoneNumber} ?: '-'">-</td>
-                                    <td>
+                                    <td data-label="Username" th:text="${user.username}">username</td>
+                                    <td data-label="Name" th:text="${user.firstName + ' ' + user.lastName}">Name</td>
+                                    <td data-label="Email" th:text="${user.email}">email@example.com</td>
+                                    <td data-label="Phone" th:text="${user.phoneNumber} ?: '-'">-</td>
+                                    <td data-label="Role">
                                         <span th:class="${user.role == 'ADMIN'} ? 'badge badge-info' : 'badge badge-success'"
                                               th:text="${#strings.replace(user.role, '_', ' ')}">
                                             ROLE
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <span th:class="${user.active} ? 'badge badge-success' : 'badge badge-error'"
                                               th:text="${user.active} ? 'Active' : 'Inactive'">
                                             Status
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Actions">
                                         <div class="table-actions-cell">
                                             <button class="btn btn-sm btn-outline btn-edit-user"
                                                     th:data-user-id="${user.id}"

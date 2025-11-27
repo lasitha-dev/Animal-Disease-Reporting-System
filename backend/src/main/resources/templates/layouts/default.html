@@ -4,7 +4,10 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Animal Disease Reporting System</title>
@@ -17,6 +20,7 @@
     <link rel="stylesheet" th:href="@{/css/form.css}">
     <link rel="stylesheet" th:href="@{/css/table.css}">
     <link rel="stylesheet" th:href="@{/css/modal.css}">
+    <link rel="stylesheet" th:href="@{/css/responsive.css}">
     
     <!-- Page-specific CSS and other head content -->
     <th:block layout:fragment="head">
@@ -24,17 +28,24 @@
     </th:block>
 </head>
 <body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
     <div class="dashboard">
         <!-- Sidebar -->
-        <aside class="dashboard-sidebar">
+        <aside class="dashboard-sidebar" id="dashboard-sidebar">
             <div class="dashboard-header">
                 <div class="dashboard-logo">
                     <span>🐄</span>
                     <span>ADRS</span>
                 </div>
+                <!-- Close button for mobile sidebar -->
+                <button class="mobile-menu-toggle show-mobile" id="close-sidebar" aria-label="Close menu">
+                    <span>✕</span>
+                </button>
             </div>
             
-            <nav class="dashboard-nav">
+            <nav class="dashboard-nav" aria-label="Main navigation">
                 <ul>
                     <li>
                         <a th:href="@{/dashboard}" 
@@ -87,7 +98,23 @@
         <!-- Main Content -->
         <main class="dashboard-main">
             <div class="dashboard-topbar">
+                <!-- Mobile menu toggle -->
+                <button class="mobile-menu-toggle" id="open-sidebar" aria-label="Open menu">
+                    <div class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </button>
                 <h1 th:text="${pageTitle} ?: 'Dashboard'">Page Title</h1>
+                <!-- Spacer for alignment when menu button is visible -->
+                <div class="mobile-menu-toggle" style="visibility: hidden; pointer-events: none;">
+                    <div class="hamburger-icon">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
             </div>
             
             <div class="dashboard-content">
@@ -107,10 +134,45 @@
         </main>
     </div>
     
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile navigation">
+        <ul>
+            <li>
+                <a th:href="@{/dashboard}" 
+                   th:classappend="${currentUri == '/dashboard'} ? 'active' : ''">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/users}" 
+                   th:classappend="${#strings.startsWith(currentUri, '/users')} ? 'active' : ''">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Users</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/configuration}" 
+                   th:classappend="${#strings.startsWith(currentUri, '/configuration')} ? 'active' : ''">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Config</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="mobile-menu-more">
+                    <span class="nav-icon">☰</span>
+                    <span class="nav-label">More</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
     <!-- JavaScript Files -->
     <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/responsive.js}"></script>
     <div layout:fragment="scripts">
         <!-- Additional scripts will be inserted here -->
     </div>
 </body>
 </html>
+

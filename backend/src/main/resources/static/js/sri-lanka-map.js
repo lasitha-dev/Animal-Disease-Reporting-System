@@ -118,7 +118,21 @@ function initializeDistrictMap(containerId, onDistrictClick) {
         return;
     }
 
-    const paper = Raphael(containerId, 450, 793);
+    // Original map dimensions for viewBox
+    const MAP_WIDTH = 450;
+    const MAP_HEIGHT = 793;
+
+    const paper = Raphael(containerId, '100%', '100%');
+    
+    // Set viewBox for responsive scaling - this makes the SVG scale proportionally
+    paper.setViewBox(0, 0, MAP_WIDTH, MAP_HEIGHT, true);
+    
+    // Ensure the SVG element has proper attributes for responsive behavior
+    const svgElement = paper.canvas;
+    svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    svgElement.style.width = '100%';
+    svgElement.style.height = '100%';
+    
     const districts = [];
     const labels = [];
 

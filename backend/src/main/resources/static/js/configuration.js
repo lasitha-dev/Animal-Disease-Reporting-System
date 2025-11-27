@@ -171,13 +171,13 @@ function renderFarmTypes(farmTypes) {
     
     tbody.innerHTML = farmTypes.map(ft => `
         <tr>
-            <td><strong>${escapeHtml(ft.typeName)}</strong></td>
-            <td class="text-truncate">${escapeHtml(ft.description || '-')}</td>
-            <td><span class="status-badge ${ft.isActive ? 'active' : 'inactive'}">${ft.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td>${escapeHtml(ft.createdByUsername || 'System')}</td>
-            <td>${formatDate(ft.createdAt)}</td>
-            <td><strong>${ft.usageCount || 0}</strong> farms</td>
-            <td>
+            <td data-label="Type Name"><strong>${escapeHtml(ft.typeName)}</strong></td>
+            <td data-label="Description" class="text-truncate">${escapeHtml(ft.description || '-')}</td>
+            <td data-label="Status"><span class="status-badge ${ft.isActive ? 'active' : 'inactive'}">${ft.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td data-label="Created By">${escapeHtml(ft.createdByUsername || 'System')}</td>
+            <td data-label="Created Date">${formatDate(ft.createdAt)}</td>
+            <td data-label="Usage"><strong>${ft.usageCount || 0}</strong> farms</td>
+            <td data-label="Actions">
                 <div class="action-buttons">
                     <button class="btn-icon edit" onclick="editFarmType('${ft.id}')" title="Edit">✏️</button>
                     <button class="btn-icon toggle" onclick="toggleFarmType('${ft.id}', ${!ft.isActive})" title="${ft.isActive ? 'Deactivate' : 'Activate'}">${ft.isActive ? '🔒' : '🔓'}</button>
@@ -346,14 +346,14 @@ function renderAnimalTypes(animalTypes) {
     
     tbody.innerHTML = animalTypes.map(at => `
         <tr>
-            <td><strong>${escapeHtml(at.typeName)}</strong></td>
-            <td><em>${escapeHtml(at.species)}</em></td>
-            <td class="text-truncate">${escapeHtml(at.description || '-')}</td>
-            <td><span class="status-badge ${at.isActive ? 'active' : 'inactive'}">${at.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td>${escapeHtml(at.createdByUsername || 'System')}</td>
-            <td>${formatDate(at.createdAt)}</td>
-            <td><strong>${at.usageCount || 0}</strong> animals</td>
-            <td>
+            <td data-label="Type Name"><strong>${escapeHtml(at.typeName)}</strong></td>
+            <td data-label="Species"><em>${escapeHtml(at.species)}</em></td>
+            <td data-label="Description" class="text-truncate">${escapeHtml(at.description || '-')}</td>
+            <td data-label="Status"><span class="status-badge ${at.isActive ? 'active' : 'inactive'}">${at.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td data-label="Created By">${escapeHtml(at.createdByUsername || 'System')}</td>
+            <td data-label="Created Date">${formatDate(at.createdAt)}</td>
+            <td data-label="Usage"><strong>${at.usageCount || 0}</strong> animals</td>
+            <td data-label="Actions">
                 <div class="action-buttons">
                     <button class="btn-icon edit" onclick="editAnimalType('${at.id}')" title="Edit">✏️</button>
                     <button class="btn-icon toggle" onclick="toggleAnimalType('${at.id}', ${!at.isActive})" title="${at.isActive ? 'Deactivate' : 'Activate'}">${at.isActive ? '🔒' : '🔓'}</button>
@@ -523,15 +523,15 @@ function renderDiseases(diseases) {
     
     tbody.innerHTML = diseases.map(d => `
         <tr>
-            <td><strong>${escapeHtml(d.diseaseName)}</strong></td>
-            <td>${escapeHtml(d.diseaseCode || '-')}</td>
-            <td><span class="severity-badge ${d.severity.toLowerCase()}">${d.severity}</span></td>
-            <td>${d.isNotifiable ? '<span class="notifiable-badge">Notifiable</span>' : '-'}</td>
-            <td><span class="status-badge ${d.isActive ? 'active' : 'inactive'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td>${escapeHtml(d.createdByUsername || 'System')}</td>
-            <td>${formatDate(d.createdAt)}</td>
-            <td><strong>${d.usageCount || 0}</strong> reports</td>
-            <td>
+            <td data-label="Disease Name"><strong>${escapeHtml(d.diseaseName)}</strong></td>
+            <td data-label="Code">${escapeHtml(d.diseaseCode || '-')}</td>
+            <td data-label="Severity"><span class="severity-badge ${d.severity.toLowerCase()}">${d.severity}</span></td>
+            <td data-label="Notifiable">${d.isNotifiable ? '<span class="notifiable-badge">Notifiable</span>' : '-'}</td>
+            <td data-label="Status"><span class="status-badge ${d.isActive ? 'active' : 'inactive'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
+            <td data-label="Created By">${escapeHtml(d.createdByUsername || 'System')}</td>
+            <td data-label="Created Date">${formatDate(d.createdAt)}</td>
+            <td data-label="Usage"><strong>${d.usageCount || 0}</strong> reports</td>
+            <td data-label="Actions">
                 <div class="action-buttons">
                     <button class="btn-icon edit" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
                     <button class="btn-icon toggle" onclick="toggleDisease('${d.id}', ${!d.isActive})" title="${d.isActive ? 'Deactivate' : 'Activate'}">${d.isActive ? '🔒' : '🔓'}</button>

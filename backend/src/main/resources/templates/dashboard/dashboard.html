@@ -239,6 +239,120 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (max-width: 768px) {
+            .dashboard-view-toggle {
+                width: 100%;
+            }
+
+            .view-button {
+                flex: 1;
+                text-align: center;
+                padding: var(--spacing-sm) var(--spacing-md);
+                min-height: 44px;
+            }
+
+            .overview-layout {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+
+            .overview-panel {
+                min-height: auto;
+                padding: var(--spacing-sm);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+
+            .dashboard-section {
+                max-height: none;
+                padding: var(--spacing-sm);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-xs);
+            }
+
+            .stat-card {
+                padding: var(--spacing-sm);
+            }
+
+            .stat-icon {
+                font-size: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-label {
+                font-size: 0.625rem;
+            }
+
+            .chart-container {
+                height: 200px;
+                padding: var(--spacing-sm);
+            }
+
+            .chart-canvas {
+                max-height: 160px;
+            }
+
+            .role-chart-container {
+                height: 280px;
+            }
+
+            .role-chart-container .chart-canvas {
+                max-height: 220px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: var(--spacing-xs);
+                font-size: 0.75rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+
+            .link-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card {
+                padding: var(--spacing-xs);
+            }
+
+            .stat-icon {
+                font-size: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1rem;
+            }
+
+            .chart-container {
+                height: 180px;
+            }
+
+            .role-chart-container {
+                height: 240px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -397,7 +511,12 @@
 
         <!-- Diseases Section -->
         <div id="section-diseases" class="dashboard-section">
-            <h3>Diseases</h3>
+            <div class="section-header">
+                <h3>Diseases</h3>
+                <a class="link-button" th:href="@{/configuration(tab='diseases')}">
+                    Manage all
+                </a>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">🦠</div>
@@ -411,29 +530,33 @@
                 </div>
             </div>
             
-            <div class="chart-container">
-                <h4 style="margin-bottom: var(--spacing-sm);">Severity Distribution</h4>
-                <canvas id="disease-chart" class="chart-canvas"></canvas>
+            <div class="diseases-content-grid">
+                <div class="chart-container">
+                    <h4 style="margin-bottom: var(--spacing-sm);">Severity Distribution (Recent)</h4>
+                    <canvas id="disease-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="data-table">
+                    <h4 style="margin-bottom: var(--spacing-sm);">Recently Added</h4>
+                    <table id="diseases-table">
+                        <thead>
+                            <tr>
+                                <th>Disease Name</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="text-align: center; padding: var(--spacing-xl);">
+                                    Loading...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            
-            <div class="data-table">
-                <table id="diseases-table">
-                    <thead>
-                        <tr>
-                            <th>Disease Name</th>
-                            <th>Severity</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="3" style="text-align: center; padding: var(--spacing-xl);">
-                                Loading...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <p class="section-note">Showing the most recent diseases. View all from Configuration.</p>
         </div>
 
         </div>

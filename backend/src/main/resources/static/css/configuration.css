@@ -564,60 +564,429 @@
     border-left: 4px solid var(--warning-color);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .content-header h1 {
-        font-size: var(--font-size-2xl);
+/* ========================================
+   Responsive Design - Tablet
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .tab-button {
+        min-width: 150px;
+        padding: var(--spacing-md) var(--spacing-lg);
     }
 
     .tab-content-container {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-xl);
+    }
+}
+
+/* ========================================
+   Responsive Design - Mobile
+   ======================================== */
+
+@media (max-width: 768px) {
+    .content-header {
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-md);
     }
 
-    .tab-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-lg);
+    .content-header h1 {
+        font-size: var(--font-size-xl);
+        text-align: center;
+    }
+
+    .content-header .subtitle {
+        font-size: var(--font-size-base);
+        text-align: center;
+    }
+
+    .tab-navigation {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        gap: 0;
+    }
+
+    .tab-navigation::-webkit-scrollbar {
+        display: none;
     }
 
     .tab-button {
-        min-width: 120px;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: var(--font-size-sm);
-    }
-
-    .data-table {
-        font-size: var(--font-size-sm);
-    }
-
-    .data-table th,
-    .data-table td {
-        padding: var(--spacing-md) var(--spacing-sm);
-    }
-
-    .action-buttons {
+        min-width: 100px;
+        flex: 1 0 auto;
+        padding: var(--spacing-md);
+        font-size: var(--font-size-xs);
         flex-direction: column;
         gap: var(--spacing-xs);
     }
 
-    .btn-icon {
+    .tab-button .icon {
+        font-size: var(--font-size-xl);
+    }
+
+    .tab-content-container {
+        padding: var(--spacing-md);
+    }
+
+    .tab-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+    }
+
+    .tab-header h2 {
+        font-size: var(--font-size-lg);
+        text-align: center;
+    }
+
+    .tab-header .btn {
         width: 100%;
         justify-content: center;
+        min-height: var(--touch-target-min);
     }
 
-    .modal-content {
-        width: 95%;
-        max-height: 95vh;
+    /* Card view for data tables on mobile */
+    .table-container {
+        border-radius: var(--border-radius-md);
+        border: none;
+        background: transparent;
     }
 
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-        padding: var(--spacing-lg);
+    .data-table {
+        font-size: var(--font-size-sm);
+        background: transparent;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        padding: 0;
+        background: transparent;
+    }
+
+    .data-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 0;
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .data-table tbody tr:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Regular cells in card body - define first */
+    .data-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border-bottom: 1px solid var(--border-color);
+        gap: var(--spacing-md);
+        min-height: 44px;
+    }
+
+    /* First cell (name) becomes card header - override after general td styles */
+    .data-table td:first-child {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
+        color: white !important;
+        padding: var(--spacing-lg) !important;
+        font-size: var(--font-size-lg);
+        border-bottom: none;
+        text-align: center;
+        min-height: 60px;
+    }
+
+    .data-table td:first-child::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    .data-table td:first-child strong {
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-size-xl);
+        color: white !important;
+        display: block;
+        word-break: break-word;
+        text-align: center;
+        width: 100%;
+    }
+
+    /* Description and text cells - ensure text is visible */
+    .data-table td[data-label="Description"],
+    .data-table td[data-label="Species"] {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .data-table td[data-label="Description"]::before,
+    .data-table td[data-label="Species"]::before {
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .data-table td[data-label="Description"] .text-truncate,
+    .data-table td[data-label="Species"] em {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+        width: 100%;
+        color: var(--text-primary);
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--bg-secondary);
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size-xs);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+        min-width: 80px;
+    }
+
+    /* Hide label for actions cell */
+    .data-table td[data-label="Actions"]::before {
+        display: none;
+    }
+
+    /* Status badge positioning */
+    .data-table td .status-badge,
+    .data-table td .severity-badge,
+    .data-table td .notifiable-badge {
+        margin-left: auto;
+    }
+
+    .action-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .btn-icon {
+        flex: 1;
+        min-width: 0;
+        min-height: var(--touch-target-min);
+        justify-content: center;
+        border-radius: var(--border-radius-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .btn-icon.edit {
+        background: var(--info-light);
+    }
+
+    .btn-icon.toggle {
+        background: var(--warning-light);
+    }
+
+    .btn-icon.delete {
+        background: var(--danger-light);
+    }
+
+    /* Configuration modals on mobile */
+    .configuration-container ~ #farm-type-modal .modal-content,
+    .configuration-container ~ #animal-type-modal .modal-content,
+    .configuration-container ~ #disease-modal .modal-content,
+    .configuration-container ~ #delete-modal .modal-content {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+        top: 0;
+        left: 0;
+        transform: none;
+        display: flex;
+        flex-direction: column;
+        animation: modalSlideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+    }
+    
+    @keyframes modalSlideUpMobile {
+        0% {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Modal backdrop animation */
+    #farm-type-modal.show,
+    #animal-type-modal.show,
+    #disease-modal.show,
+    #delete-modal.show {
+        background: rgba(0, 0, 0, 0.5) !important;
+        animation: modalBackdropFade 0.3s ease;
+    }
+    
+    @keyframes modalBackdropFade {
+        from {
+            background: rgba(0, 0, 0, 0);
+        }
+        to {
+            background: rgba(0, 0, 0, 0.5);
+        }
+    }
+
+    #farm-type-modal .modal-header,
+    #animal-type-modal .modal-header,
+    #disease-modal .modal-header,
+    #delete-modal .modal-header {
+        padding: var(--spacing-md);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        flex-shrink: 0;
+    }
+
+    #farm-type-modal .modal-body,
+    #animal-type-modal .modal-body,
+    #disease-modal .modal-body,
+    #delete-modal .modal-body {
+        padding: var(--spacing-md);
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    #farm-type-modal .modal-footer,
+    #animal-type-modal .modal-footer,
+    #disease-modal .modal-footer,
+    #delete-modal .modal-footer {
+        padding: var(--spacing-md);
+        padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+        display: flex !important;
+        flex-direction: column-reverse;
+        gap: var(--spacing-sm);
+        z-index: 10;
+        flex-shrink: 0;
+        background: var(--color-bg-secondary);
+        border-top: 1px solid var(--color-border);
+    }
+
+    #farm-type-modal .modal-footer .btn,
+    #animal-type-modal .modal-footer .btn,
+    #disease-modal .modal-footer .btn,
+    #delete-modal .modal-footer .btn {
+        display: flex !important;
+        width: 100%;
+        min-height: var(--touch-target-min, 44px);
+        justify-content: center;
+        align-items: center;
+        visibility: visible !important;
+        opacity: 1 !important;
+        flex-shrink: 0;
+    }
+    
+    /* Ensure Cancel button (btn-secondary) is visible with proper styling */
+    #farm-type-modal .modal-footer .btn-secondary,
+    #animal-type-modal .modal-footer .btn-secondary,
+    #disease-modal .modal-footer .btn-secondary,
+    #delete-modal .modal-footer .btn-secondary {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background-color: var(--color-gray-100, #f3f4f6);
+        color: var(--color-text-primary, #1f2937);
+        border: 1px solid var(--color-border, #e5e7eb);
+        min-height: var(--touch-target-min, 44px);
+        width: 100%;
+        justify-content: center;
+        align-items: center;
     }
 
     .form-row {
         grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .form-control {
+        min-height: var(--touch-target-min);
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* ========================================
+   Responsive Design - Small Mobile
+   ======================================== */
+
+@media (max-width: 480px) {
+    .content-header h1 {
+        font-size: var(--font-size-lg);
+    }
+
+    .tab-button {
+        min-width: 80px;
+        padding: var(--spacing-sm);
+    }
+
+    .tab-button .icon {
+        font-size: var(--font-size-lg);
+    }
+
+    .tab-button span:not(.icon) {
+        font-size: 0.625rem;
+    }
+
+    .tab-content-container {
+        padding: var(--spacing-sm);
+    }
+
+    .data-table tbody {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+
+    .data-table tbody tr {
+        padding: var(--spacing-sm);
+    }
+
+    .status-badge,
+    .severity-badge,
+    .notifiable-badge {
+        font-size: 0.625rem;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .warning-text {
+        flex-direction: column;
+        text-align: center;
     }
 }
 
@@ -636,3 +1005,19 @@
     text-overflow: ellipsis;
     max-width: 250px;
 }
+
+@media (max-width: 768px) {
+    /* Allow full text display in mobile card view */
+    .data-table .text-truncate {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: 100%;
+    }
+    
+    /* Keep truncation for non-table contexts */
+    .text-truncate:not(.data-table .text-truncate) {
+        max-width: 150px;
+    }
+}
+
