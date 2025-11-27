@@ -82,7 +82,6 @@
                         <thead>
                             <tr>
                                 <th>Type Name</th>
-                                <th>Species</th>
                                 <th>Description</th>
                                 <th>Status</th>
                                 <th>Created By</th>
@@ -94,7 +93,7 @@
                         <tbody>
                             <!-- Data will be loaded via AJAX -->
                             <tr class="loading-row">
-                                <td colspan="8" class="text-center">
+                                <td colspan="7" class="text-center">
                                     <div class="spinner"></div>
                                     Loading animal types...
                                 </td>
@@ -119,6 +118,7 @@
                             <tr>
                                 <th>Disease Name</th>
                                 <th>Disease Code</th>
+                                <th>Animal Type</th>
                                 <th>Severity</th>
                                 <th>Notifiable</th>
                                 <th>Status</th>
@@ -131,7 +131,7 @@
                         <tbody>
                             <!-- Data will be loaded via AJAX -->
                             <tr class="loading-row">
-                                <td colspan="9" class="text-center">
+                                <td colspan="10" class="text-center">
                                     <div class="spinner"></div>
                                     Loading diseases...
                                 </td>
@@ -203,13 +203,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="animal-type-species" class="required">Species</label>
-                        <input type="text" id="animal-type-species" name="species" class="form-control" 
-                               required maxlength="100" placeholder="e.g., Bos taurus">
-                        <span class="error-message" id="animal-type-species-error"></span>
-                    </div>
-
-                    <div class="form-group">
                         <label for="animal-type-description">Description</label>
                         <textarea id="animal-type-description" name="description" class="form-control" 
                                   rows="4" maxlength="500" 
@@ -255,6 +248,15 @@
                         <input type="text" id="disease-code" name="diseaseCode" class="form-control" 
                                maxlength="20" placeholder="e.g., FMD-001">
                         <span class="error-message" id="disease-code-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="disease-animal-type" class="required">Animal Type</label>
+                        <select id="disease-animal-type" name="animalTypeId" class="form-control" required>
+                            <option value="">Select animal type...</option>
+                            <!-- Options will be loaded via AJAX -->
+                        </select>
+                        <span class="error-message" id="disease-animal-type-error"></span>
                     </div>
 
                     <div class="form-row">
@@ -335,6 +337,7 @@
         </div>
     </div>
 
+    <script th:src="@{/js/custom-select.js}"></script>
     <script th:src="@{/js/configuration.js}"></script>
 </div>
 </body>

@@ -77,6 +77,14 @@ public class Disease {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    /**
+     * The animal type that can contract this disease.
+     * Each disease is associated with a specific animal type.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "animal_type_id")
+    private AnimalType animalType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;

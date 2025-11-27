@@ -34,6 +34,16 @@ public class DiseaseDTO {
 
     private String[] affectedAnimalTypes;
 
+    /**
+     * The ID of the animal type that can contract this disease.
+     */
+    private UUID animalTypeId;
+
+    /**
+     * The name of the animal type (for display purposes).
+     */
+    private String animalTypeName;
+
     private Disease.Severity severity;
 
     private Boolean isNotifiable;

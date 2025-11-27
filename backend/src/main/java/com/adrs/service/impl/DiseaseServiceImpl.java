@@ -3,7 +3,9 @@ package com.adrs.service.impl;
 import com.adrs.dto.DiseaseDTO;
 import com.adrs.exception.ConfigurationInUseException;
 import com.adrs.exception.ConfigurationNotFoundException;
+import com.adrs.model.AnimalType;
 import com.adrs.model.Disease;
+import com.adrs.repository.AnimalTypeRepository;
 import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.DiseaseService;
 import org.slf4j.Logger;
@@ -27,11 +29,15 @@ public class DiseaseServiceImpl implements DiseaseService {
     private static final Logger logger = LoggerFactory.getLogger(DiseaseServiceImpl.class);
     private static final String ENTITY_TYPE = "Disease";
     private static final String NOT_FOUND_MSG = "Disease not found with ID: {}";
+    private static final String ANIMAL_TYPE_NOT_FOUND_MSG = "Animal type not found with ID: {}";
     
     private final DiseaseRepository diseaseRepository;
+    private final AnimalTypeRepository animalTypeRepository;
 
-    public DiseaseServiceImpl(DiseaseRepository diseaseRepository) {
+    public DiseaseServiceImpl(DiseaseRepository diseaseRepository,
+                              AnimalTypeRepository animalTypeRepository) {
         this.diseaseRepository = diseaseRepository;
+        this.animalTypeRepository = animalTypeRepository;
     }
 
     @Override
@@ -55,8 +61,18 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setDescription(diseaseDTO.getDescription());
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
-        disease.setIsNotifiable(diseaseDTO.getIsNotifiable() != null ? diseaseDTO.getIsNotifiable() : false);
+        disease.setIsNotifiable(Boolean.TRUE.equals(diseaseDTO.getIsNotifiable()));
         disease.setIsActive(true);
+        
+        // Set animal type if provided
+        if (diseaseDTO.getAnimalTypeId() != null) {
+            AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
+                    .orElseThrow(() -> {
+                        logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
+                        return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
+                    });
+            disease.setAnimalType(animalType);
+        }
         
         Disease savedDisease = diseaseRepository.save(disease);
         logger.info("Disease created successfully with ID: {}", savedDisease.getId());
@@ -93,6 +109,18 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
         disease.setIsNotifiable(diseaseDTO.getIsNotifiable());
+        
+        // Update animal type if provided
+        if (diseaseDTO.getAnimalTypeId() != null) {
+            AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
+                    .orElseThrow(() -> {
+                        logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
+                        return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
+                    });
+            disease.setAnimalType(animalType);
+        } else {
+            disease.setAnimalType(null);
+        }
         
         Disease updatedDisease = diseaseRepository.save(disease);
         logger.info("Disease updated successfully: {}", updatedDisease.getId());
@@ -249,6 +277,12 @@ public class DiseaseServiceImpl implements DiseaseService {
         dto.setIsActive(disease.getIsActive());
         dto.setCreatedAt(disease.getCreatedAt());
         dto.setUpdatedAt(disease.getUpdatedAt());
+        
+        // Set animal type information
+        if (disease.getAnimalType() != null) {
+            dto.setAnimalTypeId(disease.getAnimalType().getId());
+            dto.setAnimalTypeName(disease.getAnimalType().getTypeName());
+        }
         
         if (disease.getCreatedBy() != null) {
             dto.setCreatedByUsername(disease.getCreatedBy().getUsername());

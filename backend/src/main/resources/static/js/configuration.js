@@ -19,6 +19,7 @@ let currentTab = 'farm-types';
 let currentEditId = null;
 let currentDeleteId = null;
 let currentDeleteType = null;
+let animalTypesCache = []; // Cache for animal types dropdown
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -335,7 +336,7 @@ function renderAnimalTypes(animalTypes) {
     if (animalTypes.length === 0) {
         tbody.innerHTML = `
             <tr class="empty-state">
-                <td colspan="8">
+                <td colspan="7">
                     <div class="icon">🐄</div>
                     <p>No animal types found. Add one to get started!</p>
                 </td>
@@ -347,7 +348,6 @@ function renderAnimalTypes(animalTypes) {
     tbody.innerHTML = animalTypes.map(at => `
         <tr>
             <td data-label="Type Name"><strong>${escapeHtml(at.typeName)}</strong></td>
-            <td data-label="Species"><em>${escapeHtml(at.species)}</em></td>
             <td data-label="Description" class="text-truncate">${escapeHtml(at.description || '-')}</td>
             <td data-label="Status"><span class="status-badge ${at.isActive ? 'active' : 'inactive'}">${at.isActive ? 'Active' : 'Inactive'}</span></td>
             <td data-label="Created By">${escapeHtml(at.createdByUsername || 'System')}</td>
@@ -373,7 +373,6 @@ function openAnimalTypeModal(animalType = null) {
         title.textContent = 'Edit Animal Type';
         document.getElementById('animal-type-id').value = animalType.id;
         document.getElementById('animal-type-name').value = animalType.typeName;
-        document.getElementById('animal-type-species').value = animalType.species;
         document.getElementById('animal-type-description').value = animalType.description || '';
         document.getElementById('animal-type-active').checked = animalType.isActive;
     } else {
@@ -393,7 +392,6 @@ async function handleAnimalTypeSubmit(e) {
     
     const formData = {
         typeName: document.getElementById('animal-type-name').value.trim(),
-        species: document.getElementById('animal-type-species').value.trim(),
         description: document.getElementById('animal-type-description').value.trim(),
         isActive: document.getElementById('animal-type-active').checked
     };
@@ -419,6 +417,8 @@ async function handleAnimalTypeSubmit(e) {
         showSuccess(`Animal type ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('animal-type-modal');
         loadAnimalTypes();
+        // Clear cache so disease dropdown refreshes with new animal types
+        animalTypesCache = [];
     } catch (error) {
         console.error('Error saving animal type:', error);
         showError(error.message);
@@ -453,6 +453,8 @@ async function toggleAnimalType(id, isActive) {
         
         showSuccess(`Animal type ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadAnimalTypes();
+        // Clear cache so disease dropdown refreshes with updated animal types
+        animalTypesCache = [];
     } catch (error) {
         console.error('Error toggling animal type:', error);
         showError(error.message);
@@ -512,7 +514,7 @@ function renderDiseases(diseases) {
     if (diseases.length === 0) {
         tbody.innerHTML = `
             <tr class="empty-state">
-                <td colspan="9">
+                <td colspan="10">
                     <div class="icon">🦠</div>
                     <p>No diseases found. Add one to get started!</p>
                 </td>
@@ -525,6 +527,7 @@ function renderDiseases(diseases) {
         <tr>
             <td data-label="Disease Name"><strong>${escapeHtml(d.diseaseName)}</strong></td>
             <td data-label="Code">${escapeHtml(d.diseaseCode || '-')}</td>
+            <td data-label="Animal Type">${escapeHtml(d.animalTypeName || '-')}</td>
             <td data-label="Severity"><span class="severity-badge ${d.severity.toLowerCase()}">${d.severity}</span></td>
             <td data-label="Notifiable">${d.isNotifiable ? '<span class="notifiable-badge">Notifiable</span>' : '-'}</td>
             <td data-label="Status"><span class="status-badge ${d.isActive ? 'active' : 'inactive'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
@@ -547,35 +550,132 @@ function openDiseaseModal(disease = null) {
     const form = document.getElementById('disease-form');
     const title = document.getElementById('disease-modal-title');
     
-    if (disease) {
-        title.textContent = 'Edit Disease';
-        document.getElementById('disease-id').value = disease.id;
-        document.getElementById('disease-name').value = disease.diseaseName;
-        document.getElementById('disease-code').value = disease.diseaseCode || '';
-        document.getElementById('disease-severity').value = disease.severity;
-        document.getElementById('disease-notifiable').checked = disease.isNotifiable;
-        document.getElementById('disease-description').value = disease.description || '';
-        document.getElementById('disease-symptoms').value = disease.symptoms || '';
-        document.getElementById('disease-treatment').value = disease.treatment || '';
-        document.getElementById('disease-active').checked = disease.isActive;
-    } else {
-        title.textContent = 'Add Disease';
-        form.reset();
+    // Load animal types for dropdown
+    loadAnimalTypesForDropdown().then(() => {
+        if (disease) {
+            title.textContent = 'Edit Disease';
+            document.getElementById('disease-id').value = disease.id;
+            document.getElementById('disease-name').value = disease.diseaseName;
+            document.getElementById('disease-code').value = disease.diseaseCode || '';
+            document.getElementById('disease-animal-type').value = disease.animalTypeId || '';
+            document.getElementById('disease-severity').value = disease.severity;
+            document.getElementById('disease-notifiable').checked = disease.isNotifiable;
+            document.getElementById('disease-description').value = disease.description || '';
+            document.getElementById('disease-symptoms').value = disease.symptoms || '';
+            document.getElementById('disease-treatment').value = disease.treatment || '';
+            document.getElementById('disease-active').checked = disease.isActive;
+        } else {
+            title.textContent = 'Add Disease';
+            form.reset();
+            document.getElementById('disease-animal-type').value = '';
+        }
+        
+        // Clear errors
+        form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+        form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+        
+        openModal('disease-modal');
+        
+        // Initialize custom selects after modal is open (for proper dimensions)
+        initializeDiseaseCustomSelects(disease);
+    });
+}
+
+/**
+ * Initialize custom select components for disease modal.
+ * @param {Object|null} disease - Disease object for editing, or null for new disease
+ */
+function initializeDiseaseCustomSelects(disease) {
+    // Initialize animal type custom select using static method
+    if (typeof CustomSelect !== 'undefined') {
+        CustomSelect.init('disease-animal-type', {
+            placeholder: 'Select animal type...',
+            title: 'Select Animal Type'
+        });
+        
+        CustomSelect.init('disease-severity', {
+            placeholder: 'Select severity...',
+            title: 'Select Severity'
+        });
+        
+        // Set values after initialization
+        if (disease) {
+            if (disease.animalTypeId) {
+                const animalTypeInstance = CustomSelect.getInstance('disease-animal-type');
+                if (animalTypeInstance) {
+                    animalTypeInstance.setValue(disease.animalTypeId);
+                }
+            }
+            if (disease.severity) {
+                const severityInstance = CustomSelect.getInstance('disease-severity');
+                if (severityInstance) {
+                    severityInstance.setValue(disease.severity);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Load active animal types for the disease modal dropdown.
+ */
+async function loadAnimalTypesForDropdown() {
+    try {
+        // Use cache if available
+        if (animalTypesCache.length > 0) {
+            populateAnimalTypeDropdown(animalTypesCache);
+            return;
+        }
+        
+        const response = await fetch(`${ANIMAL_TYPES_API}/active`);
+        if (!response.ok) throw new Error('Failed to load animal types');
+        
+        animalTypesCache = await response.json();
+        populateAnimalTypeDropdown(animalTypesCache);
+    } catch (error) {
+        console.error('Error loading animal types:', error);
+        showError('Failed to load animal types for dropdown');
+    }
+}
+
+/**
+ * Populate the animal type dropdown with options.
+ */
+function populateAnimalTypeDropdown(animalTypes) {
+    const select = document.getElementById('disease-animal-type');
+    const currentValue = select.value;
+    
+    // Clear existing options except the first placeholder
+    select.innerHTML = '<option value="">Select animal type...</option>';
+    
+    // Add animal type options
+    animalTypes.forEach(at => {
+        const option = document.createElement('option');
+        option.value = at.id;
+        option.textContent = at.typeName;
+        select.appendChild(option);
+    });
+    
+    // Restore selected value if it was set
+    if (currentValue) {
+        select.value = currentValue;
     }
     
-    // Clear errors
-    form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-    form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-    
-    openModal('disease-modal');
+    // Refresh custom select if initialized (using static method)
+    if (typeof CustomSelect !== 'undefined') {
+        CustomSelect.refresh('disease-animal-type');
+    }
 }
 
 async function handleDiseaseSubmit(e) {
     e.preventDefault();
     
+    const animalTypeId = document.getElementById('disease-animal-type').value;
+    
     const formData = {
         diseaseName: document.getElementById('disease-name').value.trim(),
         diseaseCode: document.getElementById('disease-code').value.trim(),
+        animalTypeId: animalTypeId || null,
         severity: document.getElementById('disease-severity').value,
         isNotifiable: document.getElementById('disease-notifiable').checked,
         description: document.getElementById('disease-description').value.trim(),
@@ -720,6 +820,8 @@ async function handleDelete() {
                 break;
             case 'animal-type':
                 loadAnimalTypes();
+                // Clear cache so disease dropdown refreshes
+                animalTypesCache = [];
                 break;
             case 'disease':
                 loadDiseases();

@@ -8,6 +8,16 @@ const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('co
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
 /**
+ * Refresh CustomSelect after options are dynamically loaded
+ * Uses the global CustomSelect registry
+ */
+function refreshCustomSelect(selectId) {
+    if (typeof CustomSelect !== 'undefined' && CustomSelect.refresh) {
+        CustomSelect.refresh(selectId);
+    }
+}
+
+/**
  * Loads all provinces into a dropdown
  */
 async function loadProvinces(selectId) {
@@ -34,6 +44,9 @@ async function loadProvinces(selectId) {
             option.textContent = province.label;
             select.appendChild(option);
         });
+        
+        // Refresh CustomSelect if initialized
+        refreshCustomSelect(selectId);
     } catch (error) {
         console.error('Error loading provinces:', error);
     }
@@ -48,6 +61,7 @@ async function loadDistricts(provinceName, selectId) {
     if (!provinceName) {
         select.innerHTML = '<option value="">Select District</option>';
         select.disabled = true;
+        refreshCustomSelect(selectId);
         return;
     }
     
@@ -75,10 +89,14 @@ async function loadDistricts(provinceName, selectId) {
         });
         
         select.disabled = false;
+        
+        // Refresh CustomSelect if initialized
+        refreshCustomSelect(selectId);
     } catch (error) {
         console.error('Error loading districts:', error);
         select.innerHTML = '<option value="">Error loading districts</option>';
         select.disabled = true;
+        refreshCustomSelect(selectId);
     }
 }
 
@@ -191,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
     
-    // Load provinces for both forms
+    // Load provinces for both forms (CustomSelects are auto-initialized by custom-select.js)
     loadProvinces('create-province');
     loadProvinces('edit-province');
     
