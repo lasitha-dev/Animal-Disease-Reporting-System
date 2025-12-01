@@ -2,9 +2,299 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layouts/default}">
+      layout:decorate="~{layouts/default}"
+      lang="en">
 <head>
     <title>User Management</title>
+    <style>
+        /* User Management Page Specific Styles */
+        .user-management-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 44px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            background-color: var(--color-white);
+            transition: all var(--transition-fast);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-lighter);
+        }
+        
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            opacity: 0.5;
+        }
+        
+        .add-user-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        
+        .add-user-btn:hover {
+            background: var(--color-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* User Table Styles */
+        .user-table-container {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .user-table th {
+            padding: var(--spacing-md) var(--spacing-lg);
+            text-align: left;
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--color-gray-50);
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .user-table td {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: middle;
+        }
+        
+        .user-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .user-table tbody tr:hover {
+            background-color: var(--color-gray-50);
+        }
+        
+        /* User Cell with Avatar */
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-sm);
+            flex-shrink: 0;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .user-name {
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+        }
+        
+        .user-role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .user-role-badge.admin {
+            background: var(--color-info-light);
+            color: var(--color-info);
+        }
+        
+        .user-role-badge.vet {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        /* Contact Cell */
+        .contact-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .contact-email {
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+        }
+        
+        .contact-id {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-xs);
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        .status-badge.active {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-badge.inactive {
+            background: var(--color-error-light);
+            color: var(--color-error);
+        }
+        
+        /* Date Column */
+        .date-cell {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+        }
+        
+        /* Actions Column */
+        .actions-cell {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+        
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            background: transparent;
+        }
+        
+        .action-btn.edit {
+            color: var(--color-text-secondary);
+        }
+        
+        .action-btn.edit:hover {
+            background: var(--color-gray-100);
+            color: var(--color-primary);
+        }
+        
+        .action-btn.delete {
+            color: var(--color-text-secondary);
+        }
+        
+        .action-btn.delete:hover {
+            background: var(--color-error-light);
+            color: var(--color-error);
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 1024px) {
+            .user-table th:nth-child(4),
+            .user-table td:nth-child(4) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .user-management-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: none;
+            }
+            
+            .add-user-btn {
+                justify-content: center;
+            }
+            
+            .user-table-container {
+                overflow-x: auto;
+            }
+            
+            .user-table th:nth-child(3),
+            .user-table td:nth-child(3),
+            .user-table th:nth-child(4),
+            .user-table td:nth-child(4) {
+                display: none;
+            }
+            
+            .user-table th,
+            .user-table td {
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
+            
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: var(--font-size-xs);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .user-table th:nth-child(2),
+            .user-table td:nth-child(2) {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -15,93 +305,125 @@
     <div th:if="${errorMessage}" class="alert alert-error mb-md" th:text="${errorMessage}">
         Error message
     </div>
-                
-                <!-- User Table -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2 class="table-title">All Users</h2>
-                        <div class="table-actions">
-                            <button class="btn btn-primary" onclick="openCreateModal()">
-                                + Create User
-                            </button>
+    
+    <!-- Header with Search and Add Button -->
+    <div class="user-management-header">
+        <div class="search-box">
+            <input type="text" id="user-search" placeholder="Search users..." />
+        </div>
+        <button class="add-user-btn" onclick="openCreateModal()">
+            <span>+</span>
+            <span>Add New User</span>
+        </button>
+    </div>
+    
+    <!-- User Table -->
+    <div class="user-table-container">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>User / Role</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <tr th:if="${#lists.isEmpty(users)}">
+                    <td colspan="5" style="text-align: center; padding: var(--spacing-xl);">
+                        No users found
+                    </td>
+                </tr>
+                <tr th:each="user : ${users}" th:data-username="${user.username}" th:data-name="${user.firstName + ' ' + user.lastName}">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar" 
+                                 th:text="${#strings.substring(user.firstName, 0, 1).toUpperCase() + #strings.substring(user.lastName, 0, 1).toUpperCase()}">
+                                MC
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name" th:text="${user.firstName + ' ' + user.lastName}">John Doe</span>
+                                <span class="user-role-badge" 
+                                      th:classappend="${user.role == 'ADMIN'} ? 'admin' : 'vet'"
+                                      th:text="${user.role == 'ADMIN'} ? 'Admin' : 'Veterinarian'">
+                                    Veterinarian
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:if="${#lists.isEmpty(users)}">
-                                    <td colspan="7" style="text-align: center; padding: var(--spacing-xl);">
-                                        No users found
-                                    </td>
-                                </tr>
-                                <tr th:each="user : ${users}">
-                                    <td data-label="Username" th:text="${user.username}">username</td>
-                                    <td data-label="Name" th:text="${user.firstName + ' ' + user.lastName}">Name</td>
-                                    <td data-label="Email" th:text="${user.email}">email@example.com</td>
-                                    <td data-label="Phone" th:text="${user.phoneNumber} ?: '-'">-</td>
-                                    <td data-label="Role">
-                                        <span th:class="${user.role == 'ADMIN'} ? 'badge badge-info' : 'badge badge-success'"
-                                              th:text="${#strings.replace(user.role, '_', ' ')}">
-                                            ROLE
-                                        </span>
-                                    </td>
-                                    <td data-label="Status">
-                                        <span th:class="${user.active} ? 'badge badge-success' : 'badge badge-error'"
-                                              th:text="${user.active} ? 'Active' : 'Inactive'">
-                                            Status
-                                        </span>
-                                    </td>
-                                    <td data-label="Actions">
-                                        <div class="table-actions-cell">
-                                            <button class="btn btn-sm btn-outline btn-edit-user"
-                                                    th:data-user-id="${user.id}"
-                                                    th:data-username="${user.username}"
-                                                    th:data-email="${user.email}"
-                                                    th:data-first-name="${user.firstName}"
-                                                    th:data-last-name="${user.lastName}"
-                                                    th:data-phone="${user.phoneNumber}"
-                                                    th:data-province="${user.province}"
-                                                    th:data-district="${user.district}"
-                                                    th:data-role="${user.role}">
-                                                Edit
-                                            </button>
-                                            <form th:action="@{/users/toggle-status/{id}(id=${user.id})}" method="post" style="display: inline;">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <input type="hidden" name="active" th:value="${!user.active}"/>
-                                                <button type="submit" class="btn btn-sm btn-outline"
-                                                        th:text="${user.active} ? 'Deactivate' : 'Activate'">
-                                                    Toggle
-                                                </button>
-                                            </form>
-                                            <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
-                                                  class="delete-user-form"
-                                                  style="display: inline;"
-                                                  th:data-username="${user.username}">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    </td>
+                    <td>
+                        <div class="contact-cell">
+                            <span class="contact-email" th:text="${user.email}">email@example.com</span>
+                            <span class="contact-id" th:text="'ID: ' + ${user.username}">ID: USR-001</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge" 
+                              th:classappend="${user.active} ? 'active' : 'inactive'"
+                              th:text="${user.active} ? 'Active' : 'Inactive'">
+                            Active
+                        </span>
+                    </td>
+                    <td>
+                        <span class="date-cell" th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'MMM dd, yyyy')} : '-'">Jan 01, 2024</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-btn edit btn-edit-user"
+                                    th:data-user-id="${user.id}"
+                                    th:data-username="${user.username}"
+                                    th:data-email="${user.email}"
+                                    th:data-first-name="${user.firstName}"
+                                    th:data-last-name="${user.lastName}"
+                                    th:data-phone="${user.phoneNumber}"
+                                    th:data-province="${user.province}"
+                                    th:data-district="${user.district}"
+                                    th:data-role="${user.role}"
+                                    title="Edit user">
+                                ✏️
+                            </button>
+                            <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
+                                  class="delete-user-form"
+                                  style="display: inline;"
+                                  th:data-username="${user.username}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="action-btn delete" title="Delete user">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
+    <script th:src="@{/js/custom-select.js}"></script>
+    <script th:src="@{/js/user-management.js}"></script>
+    <script>
+        // User search functionality
+        document.getElementById('user-search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#user-table-body tr');
+            
+            rows.forEach(row => {
+                const username = row.dataset.username?.toLowerCase() || '';
+                const name = row.dataset.name?.toLowerCase() || '';
+                const email = row.querySelector('.contact-email')?.textContent.toLowerCase() || '';
+                
+                if (username.includes(searchTerm) || name.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</div>
+
+<!-- Modals Portal - Rendered outside dashboard container for proper stacking -->
+<div layout:fragment="modals">
     <!-- Create User Modal -->
     <div id="createModal" class="modal-overlay hidden" onclick="closeCreateModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
@@ -245,9 +567,6 @@
             </form>
         </div>
     </div>
-    
-    <script th:src="@{/js/custom-select.js}"></script>
-    <script th:src="@{/js/user-management.js}"></script>
 </div>
 </body>
 </html>

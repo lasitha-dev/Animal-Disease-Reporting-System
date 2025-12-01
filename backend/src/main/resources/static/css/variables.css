@@ -1,19 +1,29 @@
 /**
  * CSS Variables for the Animal Disease Reporting System
  * Define all colors, fonts, and design tokens here
+ * Design System: BioGuard Admin Console Theme
  */
 
 :root {
-  /* Primary Colors - Emerald Green (Nature/Health) */
-  --color-primary: #059669;       /* Emerald 600 */
-  --color-primary-dark: #047857;  /* Emerald 700 */
-  --color-primary-light: #34d399; /* Emerald 400 */
-  --color-primary-lighter: #d1fae5; /* Emerald 100 */
+  /* Primary Colors - Blue (Professional/Trust) */
+  --color-primary: #3b82f6;       /* Blue 500 */
+  --color-primary-dark: #2563eb;  /* Blue 600 */
+  --color-primary-light: #60a5fa; /* Blue 400 */
+  --color-primary-lighter: #dbeafe; /* Blue 100 */
 
-  /* Secondary Colors - Amber (Agriculture/Warning) */
-  --color-secondary: #d97706;     /* Amber 600 */
-  --color-secondary-dark: #b45309; /* Amber 700 */
-  --color-secondary-light: #fbbf24; /* Amber 400 */
+  /* Secondary Colors - Emerald (Health/Nature) */
+  --color-secondary: #10b981;     /* Emerald 500 */
+  --color-secondary-dark: #059669; /* Emerald 600 */
+  --color-secondary-light: #34d399; /* Emerald 400 */
+
+  /* Sidebar Dark Theme Colors */
+  --sidebar-bg: #1e293b;          /* Slate 800 */
+  --sidebar-bg-dark: #0f172a;     /* Slate 900 */
+  --sidebar-text: #94a3b8;        /* Slate 400 */
+  --sidebar-text-active: #ffffff;
+  --sidebar-hover-bg: #334155;    /* Slate 700 */
+  --sidebar-active-bg: rgba(59, 130, 246, 0.1);
+  --sidebar-border: #334155;      /* Slate 700 */
 
   /* Neutral Colors - Slate (Cooler Grays) */
   --color-white: #ffffff;

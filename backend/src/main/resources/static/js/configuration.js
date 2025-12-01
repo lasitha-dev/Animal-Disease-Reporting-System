@@ -1,6 +1,7 @@
 /**
  * Configuration Management JavaScript
  * Handles CRUD operations for farm types, animal types, and diseases
+ * Updated for card-based UI layout
  */
 
 // CSRF Token
@@ -12,10 +13,10 @@ const API_BASE = '/api/configuration';
 const FARM_TYPES_API = `${API_BASE}/farm-types`;
 const ANIMAL_TYPES_API = `${API_BASE}/animal-types`;
 const DISEASES_API = `${API_BASE}/diseases`;
-const CONFIG_TABS = ['farm-types', 'animal-types', 'diseases'];
+const CONFIG_TABS = ['animal-types', 'farm-types', 'diseases'];
 
 // Current state
-let currentTab = 'farm-types';
+let currentTab = 'animal-types';
 let currentEditId = null;
 let currentDeleteId = null;
 let currentDeleteType = null;
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ========================================
-// TAB MANAGEMENT
+// TAB MANAGEMENT (Updated for new UI)
 // ========================================
 
 function getInitialTab() {
@@ -60,7 +61,7 @@ function getValidTabName(tabName) {
 }
 
 function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabButtons = document.querySelectorAll('.config-tab');
     for (const button of tabButtons) {
         button.addEventListener('click', () => {
             const tabName = button.dataset.tab;
@@ -71,13 +72,13 @@ function initializeTabs() {
 
 function switchTab(tabName) {
     const validTab = getValidTabName(tabName);
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+    const tabButtons = document.querySelectorAll('.config-tab');
+    const tabContents = document.querySelectorAll('.config-tab-content');
 
     for (const btn of tabButtons) {
         btn.classList.remove('active');
     }
-    const activeButton = document.querySelector(`[data-tab="${validTab}"]`);
+    const activeButton = document.querySelector(`.config-tab[data-tab="${validTab}"]`);
     if (activeButton) {
         activeButton.classList.add('active');
     }
@@ -85,7 +86,7 @@ function switchTab(tabName) {
     for (const content of tabContents) {
         content.classList.remove('active');
     }
-    const targetContent = document.getElementById(`${validTab}-tab`);
+    const targetContent = document.getElementById(`${validTab}-content`);
     if (targetContent) {
         targetContent.classList.add('active');
     }
@@ -120,22 +121,22 @@ function initializeModals() {
         });
     });
     
-    // Click outside to close
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal(modal.id);
+    // Click outside to close (click on overlay)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeModal(overlay.id);
             }
         });
     });
 }
 
 function openModal(modalId) {
-    document.getElementById(modalId).classList.add('show');
+    document.getElementById(modalId).classList.remove('hidden');
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('show');
+    document.getElementById(modalId).classList.add('hidden');
 }
 
 // ========================================
@@ -148,44 +149,38 @@ async function loadFarmTypes() {
         if (!response.ok) throw new Error('Failed to load farm types');
         
         const farmTypes = await response.json();
-        renderFarmTypes(farmTypes);
+        renderFarmTypesCards(farmTypes);
     } catch (error) {
         console.error('Error loading farm types:', error);
         showError('Failed to load farm types');
     }
 }
 
-function renderFarmTypes(farmTypes) {
-    const tbody = document.querySelector('#farm-types-table tbody');
+function renderFarmTypesCards(farmTypes) {
+    const container = document.getElementById('farm-types-cards');
     
-    if (farmTypes.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="7">
-                    <div class="icon">🏡</div>
-                    <p>No farm types found. Add one to get started!</p>
-                </td>
-            </tr>
+    if (!farmTypes || farmTypes.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon">🏡</div>
+                <p>No farm types found. Add one to get started!</p>
+            </div>
         `;
         return;
     }
     
-    tbody.innerHTML = farmTypes.map(ft => `
-        <tr>
-            <td data-label="Type Name"><strong>${escapeHtml(ft.typeName)}</strong></td>
-            <td data-label="Description" class="text-truncate">${escapeHtml(ft.description || '-')}</td>
-            <td data-label="Status"><span class="status-badge ${ft.isActive ? 'active' : 'inactive'}">${ft.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(ft.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(ft.createdAt)}</td>
-            <td data-label="Usage"><strong>${ft.usageCount || 0}</strong> farms</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editFarmType('${ft.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleFarmType('${ft.id}', ${!ft.isActive})" title="${ft.isActive ? 'Deactivate' : 'Activate'}">${ft.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteFarmType('${ft.id}')" title="Delete">🗑️</button>
-                </div>
-            </td>
-        </tr>
+    container.innerHTML = farmTypes.map(ft => `
+        <div class="config-item-card" onclick="editFarmType('${ft.id}')" data-id="${ft.id}">
+            <div class="config-item-icon">🏡</div>
+            <div class="config-item-content">
+                <div class="config-item-name">${escapeHtml(ft.typeName)}</div>
+                <div class="config-item-description">${escapeHtml(ft.description || 'No description')}</div>
+            </div>
+            <div class="config-item-actions" onclick="event.stopPropagation()">
+                <button class="config-action-btn" onclick="editFarmType('${ft.id}')" title="Edit">✏️</button>
+                <button class="config-action-btn delete" onclick="deleteFarmType('${ft.id}')" title="Delete">🗑️</button>
+            </div>
+        </div>
     `).join('');
 }
 
@@ -323,44 +318,38 @@ async function loadAnimalTypes() {
         if (!response.ok) throw new Error('Failed to load animal types');
         
         const animalTypes = await response.json();
-        renderAnimalTypes(animalTypes);
+        renderAnimalTypesCards(animalTypes);
     } catch (error) {
         console.error('Error loading animal types:', error);
         showError('Failed to load animal types');
     }
 }
 
-function renderAnimalTypes(animalTypes) {
-    const tbody = document.querySelector('#animal-types-table tbody');
+function renderAnimalTypesCards(animalTypes) {
+    const container = document.getElementById('animal-types-cards');
     
-    if (animalTypes.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="7">
-                    <div class="icon">🐄</div>
-                    <p>No animal types found. Add one to get started!</p>
-                </td>
-            </tr>
+    if (!animalTypes || animalTypes.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon">🐾</div>
+                <p>No animal types found. Add one to get started!</p>
+            </div>
         `;
         return;
     }
     
-    tbody.innerHTML = animalTypes.map(at => `
-        <tr>
-            <td data-label="Type Name"><strong>${escapeHtml(at.typeName)}</strong></td>
-            <td data-label="Description" class="text-truncate">${escapeHtml(at.description || '-')}</td>
-            <td data-label="Status"><span class="status-badge ${at.isActive ? 'active' : 'inactive'}">${at.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(at.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(at.createdAt)}</td>
-            <td data-label="Usage"><strong>${at.usageCount || 0}</strong> animals</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editAnimalType('${at.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleAnimalType('${at.id}', ${!at.isActive})" title="${at.isActive ? 'Deactivate' : 'Activate'}">${at.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteAnimalType('${at.id}')" title="Delete">🗑️</button>
-                </div>
-            </td>
-        </tr>
+    container.innerHTML = animalTypes.map(at => `
+        <div class="config-item-card" onclick="editAnimalType('${at.id}')" data-id="${at.id}">
+            <div class="config-item-icon">🐾</div>
+            <div class="config-item-content">
+                <div class="config-item-name">${escapeHtml(at.typeName)}</div>
+                <div class="config-item-description">${escapeHtml(at.description || 'No description')}</div>
+            </div>
+            <div class="config-item-actions" onclick="event.stopPropagation()">
+                <button class="config-action-btn" onclick="editAnimalType('${at.id}')" title="Edit">✏️</button>
+                <button class="config-action-btn delete" onclick="deleteAnimalType('${at.id}')" title="Delete">🗑️</button>
+            </div>
+        </div>
     `).join('');
 }
 
@@ -501,47 +490,38 @@ async function loadDiseases() {
         if (!response.ok) throw new Error('Failed to load diseases');
         
         const diseases = await response.json();
-        renderDiseases(diseases);
+        renderDiseasesCards(diseases);
     } catch (error) {
         console.error('Error loading diseases:', error);
         showError('Failed to load diseases');
     }
 }
 
-function renderDiseases(diseases) {
-    const tbody = document.querySelector('#diseases-table tbody');
+function renderDiseasesCards(diseases) {
+    const container = document.getElementById('diseases-cards');
     
-    if (diseases.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="10">
-                    <div class="icon">🦠</div>
-                    <p>No diseases found. Add one to get started!</p>
-                </td>
-            </tr>
+    if (!diseases || diseases.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon">🦠</div>
+                <p>No diseases found. Add one to get started!</p>
+            </div>
         `;
         return;
     }
     
-    tbody.innerHTML = diseases.map(d => `
-        <tr>
-            <td data-label="Disease Name"><strong>${escapeHtml(d.diseaseName)}</strong></td>
-            <td data-label="Code">${escapeHtml(d.diseaseCode || '-')}</td>
-            <td data-label="Animal Type">${escapeHtml(d.animalTypeName || '-')}</td>
-            <td data-label="Severity"><span class="severity-badge ${d.severity.toLowerCase()}">${d.severity}</span></td>
-            <td data-label="Notifiable">${d.isNotifiable ? '<span class="notifiable-badge">Notifiable</span>' : '-'}</td>
-            <td data-label="Status"><span class="status-badge ${d.isActive ? 'active' : 'inactive'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(d.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(d.createdAt)}</td>
-            <td data-label="Usage"><strong>${d.usageCount || 0}</strong> reports</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleDisease('${d.id}', ${!d.isActive})" title="${d.isActive ? 'Deactivate' : 'Activate'}">${d.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
-                </div>
-            </td>
-        </tr>
+    container.innerHTML = diseases.map(d => `
+        <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
+            <div class="config-item-icon">🦠</div>
+            <div class="config-item-content">
+                <div class="config-item-name">${escapeHtml(d.diseaseName)}</div>
+                <div class="config-item-description">${escapeHtml(d.animalTypeName || 'All animals')} • ${d.severity}</div>
+            </div>
+            <div class="config-item-actions" onclick="event.stopPropagation()">
+                <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
+                <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
+            </div>
+        </div>
     `).join('');
 }
 

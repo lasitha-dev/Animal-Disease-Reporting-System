@@ -196,7 +196,18 @@
 
     /* Reduce sidebar width on tablets */
     .dashboard-sidebar {
-        width: 220px;
+        width: 200px;
+    }
+    
+    /* Configuration cards grid - 2 columns on tablet */
+    .config-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* User management table - reduce padding */
+    .user-management-content table th,
+    .user-management-content table td {
+        padding: 12px 10px;
     }
 
     /* Adjust content padding */
@@ -505,6 +516,140 @@
         font-size: var(--font-size-xs);
         padding: var(--spacing-xs) var(--spacing-sm);
     }
+    
+    /* ========================================
+       New UI Components - Mobile Styles
+       ======================================== */
+    
+    /* Stats row - 2 columns on mobile */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .stat-card-new {
+        padding: 16px;
+    }
+    
+    .stat-card-new .stat-number {
+        font-size: 24px;
+    }
+    
+    /* Chart cards stack on mobile */
+    .chart-row {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .chart-card-new {
+        padding: 16px;
+    }
+    
+    /* Configuration tabs - scrollable on mobile */
+    .config-tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .config-tab {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    /* Configuration cards grid - 1 column on mobile */
+    .config-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .config-item-card {
+        padding: 16px;
+    }
+    
+    /* User management responsive */
+    .user-management-content {
+        padding: 16px;
+    }
+    
+    .user-management-content .search-box {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+    
+    .user-management-content .search-box input {
+        width: 100%;
+    }
+    
+    /* User table - card layout on mobile */
+    .user-management-content table {
+        display: block;
+    }
+    
+    .user-management-content thead {
+        display: none;
+    }
+    
+    .user-management-content tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .user-management-content tr {
+        display: flex;
+        flex-wrap: wrap;
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .user-management-content td {
+        padding: 4px 0;
+        border: none;
+    }
+    
+    .user-management-content td:first-child {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .user-management-content td:nth-child(2),
+    .user-management-content td:nth-child(3) {
+        width: 50%;
+    }
+    
+    .user-management-content td:last-child {
+        width: 100%;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
+        justify-content: flex-end;
+    }
+    
+    /* Topbar actions */
+    .topbar-actions {
+        gap: 8px;
+    }
+    
+    .notification-btn,
+    .logout-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .logout-btn span {
+        display: none;
+    }
 }
 
 /* ========================================
@@ -548,6 +693,43 @@
 
     .dashboard-stat-value {
         font-size: var(--font-size-lg);
+    }
+    
+    /* New stat cards - smaller on tiny screens */
+    .stats-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    
+    .stat-card-new {
+        padding: 12px;
+    }
+    
+    .stat-card-new .stat-number {
+        font-size: 20px;
+    }
+    
+    .stat-card-new .stat-label {
+        font-size: 11px;
+    }
+    
+    /* Configuration tabs - smaller */
+    .config-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    /* Config cards - more compact */
+    .config-item-card {
+        padding: 12px;
+    }
+    
+    .config-item-name {
+        font-size: 14px;
+    }
+    
+    .config-item-description {
+        font-size: 12px;
     }
 
     .dashboard-stat-title {

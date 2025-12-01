@@ -150,6 +150,16 @@ class CustomSelect {
     }
 
     open() {
+        // Close all other open dropdowns first
+        document.querySelectorAll('.custom-select-wrapper.open').forEach(wrapper => {
+            if (wrapper !== this.wrapper) {
+                const instance = CustomSelect.instances[wrapper.querySelector('select')?.id];
+                if (instance) {
+                    instance.close();
+                }
+            }
+        });
+        
         this.isOpen = true;
         this.wrapper.classList.add('open');
         

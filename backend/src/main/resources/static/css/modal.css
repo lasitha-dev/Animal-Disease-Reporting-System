@@ -1,20 +1,31 @@
 /**
  * Modal component styles
+ * Modern clean design matching BioGuard UI mockup
  */
+
+/* Modal Portal Container - ensures modals render above everything */
+#modal-portal {
+  position: relative;
+  z-index: 99999;
+}
 
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-index-modal-backdrop);
+  z-index: 99999;
   padding: var(--spacing-md);
   animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin: 0;
+  overflow: hidden;
 }
 
 .modal-overlay.hidden {
@@ -29,29 +40,28 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .modal {
   background-color: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 480px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   z-index: var(--z-index-modal);
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-header {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
+  padding: 24px 24px 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,27 +72,26 @@
 }
 
 .modal-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: 20px;
+  font-weight: 600;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: var(--font-size-2xl);
+  font-size: 20px;
   color: var(--color-text-secondary);
   cursor: pointer;
   padding: 0;
-  width: var(--touch-target-min);
-  height: var(--touch-target-min);
-  min-width: var(--touch-target-min);
-  min-height: var(--touch-target-min);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  border-radius: 8px;
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
@@ -92,19 +101,123 @@
 }
 
 .modal-body {
-  padding: var(--spacing-lg);
+  padding: 24px;
+}
+
+/* Modern form inputs for modals */
+.modal .form-group {
+  margin-bottom: 20px;
+}
+
+.modal .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal .form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.modal .form-input,
+.modal .form-select,
+.modal .form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background-color: #f9fafb;
+  color: var(--color-text-primary);
+  transition: all 0.15s ease;
+}
+
+.modal .form-input:focus,
+.modal .form-select:focus,
+.modal .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-white);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal .form-input::placeholder,
+.modal .form-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.modal .form-textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 .modal-footer {
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--color-border);
+  padding: 16px 24px 24px 24px;
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  position: sticky;
-  bottom: 0;
+  gap: 12px;
   background-color: var(--color-white);
   flex-wrap: wrap;
+}
+
+/* Modal button styles */
+.modal .btn-secondary,
+.modal .btn-cancel {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+  background-color: var(--color-white);
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal .btn-secondary:hover,
+.modal .btn-cancel:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.modal .btn-primary,
+.modal .btn-save {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.modal .btn-primary:hover,
+.modal .btn-save:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Checkbox styling in modals */
+.modal .form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.modal .form-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
 }
 
 /* ========================================
@@ -113,71 +226,50 @@
 
 @media (max-width: 768px) {
   .modal-overlay {
-    padding: 0;
-    align-items: flex-end;
-    animation: modalOverlayFade 0.3s ease;
-  }
-  
-  @keyframes modalOverlayFade {
-    from {
-      background: rgba(0, 0, 0, 0);
-    }
-    to {
-      background: rgba(0, 0, 0, 0.5);
-    }
+    padding: var(--spacing-md);
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .modal {
-    max-width: 100%;
-    max-height: 95vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    animation: slideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes slideUpMobile {
-    0% {
-      opacity: 0;
-      transform: translateY(100%);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    width: 95%;
+    max-width: 95%;
+    max-height: 90vh;
+    border-radius: 16px;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .modal-header {
-    padding: var(--spacing-md);
+    padding: 20px 20px 0 20px;
   }
 
   .modal-title {
-    font-size: var(--font-size-lg);
+    font-size: 18px;
   }
 
   .modal-body {
-    padding: var(--spacing-md);
+    padding: 20px;
   }
 
   .modal-footer {
-    padding: var(--spacing-md);
-    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+    padding: 16px 20px 20px 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column-reverse;
-    gap: var(--spacing-sm);
+    gap: 10px;
   }
 
-  .modal-footer .btn {
-    display: flex;
+  .modal .btn-primary,
+  .modal .btn-save,
+  .modal .btn-secondary,
+  .modal .btn-cancel {
     width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
     justify-content: center;
-    align-items: center;
-    min-height: var(--touch-target-min, 44px);
-  }
-  
-  /* Ensure all buttons are visible including Cancel */
-  .modal-footer .btn-secondary {
-    display: flex;
-    width: 100%;
-    min-height: var(--touch-target-min, 44px);
   }
 }
 
@@ -194,23 +286,36 @@
   }
 
   .modal.modal-fullscreen-mobile .modal-header {
-    padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+    padding-top: max(20px, env(safe-area-inset-top));
   }
 
   .modal.modal-fullscreen-mobile .modal-footer {
-    padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
   }
 }
 
 @media (max-width: 480px) {
-  .modal-header,
-  .modal-body,
+  .modal-header {
+    padding: 16px 16px 0 16px;
+  }
+  
+  .modal-body {
+    padding: 16px;
+  }
+  
   .modal-footer {
-    padding: var(--spacing-sm);
+    padding: 12px 16px 16px 16px;
   }
 
   .modal-title {
-    font-size: var(--font-size-base);
+    font-size: 16px;
+  }
+  
+  .modal .form-input,
+  .modal .form-select,
+  .modal .form-textarea {
+    padding: 10px 14px;
+    font-size: 16px;
   }
 }
 
