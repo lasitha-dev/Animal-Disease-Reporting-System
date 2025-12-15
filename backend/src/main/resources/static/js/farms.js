@@ -10,6 +10,7 @@
     let animalTypes = [];
     let selectedAnimalTags = [];
     let farms = [];
+    let editingFarmId = null; // Track which farm is being edited
 
     // DOM Elements
     const farmsGrid = document.getElementById('farms-grid');
@@ -108,6 +109,125 @@
 
         hideEmpty();
         farmsGrid.innerHTML = farms.map(farm => createFarmCard(farm)).join('');
+
+        // Attach event listeners to edit/delete buttons
+        attachFarmCardEventListeners();
+    }
+
+    /**
+     * Attach event listeners to farm card action buttons
+     */
+    function attachFarmCardEventListeners() {
+        // Edit buttons
+        farmsGrid.querySelectorAll('.farm-edit-btn').forEach(btn => {
+            btn.addEventListener('click', handleEditFarm);
+        });
+
+        // Delete buttons
+        farmsGrid.querySelectorAll('.farm-delete-btn').forEach(btn => {
+            btn.addEventListener('click', handleDeleteFarm);
+        });
+    }
+
+    /**
+     * Handle edit farm button click
+     */
+    async function handleEditFarm(e) {
+        const farmId = e.target.dataset.farmId;
+        editingFarmId = farmId;
+
+        // Find the farm in our local state
+        const farm = farms.find(f => f.id === farmId);
+        if (!farm) return;
+
+        // Open modal and populate form
+        openModal();
+
+        // Update modal title
+        document.querySelector('.modal-title').textContent = 'Edit Farm';
+        document.querySelector('#submitBtn .btn-text').textContent = 'Update Farm';
+
+        // Populate form fields
+        document.getElementById('farmName').value = farm.farmName || '';
+        document.getElementById('description').value = farm.description || '';
+        document.getElementById('ownerName').value = farm.ownerName || '';
+        document.getElementById('ownerContact').value = (farm.ownerContact || '').replace('+94', '');
+        document.getElementById('address').value = farm.address || '';
+        document.getElementById('gpsLatitude').value = farm.gpsLatitude || '';
+        document.getElementById('gpsLongitude').value = farm.gpsLongitude || '';
+
+        // Set farm type
+        farmTypeSelect.value = farm.farmTypeId || '';
+
+        // Set province and load districts
+        provinceSelect.value = farm.province || '';
+        if (farm.province) {
+            await loadDistrictsForProvince(farm.province);
+            districtSelect.value = farm.district || '';
+        }
+
+        // Set animal tags
+        selectedAnimalTags = (farm.animalTags || []).map(tag => ({
+            animalTypeId: tag.animalTypeId,
+            animalTypeName: tag.animalTypeName,
+            count: tag.count
+        }));
+        renderSelectedTags();
+        populateAnimalTypeDropdown();
+    }
+
+    /**
+     * Load districts for a province (helper for edit mode)
+     */
+    async function loadDistrictsForProvince(provinceName) {
+        try {
+            const response = await fetch(`/api/locations/districts?provinceName=${provinceName}`, { headers: getHeaders() });
+            if (!response.ok) throw new Error('Failed to load districts');
+
+            const districts = await response.json();
+            districtSelect.innerHTML = '<option value="">Select district...</option>';
+            districts.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d.value;
+                option.textContent = d.label;
+                districtSelect.appendChild(option);
+            });
+            districtSelect.disabled = false;
+        } catch (error) {
+            console.error('Error loading districts:', error);
+        }
+    }
+
+    /**
+     * Handle delete farm button click
+     */
+    async function handleDeleteFarm(e) {
+        const farmId = e.target.dataset.farmId;
+        const farm = farms.find(f => f.id === farmId);
+
+        if (!farm) return;
+
+        // Confirm deletion
+        if (!confirm(`Are you sure you want to delete "${farm.farmName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/vet/farms/${farmId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete farm');
+            }
+
+            // Reload farms
+            loadFarms();
+        } catch (error) {
+            console.error('Error deleting farm:', error);
+            alert('Failed to delete farm. Please try again.');
+        }
     }
 
     /**
@@ -148,6 +268,14 @@
                         <div class="farm-card-stat-label">Types</div>
                     </div>
                 </div>
+                <div class="farm-card-actions">
+                    <button type="button" class="btn btn-sm btn-outline farm-edit-btn" data-farm-id="${farm.id}">
+                        ✏️ Edit
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger-outline farm-delete-btn" data-farm-id="${farm.id}">
+                        🗑️ Delete
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -182,7 +310,13 @@
     function openModal() {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        resetForm();
+        // Don't call resetForm here - it clears data we may have set in handleEditFarm
+        // Only reset modal title for new farms
+        if (!editingFarmId) {
+            resetForm();
+            document.querySelector('.modal-title').textContent = 'Register New Farm';
+            document.querySelector('#submitBtn .btn-text').textContent = 'Register Farm';
+        }
     }
 
     function closeModal() {
@@ -203,6 +337,7 @@
     function resetForm() {
         form.reset();
         selectedAnimalTags = [];
+        editingFarmId = null; // Clear edit mode
         renderSelectedTags();
         populateAnimalTypeDropdown();
         hideMessage();
@@ -210,6 +345,9 @@
         districtSelect.innerHTML = '<option value="">Select province first...</option>';
         districtSelect.disabled = true;
         setLoading(false);
+        // Reset modal title
+        document.querySelector('.modal-title').textContent = 'Register New Farm';
+        document.querySelector('#submitBtn .btn-text').textContent = 'Register Farm';
     }
 
     /**
@@ -383,10 +521,13 @@
         hideMessage();
 
         const formData = buildFormData();
+        const isEditing = !!editingFarmId;
+        const url = isEditing ? `/api/vet/farms/${editingFarmId}` : '/api/vet/farms';
+        const method = isEditing ? 'PUT' : 'POST';
 
         try {
-            const response = await fetch('/api/vet/farms', {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     ...getHeaders()
@@ -396,10 +537,10 @@
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to register farm');
+                throw new Error(errorData.message || `Failed to ${isEditing ? 'update' : 'register'} farm`);
             }
 
-            showMessage('Farm registered successfully!', 'success');
+            showMessage(`Farm ${isEditing ? 'updated' : 'registered'} successfully!`, 'success');
 
             setTimeout(() => {
                 closeModal();
@@ -407,8 +548,8 @@
             }, 1000);
 
         } catch (error) {
-            console.error('Error registering farm:', error);
-            showMessage(error.message || 'Failed to register farm', 'error');
+            console.error(`Error ${isEditing ? 'updating' : 'registering'} farm:`, error);
+            showMessage(error.message || `Failed to ${isEditing ? 'update' : 'register'} farm`, 'error');
             setLoading(false);
         }
     }

@@ -126,11 +126,17 @@ public class VetController {
             @AuthenticationPrincipal UserDetails userDetails) {
         
         logger.info("PUT /api/vet/farms/{} - Updating farm by user: {}", id, userDetails.getUsername());
+        logger.info("Request data: farmName={}, farmTypeId={}, province={}, district={}", 
+                    request.getFarmName(), request.getFarmTypeId(), request.getProvince(), request.getDistrict());
         
-        User currentUser = getCurrentUser(userDetails);
-        FarmResponseDTO response = farmService.updateFarm(id, request, currentUser);
-        
-        return ResponseEntity.ok(response);
+        try {
+            User currentUser = getCurrentUser(userDetails);
+            FarmResponseDTO response = farmService.updateFarm(id, request, currentUser);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error updating farm: {} - {}", e.getClass().getName(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
@@ -155,6 +161,27 @@ public class VetController {
         FarmResponseDTO response = farmService.updateAnimalTags(id, animalTags, currentUser);
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Delete a farm (soft delete).
+     *
+     * @param id the farm ID
+     * @param userDetails the authenticated user
+     * @return no content
+     */
+    @Operation(summary = "Delete farm", description = "Soft deletes a farm")
+    @DeleteMapping("/farms/{id}")
+    public ResponseEntity<Void> deleteFarm(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("DELETE /api/vet/farms/{} - Deleting farm by user: {}", id, userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        farmService.deleteFarm(id, currentUser);
+        
+        return ResponseEntity.noContent().build();
     }
 
     // ========================================

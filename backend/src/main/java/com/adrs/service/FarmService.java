@@ -64,4 +64,12 @@ public interface FarmService {
      * @return count of farms
      */
     Long getFarmCountByUser(User user);
+
+    /**
+     * Delete a farm (soft delete).
+     *
+     * @param id the farm ID
+     * @param deletedBy the user deleting the farm
+     */
+    void deleteFarm(UUID id, User deletedBy);
 }

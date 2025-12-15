@@ -9,6 +9,7 @@ import com.adrs.repository.FarmAnimalRepository;
 import com.adrs.repository.FarmRepository;
 import com.adrs.repository.FarmTypeRepository;
 import com.adrs.service.FarmService;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,15 +33,18 @@ public class FarmServiceImpl implements FarmService {
     private final FarmTypeRepository farmTypeRepository;
     private final AnimalTypeRepository animalTypeRepository;
     private final FarmAnimalRepository farmAnimalRepository;
+    private final EntityManager entityManager;
 
     public FarmServiceImpl(FarmRepository farmRepository,
                           FarmTypeRepository farmTypeRepository,
                           AnimalTypeRepository animalTypeRepository,
-                          FarmAnimalRepository farmAnimalRepository) {
+                          FarmAnimalRepository farmAnimalRepository,
+                          EntityManager entityManager) {
         this.farmRepository = farmRepository;
         this.farmTypeRepository = farmTypeRepository;
         this.animalTypeRepository = animalTypeRepository;
         this.farmAnimalRepository = farmAnimalRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -107,7 +111,11 @@ public class FarmServiceImpl implements FarmService {
         farm.setFarmName(request.getFarmName());
         farm.setDescription(request.getDescription());
         farm.setOwnerName(request.getOwnerName());
-        farm.setOwnerContact(request.getOwnerContact());
+        
+        // Handle empty ownerContact
+        String ownerContact = request.getOwnerContact();
+        farm.setOwnerContact(ownerContact != null && !ownerContact.trim().isEmpty() ? ownerContact : null);
+        
         farm.setAddress(request.getAddress());
         farm.setProvince(Province.valueOf(request.getProvince()));
         farm.setDistrict(District.valueOf(request.getDistrict()));
@@ -115,10 +123,13 @@ public class FarmServiceImpl implements FarmService {
         farm.setGpsLongitude(request.getGpsLongitude());
         farm.setUpdatedBy(updatedBy);
 
-        // Update farm type if changed
-        if (!farm.getFarmType().getId().equals(request.getFarmTypeId())) {
-            FarmType farmType = farmTypeRepository.findById(request.getFarmTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Farm type not found: " + request.getFarmTypeId()));
+        // Update farm type if changed (with null safety)
+        UUID currentFarmTypeId = farm.getFarmType() != null ? farm.getFarmType().getId() : null;
+        UUID requestFarmTypeId = request.getFarmTypeId();
+        
+        if (requestFarmTypeId != null && !requestFarmTypeId.equals(currentFarmTypeId)) {
+            FarmType farmType = farmTypeRepository.findById(requestFarmTypeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Farm type not found: " + requestFarmTypeId));
             farm.setFarmType(farmType);
         }
 
@@ -155,10 +166,11 @@ public class FarmServiceImpl implements FarmService {
 
     /**
      * Adds animal tags to a farm.
+     * Note: This method adds to the existing collection, it does NOT replace it.
+     * The caller should clear the collection first if needed.
      */
     private void addAnimalTagsToFarm(Farm farm, List<FarmRequestDTO.AnimalTagDTO> animalTags) {
         int totalAnimals = 0;
-        List<FarmAnimal> farmAnimals = new ArrayList<>();
 
         for (FarmRequestDTO.AnimalTagDTO tagDTO : animalTags) {
             if (tagDTO.getCount() != null && tagDTO.getCount() > 0) {
@@ -166,23 +178,47 @@ public class FarmServiceImpl implements FarmService {
                         .orElseThrow(() -> new ResourceNotFoundException("Animal type not found: " + tagDTO.getAnimalTypeId()));
 
                 FarmAnimal farmAnimal = new FarmAnimal(farm, animalType, tagDTO.getCount());
-                farmAnimals.add(farmAnimal);
+                farm.getFarmAnimals().add(farmAnimal); // Add to existing collection, don't replace
                 totalAnimals += tagDTO.getCount();
             }
         }
 
-        farm.setFarmAnimals(farmAnimals);
         farm.setTotalAnimals(totalAnimals);
     }
 
     /**
      * Updates animal tags for a farm, replacing existing ones.
+     * Uses collection.clear() which triggers orphanRemoval automatically.
+     * We flush after clear to ensure DELETE statements execute before INSERTs.
      */
     private void updateAnimalTagsInternal(Farm farm, List<FarmRequestDTO.AnimalTagDTO> animalTags) {
-        // Clear existing tags
+        // Clear existing - orphanRemoval will delete them
         farm.getFarmAnimals().clear();
         
-        // Add new tags
-        addAnimalTagsToFarm(farm, animalTags);
+        // Flush to execute DELETEs before we INSERT new records
+        // This prevents unique constraint violations on (farm_id, animal_type_id)
+        entityManager.flush();
+        
+        // Add new tags to the existing (now empty) collection
+        if (animalTags != null && !animalTags.isEmpty()) {
+            addAnimalTagsToFarm(farm, animalTags);
+        } else {
+            farm.setTotalAnimals(0);
+        }
+    }
+
+    @Override
+    public void deleteFarm(UUID id, User deletedBy) {
+        logger.info("Deleting farm: {} by user: {}", id, deletedBy.getUsername());
+
+        Farm farm = farmRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Farm not found: " + id));
+
+        // Soft delete - set isActive to false
+        farm.setIsActive(false);
+        farm.setUpdatedBy(deletedBy);
+        farmRepository.save(farm);
+
+        logger.info("Farm soft deleted successfully: {}", id);
     }
 }

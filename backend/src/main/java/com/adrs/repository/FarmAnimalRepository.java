@@ -1,7 +1,9 @@
 package com.adrs.repository;
 
+import com.adrs.model.Farm;
 import com.adrs.model.FarmAnimal;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,5 +28,14 @@ public interface FarmAnimalRepository extends JpaRepository<FarmAnimal, UUID> {
      *
      * @param farmId the farm ID
      */
+    @Modifying
     void deleteByFarmId(UUID farmId);
+
+    /**
+     * Delete all animal entries for a specific farm.
+     *
+     * @param farm the farm entity
+     */
+    @Modifying
+    void deleteByFarm(Farm farm);
 }
