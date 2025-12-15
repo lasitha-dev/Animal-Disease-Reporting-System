@@ -3,6 +3,7 @@ package com.adrs.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PageController {
 
     private static final Logger logger = LoggerFactory.getLogger(PageController.class);
+
+    @Value("${app.google.maps.api-key:}")
+    private String googleMapsApiKey;
+
+    @Value("${app.map.default-center-lat:7.8731}")
+    private Double mapDefaultLat;
+
+    @Value("${app.map.default-center-lng:80.7718}")
+    private Double mapDefaultLng;
+
+    @Value("${app.map.default-zoom:7}")
+    private Integer mapDefaultZoom;
     private static final String ERROR_PARAM = "error";
     private static final String LOGOUT_PARAM = "logout";
     private static final String LOGIN_VIEW = "auth/login";
@@ -163,6 +176,13 @@ public class PageController {
         
         model.addAttribute("username", username);
         model.addAttribute("pageTitle", "My Farms");
+        
+        // Google Maps configuration
+        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
+        model.addAttribute("mapDefaultLat", mapDefaultLat);
+        model.addAttribute("mapDefaultLng", mapDefaultLng);
+        model.addAttribute("mapDefaultZoom", mapDefaultZoom);
+        
         return "vet/farms";
     }
 }

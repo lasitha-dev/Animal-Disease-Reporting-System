@@ -12,6 +12,11 @@
     let farms = [];
     let editingFarmId = null; // Track which farm is being edited
 
+    // Map State
+    let map = null;
+    let marker = null;
+    let mapInitialized = false;
+
     // DOM Elements
     const farmsGrid = document.getElementById('farms-grid');
     const emptyState = document.getElementById('empty-state');
@@ -35,6 +40,13 @@
     const addAnimalTagBtn = document.getElementById('addAnimalTagBtn');
     const selectedTagsContainer = document.getElementById('selected-animal-tags');
     const ownerContactInput = document.getElementById('ownerContact');
+
+    // Map Elements
+    const locationMapContainer = document.getElementById('locationMap');
+    const useMyLocationBtn = document.getElementById('useMyLocationBtn');
+    const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+    const gpsLatitudeInput = document.getElementById('gpsLatitude');
+    const gpsLongitudeInput = document.getElementById('gpsLongitude');
 
     // CSRF Token
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -68,6 +80,9 @@
         addAnimalTagBtn?.addEventListener('click', handleAddAnimalTag);
         form?.addEventListener('submit', handleFormSubmit);
         ownerContactInput?.addEventListener('input', handleContactInput);
+
+        // Map controls
+        useMyLocationBtn?.addEventListener('click', handleUseMyLocation);
 
         // Escape key closes modal
         document.addEventListener('keydown', (e) => {
@@ -153,8 +168,9 @@
         document.getElementById('ownerName').value = farm.ownerName || '';
         document.getElementById('ownerContact').value = (farm.ownerContact || '').replace('+94', '');
         document.getElementById('address').value = farm.address || '';
-        document.getElementById('gpsLatitude').value = farm.gpsLatitude || '';
-        document.getElementById('gpsLongitude').value = farm.gpsLongitude || '';
+        // Store coordinates for map initialization
+        gpsLatitudeInput.value = farm.gpsLatitude || '';
+        gpsLongitudeInput.value = farm.gpsLongitude || '';
 
         // Set farm type
         farmTypeSelect.value = farm.farmTypeId || '';
@@ -317,6 +333,10 @@
             document.querySelector('.modal-title').textContent = 'Register New Farm';
             document.querySelector('#submitBtn .btn-text').textContent = 'Register Farm';
         }
+        // Initialize map when modal opens (needs DOM to be visible)
+        setTimeout(() => {
+            initializeMap();
+        }, 100);
     }
 
     function closeModal() {
@@ -348,6 +368,8 @@
         // Reset modal title
         document.querySelector('.modal-title').textContent = 'Register New Farm';
         document.querySelector('#submitBtn .btn-text').textContent = 'Register Farm';
+        // Reset map
+        resetMapMarker();
     }
 
     /**
@@ -594,8 +616,8 @@
             address: document.getElementById('address').value.trim(),
             province: provinceSelect.value,
             district: districtSelect.value,
-            gpsLatitude: document.getElementById('gpsLatitude').value || null,
-            gpsLongitude: document.getElementById('gpsLongitude').value || null,
+            gpsLatitude: gpsLatitudeInput.value || null,
+            gpsLongitude: gpsLongitudeInput.value || null,
             animalTags: selectedAnimalTags.map(tag => ({
                 animalTypeId: tag.animalTypeId,
                 count: tag.count
@@ -652,6 +674,226 @@
         return div.innerHTML;
     }
 
+    // ========================================
+    // MAP PICKER FUNCTIONS
+    // ========================================
+
+    /**
+     * Initialize Google Map
+     */
+    function initializeMap() {
+        if (!locationMapContainer || !window.google || !window.google.maps) {
+            console.warn('Google Maps not loaded yet');
+            return;
+        }
+
+        // Get config from window.mapConfig (set by Thymeleaf)
+        const config = window.mapConfig || {};
+        const defaultLat = config.defaultLat || 7.8731;
+        const defaultLng = config.defaultLng || 80.7718;
+        const defaultZoom = config.defaultZoom || 7;
+
+        // Check if we have existing coordinates (edit mode)
+        const existingLat = parseFloat(gpsLatitudeInput?.value);
+        const existingLng = parseFloat(gpsLongitudeInput?.value);
+
+        const centerLat = !isNaN(existingLat) ? existingLat : defaultLat;
+        const centerLng = !isNaN(existingLng) ? existingLng : defaultLng;
+        const zoomLevel = !isNaN(existingLat) ? 15 : defaultZoom;
+
+        // Create map centered on Sri Lanka (or existing location)
+        map = new google.maps.Map(locationMapContainer, {
+            center: { lat: centerLat, lng: centerLng },
+            zoom: zoomLevel,
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            streetViewControl: false,
+            fullscreenControl: true
+        });
+
+        // Mark as loaded (removes "Loading..." text)
+        locationMapContainer.classList.add('loaded');
+
+        // Add click listener
+        map.addListener('click', handleMapClick);
+
+        // If editing and has coordinates, place marker
+        if (!isNaN(existingLat) && !isNaN(existingLng)) {
+            placeMarker({ lat: existingLat, lng: existingLng });
+        }
+
+        mapInitialized = true;
+    }
+
+    /**
+     * Handle map click - place/move marker
+     */
+    function handleMapClick(event) {
+        const location = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+        };
+        placeMarker(location);
+    }
+
+    /**
+     * Place or move marker on map
+     */
+    function placeMarker(location) {
+        if (marker) {
+            marker.setPosition(location);
+        } else {
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+                title: 'Farm Location'
+            });
+
+            // Add drag end listener
+            marker.addListener('dragend', handleMarkerDrag);
+        }
+
+        // Update hidden inputs
+        gpsLatitudeInput.value = location.lat.toFixed(8);
+        gpsLongitudeInput.value = location.lng.toFixed(8);
+
+        // Update display
+        updateCoordinateDisplay(location.lat, location.lng);
+    }
+
+    /**
+     * Handle marker drag end
+     */
+    function handleMarkerDrag(event) {
+        const location = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+        };
+
+        gpsLatitudeInput.value = location.lat.toFixed(8);
+        gpsLongitudeInput.value = location.lng.toFixed(8);
+
+        updateCoordinateDisplay(location.lat, location.lng);
+    }
+
+    /**
+     * Handle "Use My Location" button click
+     */
+    function handleUseMyLocation() {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        // Update button to show loading
+        const originalText = useMyLocationBtn.innerHTML;
+        useMyLocationBtn.innerHTML = '⏳ Getting location...';
+        useMyLocationBtn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const location = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+
+                // Center map on location
+                if (map) {
+                    map.setCenter(location);
+                    map.setZoom(15);
+                }
+
+                // Place marker
+                placeMarker(location);
+
+                // Reset button
+                useMyLocationBtn.innerHTML = originalText;
+                useMyLocationBtn.disabled = false;
+            },
+            (error) => {
+                let message = 'Unable to get your location';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'Location permission denied. Please enable location access.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'Location information unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'Location request timed out.';
+                        break;
+                }
+                alert(message);
+
+                // Reset button
+                useMyLocationBtn.innerHTML = originalText;
+                useMyLocationBtn.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000
+            }
+        );
+    }
+
+    /**
+     * Update coordinate display text
+     */
+    function updateCoordinateDisplay(lat, lng) {
+        if (coordinatesDisplay) {
+            coordinatesDisplay.innerHTML = `
+                <span class="coord-icon">📍</span>
+                <span>Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</span>
+            `;
+            coordinatesDisplay.classList.add('has-location');
+        }
+    }
+
+    /**
+     * Reset map marker (when form is reset)
+     */
+    function resetMapMarker() {
+        if (marker) {
+            marker.setMap(null);
+            marker = null;
+        }
+
+        // Reset hidden inputs
+        if (gpsLatitudeInput) gpsLatitudeInput.value = '';
+        if (gpsLongitudeInput) gpsLongitudeInput.value = '';
+
+        // Reset display
+        if (coordinatesDisplay) {
+            coordinatesDisplay.innerHTML = '<span>No location selected</span>';
+            coordinatesDisplay.classList.remove('has-location');
+        }
+
+        // Reset map center if map exists
+        if (map && window.mapConfig) {
+            map.setCenter({
+                lat: window.mapConfig.defaultLat || 7.8731,
+                lng: window.mapConfig.defaultLng || 80.7718
+            });
+            map.setZoom(window.mapConfig.defaultZoom || 7);
+        }
+    }
+
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', init);
 })();
+
+/**
+ * Global callback for Google Maps API
+ * Called when the Google Maps script loads
+ */
+function initMapCallback() {
+    // Maps API is loaded and ready
+    // The map will be initialized when modal opens
+    console.log('Google Maps API loaded');
+}
