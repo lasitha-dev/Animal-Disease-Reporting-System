@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>My Farms - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/farms.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2>🏠 My Farms</h2>
+                <p class="page-subtitle">View and manage farms you have registered</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="openRegisterModal">
+                <span>+</span> Register Farm
+            </button>
+        </div>
+
+        <!-- Farms Grid -->
+        <div id="farms-grid" class="farms-grid">
+            <!-- Farms will be loaded here by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">🏠</div>
+            <h3>No Farms Registered</h3>
+            <p>You haven't registered any farms yet. Click the button above to register your first farm.</p>
+            <button type="button" class="btn btn-primary" id="emptyStateRegisterBtn">
+                Register Your First Farm
+            </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading farms...</p>
+        </div>
+
+        <!-- Farm Registration Modal -->
+        <div id="farmModal" class="modal-overlay hidden">
+            <div class="modal modal-lg">
+                <div class="modal-header">
+                    <h3 class="modal-title">Register New Farm</h3>
+                    <button type="button" class="modal-close" id="closeModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="farm-register-form">
+                        <!-- Success/Error Messages -->
+                        <div id="form-message" class="alert" style="display: none;"></div>
+
+                        <!-- Farm Basic Info -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Farm Information</h4>
+
+                            <div class="form-group">
+                                <label for="farmName" class="form-label required">Farm Name</label>
+                                <input type="text" id="farmName" name="farmName" class="form-input"
+                                    placeholder="Enter farm name" required maxlength="100">
+                                <span class="form-error" id="farmName-error"></span>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="farmTypeId" class="form-label required">Farm Type</label>
+                                    <select id="farmTypeId" name="farmTypeId" class="form-select" required>
+                                        <option value="">Select farm type...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea id="description" name="description" class="form-textarea"
+                                    placeholder="Farm description" rows="2" maxlength="500"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Owner Info -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Owner Information</h4>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="ownerName" class="form-label">Owner Name</label>
+                                    <input type="text" id="ownerName" name="ownerName" class="form-input"
+                                        placeholder="Enter owner name (optional)" maxlength="100">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="ownerContact" class="form-label">Contact Number</label>
+                                    <div class="input-with-prefix">
+                                        <span class="input-prefix">+94</span>
+                                        <input type="tel" id="ownerContact" name="ownerContact" class="form-input"
+                                            placeholder="XXXXXXXXX" maxlength="9" pattern="[0-9]{9}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Location</h4>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="province" class="form-label required">Province</label>
+                                    <select id="province" name="province" class="form-select" required>
+                                        <option value="">Select province...</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="district" class="form-label required">District</label>
+                                    <select id="district" name="district" class="form-select" required disabled>
+                                        <option value="">Select province first...</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="address" class="form-label required">Full Address</label>
+                                <textarea id="address" name="address" class="form-textarea"
+                                    placeholder="Enter the complete farm address" rows="2" required></textarea>
+                            </div>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="gpsLatitude" class="form-label">GPS Latitude</label>
+                                    <input type="number" id="gpsLatitude" name="gpsLatitude" class="form-input"
+                                        placeholder="e.g., 7.8731" step="0.00000001">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gpsLongitude" class="form-label">GPS Longitude</label>
+                                    <input type="number" id="gpsLongitude" name="gpsLongitude" class="form-input"
+                                        placeholder="e.g., 80.7718" step="0.00000001">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Animal Types -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Animal Types (Optional)</h4>
+
+                            <div class="animal-tags-container">
+                                <div id="selected-animal-tags" class="selected-tags"></div>
+
+                                <div class="add-animal-tag">
+                                    <select id="animalTypeSelect" class="form-select">
+                                        <option value="">Select animal type...</option>
+                                    </select>
+                                    <input type="number" id="animalCountInput" class="form-input count-input"
+                                        placeholder="Count" min="1" value="1">
+                                    <button type="button" id="addAnimalTagBtn" class="btn btn-outline btn-sm">+
+                                        Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" form="farm-register-form">
+                        <span class="btn-text">Register Farm</span>
+                        <span class="btn-loading" style="display: none;">Registering...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script th:src="@{/js/farms.js}"></script>
+    </div>
+</body>
+
+</html>

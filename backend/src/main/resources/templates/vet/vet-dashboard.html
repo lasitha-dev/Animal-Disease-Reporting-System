@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Vet Dashboard - ADRS</title>
+    <style>
+        .vet-welcome-card {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: #fff;
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .vet-welcome-card h2 {
+            margin: 0 0 var(--spacing-sm);
+            font-size: 1.75rem;
+        }
+
+        .vet-welcome-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .action-card {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .action-card h3 {
+            margin: 0 0 var(--spacing-sm);
+            color: var(--color-text-primary);
+        }
+
+        .action-card p {
+            margin: 0 0 var(--spacing-md);
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .action-card .btn {
+            width: 100%;
+        }
+
+        .action-card .btn-primary {
+            color: var(--color-white);
+        }
+
+        .action-card .btn-primary:hover {
+            color: var(--color-white);
+            background-color: var(--color-primary-dark);
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-box {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .stat-box-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-box-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-box-label {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .vet-welcome-card {
+                padding: var(--spacing-lg);
+            }
+
+            .vet-welcome-card h2 {
+                font-size: 1.5rem;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Welcome Card -->
+        <div class="vet-welcome-card">
+            <h2 th:text="'Welcome, ' + ${#authentication.name} + '!'">
+                Welcome, Veterinary Officer!
+            </h2>
+            <p>Animal Disease Reporting System - Veterinary Dashboard</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stat-box">
+                <div class="stat-box-icon">🏠</div>
+                <div class="stat-box-value" id="farms-count">0</div>
+                <div class="stat-box-label">Registered Farms</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-icon">🐮</div>
+                <div class="stat-box-value" id="animals-count">0</div>
+                <div class="stat-box-label">Total Animals</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box-icon">📋</div>
+                <div class="stat-box-value" id="reports-count">0</div>
+                <div class="stat-box-label">Disease Reports</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h3 style="margin-bottom: var(--spacing-md);">Quick Actions</h3>
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-card-icon">🏠</div>
+                <h3>Register New Farm</h3>
+                <p>Add a new farm to the system with animal types and location details.</p>
+                <a th:href="@{/vet/farms}" class="btn btn-primary">
+                    Register Farm
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="action-card-icon">📋</div>
+                <h3>View My Farms</h3>
+                <p>View and manage all farms you have registered in the system.</p>
+                <a th:href="@{/vet/farms}" class="btn btn-outline">
+                    View Farms
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="action-card-icon">🦠</div>
+                <h3>Report Disease</h3>
+                <p>Submit a new disease report for an animal at one of your farms.</p>
+                <a href="#" class="btn btn-outline" disabled>
+                    Coming Soon
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script>
+            // Load vet-specific stats from API
+            document.addEventListener('DOMContentLoaded', async function () {
+                const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+                const headers = {};
+                if (csrfToken && csrfHeader) {
+                    headers[csrfHeader] = csrfToken;
+                }
+
+                try {
+                    const response = await fetch('/api/vet/stats', { headers });
+                    if (response.ok) {
+                        const stats = await response.json();
+                        document.getElementById('farms-count').textContent = stats.farmsCount || 0;
+                        document.getElementById('animals-count').textContent = stats.animalsCount || 0;
+                        document.getElementById('reports-count').textContent = stats.reportsCount || 0;
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            });
+        </script>
+    </div>
+</body>
+
+</html>

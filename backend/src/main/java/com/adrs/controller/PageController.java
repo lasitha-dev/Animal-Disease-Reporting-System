@@ -24,6 +24,8 @@ public class PageController {
     private static final String LOGOUT_PARAM = "logout";
     private static final String LOGIN_VIEW = "auth/login";
     private static final String DASHBOARD_VIEW = "dashboard/dashboard";
+    private static final String VET_DASHBOARD_VIEW = "vet/vet-dashboard";
+    private static final String VET_FARM_REGISTER_VIEW = "vet/farm-register";
 
     /**
      * Adds the current URI to the model for all requests.
@@ -67,30 +69,38 @@ public class PageController {
     }
 
     /**
-     * Displays the dashboard page.
+     * Displays the admin dashboard page.
      *
      * @param model the model for the view
      * @return the dashboard view name
      */
     @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
     public String dashboard(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        logger.info("Dashboard accessed by user: {}", username);
+        logger.info("Admin dashboard accessed by user: {}", username);
         
         model.addAttribute("username", username);
         return DASHBOARD_VIEW;
     }
 
     /**
-     * Redirects root path to dashboard.
+     * Redirects root path based on user role.
+     * Admins go to admin dashboard, vets go to vet dashboard.
      *
-     * @return redirect to dashboard
+     * @return redirect to appropriate dashboard
      */
     @GetMapping("/")
-    public String root() {
-        logger.debug("Root path accessed, redirecting to dashboard");
+    public String root(Authentication authentication) {
+        if (authentication != null) {
+            boolean isVet = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_VETERINARY_OFFICER"));
+            if (isVet) {
+                return "redirect:/vet/dashboard";
+            }
+        }
         return "redirect:/dashboard";
     }
 
@@ -112,4 +122,48 @@ public class PageController {
         model.addAttribute("username", username);
         return "configuration/configuration";
     }
+
+    // ========================================
+    // VETERINARY OFFICER PAGES
+    // ========================================
+
+    /**
+     * Displays the veterinary officer dashboard page.
+     *
+     * @param model the model for the view
+     * @return the vet dashboard view name
+     */
+    @GetMapping("/vet/dashboard")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetDashboard(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Vet dashboard accessed by: {}", username);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "Vet Dashboard");
+        return VET_DASHBOARD_VIEW;
+    }
+
+    /**
+     * Displays the farms management page for vets.
+     * Shows registered farms with option to add new farms via modal.
+     *
+     * @param model the model for the view
+     * @return the farms view name
+     */
+    @GetMapping("/vet/farms")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetFarms(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Farms page accessed by vet: {}", username);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "My Farms");
+        return "vet/farms";
+    }
 }
+

@@ -1,7 +1,6 @@
 package com.adrs.config;
 
 import com.adrs.service.impl.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,12 +23,18 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_VET = "VETERINARY_OFFICER";
     private static final String LOGIN_URL = "/login";
-    private static final String DASHBOARD_URL = "/dashboard";
     private static final String LOGOUT_URL = "/logout";
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final RoleBasedAuthSuccessHandler authSuccessHandler;
+
+    public SecurityConfig(UserDetailsServiceImpl userDetailsService, 
+                          RoleBasedAuthSuccessHandler authSuccessHandler) {
+        this.userDetailsService = userDetailsService;
+        this.authSuccessHandler = authSuccessHandler;
+    }
 
     /**
      * Configures the password encoder.
@@ -69,6 +74,7 @@ public class SecurityConfig {
     /**
      * Configures HTTP security for the application.
      * Uses form-based authentication with Thymeleaf templates.
+     * Routes users to role-specific dashboards after login.
      *
      * @param http the HttpSecurity object
      * @return SecurityFilterChain instance
@@ -86,13 +92,17 @@ public class SecurityConfig {
                         // Admin-only endpoints
                         .requestMatchers("/admin/**").hasRole(ROLE_ADMIN)
                         .requestMatchers("/users/**").hasRole(ROLE_ADMIN)
+                        .requestMatchers("/api/configuration/**").hasRole(ROLE_ADMIN)
+                        // Vet-only endpoints
+                        .requestMatchers("/vet/**").hasRole(ROLE_VET)
+                        .requestMatchers("/api/vet/**").hasRole(ROLE_VET)
                         // All other pages require authentication
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage(LOGIN_URL)
                         .loginProcessingUrl(LOGIN_URL)
-                        .defaultSuccessUrl(DASHBOARD_URL, true)
+                        .successHandler(authSuccessHandler)
                         .failureUrl(LOGIN_URL + "?error=true")
                         .usernameParameter("username")
                         .passwordParameter("password")
@@ -114,3 +124,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

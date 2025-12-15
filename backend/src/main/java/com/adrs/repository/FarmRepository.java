@@ -1,6 +1,7 @@
 package com.adrs.repository;
 
 import com.adrs.model.Farm;
+import com.adrs.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -31,6 +32,30 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
     Long countByCreatedAtAfter(LocalDateTime date);
 
     /**
+     * Find all farms created by a specific user.
+     *
+     * @param user the user who created the farms
+     * @return list of farms
+     */
+    List<Farm> findByCreatedBy(User user);
+
+    /**
+     * Find all active farms created by a specific user.
+     *
+     * @param user the user who created the farms
+     * @return list of active farms
+     */
+    List<Farm> findByCreatedByAndIsActiveTrue(User user);
+
+    /**
+     * Count farms created by a specific user.
+     *
+     * @param user the user
+     * @return count of farms
+     */
+    Long countByCreatedBy(User user);
+
+    /**
      * Get farm registrations grouped by date for trend analysis.
      *
      * @param startDate the start date
@@ -42,3 +67,4 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
            "ORDER BY CAST(f.createdAt AS LocalDate)")
     List<Object[]> getFarmRegistrationTrend(LocalDateTime startDate);
 }
+
