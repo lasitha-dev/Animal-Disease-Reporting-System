@@ -16,6 +16,7 @@
     let map = null;
     let marker = null;
     let mapInitialized = false;
+    let searchAutocomplete = null;
 
     // DOM Elements
     const farmsGrid = document.getElementById('farms-grid');
@@ -47,6 +48,7 @@
     const coordinatesDisplay = document.getElementById('coordinatesDisplay');
     const gpsLatitudeInput = document.getElementById('gpsLatitude');
     const gpsLongitudeInput = document.getElementById('gpsLongitude');
+    const locationSearchInput = document.getElementById('locationSearchInput');
 
     // CSRF Token
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -720,12 +722,72 @@
         // Add click listener
         map.addListener('click', handleMapClick);
 
+        // Initialize Places Autocomplete for search
+        initPlacesAutocomplete();
+
         // If editing and has coordinates, place marker
         if (!isNaN(existingLat) && !isNaN(existingLng)) {
             placeMarker({ lat: existingLat, lng: existingLng });
         }
 
         mapInitialized = true;
+    }
+
+    /**
+     * Initialize Places Autocomplete for location search
+     */
+    function initPlacesAutocomplete() {
+        if (!locationSearchInput || !window.google?.maps?.places) {
+            console.warn('Places API not available');
+            return;
+        }
+
+        // Sri Lanka bounds for biasing results
+        const sriLankaBounds = new google.maps.LatLngBounds(
+            new google.maps.LatLng(5.916, 79.652),  // SW corner
+            new google.maps.LatLng(9.835, 81.879)   // NE corner
+        );
+
+        searchAutocomplete = new google.maps.places.Autocomplete(locationSearchInput, {
+            bounds: sriLankaBounds,
+            componentRestrictions: { country: 'lk' },
+            fields: ['geometry', 'name', 'formatted_address'],
+            strictBounds: false
+        });
+
+        // Handle place selection
+        searchAutocomplete.addListener('place_changed', handlePlaceSelect);
+
+        // Prevent form submission when pressing Enter in search
+        locationSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    }
+
+    /**
+     * Handle place selection from autocomplete
+     */
+    function handlePlaceSelect() {
+        const place = searchAutocomplete.getPlace();
+
+        if (!place.geometry || !place.geometry.location) {
+            console.warn('Place has no geometry');
+            return;
+        }
+
+        const location = {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+        };
+
+        // Center map on selected place
+        map.setCenter(location);
+        map.setZoom(15);
+
+        // Place marker
+        placeMarker(location);
     }
 
     /**
@@ -867,6 +929,9 @@
         // Reset hidden inputs
         if (gpsLatitudeInput) gpsLatitudeInput.value = '';
         if (gpsLongitudeInput) gpsLongitudeInput.value = '';
+
+        // Reset search input
+        if (locationSearchInput) locationSearchInput.value = '';
 
         // Reset display
         if (coordinatesDisplay) {

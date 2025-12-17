@@ -130,8 +130,13 @@
 
                             <!-- GPS Location Map Picker -->
                             <div class="form-group">
-                                <label class="form-label">GPS Location (Click on map to select)</label>
+                                <label class="form-label">GPS Location (Search or click on map)</label>
                                 <div class="map-picker-container">
+                                    <!-- Search Box -->
+                                    <div class="map-search-container">
+                                        <input type="text" id="locationSearchInput" class="form-input map-search-input"
+                                            placeholder="🔍 Search for a location in Sri Lanka...">
+                                    </div>
                                     <div id="locationMap" class="location-map"></div>
                                     <div class="map-controls">
                                         <button type="button" id="useMyLocationBtn" class="btn btn-outline btn-sm">
@@ -189,9 +194,9 @@
                 defaultZoom: /*[[${mapDefaultZoom}]]*/ 7
             };
         </script>
-        <!-- Google Maps API -->
+        <!-- Google Maps API with Places library -->
         <script
-            th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initMapCallback&loading=async'}"
+            th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&libraries=places&callback=initMapCallback&loading=async'}"
             async defer></script>
         <script th:src="@{/js/farms.js}"></script>
     </div>
