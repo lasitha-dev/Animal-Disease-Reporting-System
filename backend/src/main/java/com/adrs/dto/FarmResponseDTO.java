@@ -39,6 +39,7 @@ public class FarmResponseDTO {
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long createdByUserId;
     private String createdByUsername;
     private List<AnimalTagResponseDTO> animalTags = new ArrayList<>();
 
@@ -92,8 +93,9 @@ public class FarmResponseDTO {
             dto.setDistrictDisplayName(farm.getDistrict().getDisplayName());
         }
 
-        // Created by username
+        // Created by info
         if (farm.getCreatedBy() != null) {
+            dto.setCreatedByUserId(farm.getCreatedBy().getId());
             dto.setCreatedByUsername(farm.getCreatedBy().getUsername());
         }
 

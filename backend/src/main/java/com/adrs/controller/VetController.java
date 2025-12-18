@@ -96,6 +96,25 @@ public class VetController {
     }
 
     /**
+     * Get all farms created by other vets (not the current user).
+     *
+     * @param userDetails the authenticated user
+     * @return list of farms
+     */
+    @Operation(summary = "Get other vets' farms", description = "Retrieves all farms created by other veterinary officers")
+    @GetMapping("/farms/others")
+    public ResponseEntity<List<FarmResponseDTO>> getOtherVetsFarms(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("GET /api/vet/farms/others - Fetching other vets' farms for user: {}", userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        List<FarmResponseDTO> farms = farmService.getFarmsNotCreatedBy(currentUser);
+        
+        return ResponseEntity.ok(farms);
+    }
+
+    /**
      * Get a specific farm by ID.
      *
      * @param id the farm ID

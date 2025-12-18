@@ -66,5 +66,14 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
            "GROUP BY CAST(f.createdAt AS LocalDate) " +
            "ORDER BY CAST(f.createdAt AS LocalDate)")
     List<Object[]> getFarmRegistrationTrend(LocalDateTime startDate);
+
+    /**
+     * Find all active farms NOT created by a specific user.
+     * Used to show farms registered by other vets.
+     *
+     * @param user the user to exclude
+     * @return list of active farms created by other users
+     */
+    List<Farm> findByCreatedByNotAndIsActiveTrue(User user);
 }
 

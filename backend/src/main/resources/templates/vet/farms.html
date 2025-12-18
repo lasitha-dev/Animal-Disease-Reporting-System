@@ -12,33 +12,69 @@
         <!-- Page Header -->
         <div class="page-header-row">
             <div class="page-header-info">
-                <h2>🏠 My Farms</h2>
-                <p class="page-subtitle">View and manage farms you have registered</p>
+                <h2>🏠 Farms</h2>
+                <p class="page-subtitle">View and manage farm registrations</p>
             </div>
             <button type="button" class="btn btn-primary" id="openRegisterModal">
                 <span>+</span> Register Farm
             </button>
         </div>
 
-        <!-- Farms Grid -->
-        <div id="farms-grid" class="farms-grid">
-            <!-- Farms will be loaded here by JavaScript -->
-        </div>
-
-        <!-- Empty State -->
-        <div id="empty-state" class="empty-state" style="display: none;">
-            <div class="empty-state-icon">🏠</div>
-            <h3>No Farms Registered</h3>
-            <p>You haven't registered any farms yet. Click the button above to register your first farm.</p>
-            <button type="button" class="btn btn-primary" id="emptyStateRegisterBtn">
-                Register Your First Farm
+        <!-- Tab Navigation -->
+        <div class="farms-tabs">
+            <button type="button" class="tab-btn active" data-tab="my-farms">
+                <span class="tab-icon">📋</span>
+                <span class="tab-label">My Farms</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="other-farms">
+                <span class="tab-icon">👥</span>
+                <span class="tab-label">Other Farms</span>
             </button>
         </div>
 
-        <!-- Loading State -->
-        <div id="loading-state" class="loading-state">
-            <div class="spinner"></div>
-            <p>Loading farms...</p>
+        <!-- My Farms Tab Content -->
+        <div id="my-farms-tab" class="tab-content active">
+            <!-- Farms Grid -->
+            <div id="farms-grid" class="farms-grid">
+                <!-- Farms will be loaded here by JavaScript -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">🏠</div>
+                <h3>No Farms Registered</h3>
+                <p>You haven't registered any farms yet. Click the button above to register your first farm.</p>
+                <button type="button" class="btn btn-primary" id="emptyStateRegisterBtn">
+                    Register Your First Farm
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading farms...</p>
+            </div>
+        </div>
+
+        <!-- Other Farms Tab Content -->
+        <div id="other-farms-tab" class="tab-content">
+            <!-- Other Farms Grid -->
+            <div id="other-farms-grid" class="farms-grid">
+                <!-- Other vets' farms will be loaded here by JavaScript -->
+            </div>
+
+            <!-- Empty State for Other Farms -->
+            <div id="other-farms-empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">👥</div>
+                <h3>No Other Farms</h3>
+                <p>There are no farms registered by other veterinary officers in the system.</p>
+            </div>
+
+            <!-- Loading State for Other Farms -->
+            <div id="other-farms-loading-state" class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading other farms...</p>
+            </div>
         </div>
 
         <!-- Farm Registration Modal -->

@@ -38,6 +38,15 @@ public interface FarmService {
     List<FarmResponseDTO> getFarmsByCreatedBy(User user);
 
     /**
+     * Get all active farms NOT created by a specific user.
+     * Used to display farms registered by other vets.
+     *
+     * @param user the user to exclude
+     * @return list of farm responses
+     */
+    List<FarmResponseDTO> getFarmsNotCreatedBy(User user);
+
+    /**
      * Update an existing farm.
      *
      * @param id the farm ID

@@ -12,6 +12,7 @@ import com.adrs.service.FarmService;
 import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,11 +102,28 @@ public class FarmServiceImpl implements FarmService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<FarmResponseDTO> getFarmsNotCreatedBy(User user) {
+        List<Farm> farms = farmRepository.findByCreatedByNotAndIsActiveTrue(user);
+        return farms.stream()
+                .map(FarmResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public FarmResponseDTO updateFarm(UUID id, FarmRequestDTO request, User updatedBy) {
         logger.info("Updating farm: {} by user: {}", id, updatedBy.getUsername());
 
         Farm farm = farmRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Farm not found: " + id));
+
+        // Verify ownership - only the vet who created the farm can update it
+        if (farm.getCreatedBy() == null || !farm.getCreatedBy().getId().equals(updatedBy.getId())) {
+            logger.warn("Access denied: User {} attempted to update farm {} created by {}", 
+                    updatedBy.getUsername(), id, 
+                    farm.getCreatedBy() != null ? farm.getCreatedBy().getUsername() : "unknown");
+            throw new AccessDeniedException("You can only update farms that you registered");
+        }
 
         // Update basic fields
         farm.setFarmName(request.getFarmName());
@@ -213,6 +231,14 @@ public class FarmServiceImpl implements FarmService {
 
         Farm farm = farmRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Farm not found: " + id));
+
+        // Verify ownership - only the vet who created the farm can delete it
+        if (farm.getCreatedBy() == null || !farm.getCreatedBy().getId().equals(deletedBy.getId())) {
+            logger.warn("Access denied: User {} attempted to delete farm {} created by {}", 
+                    deletedBy.getUsername(), id, 
+                    farm.getCreatedBy() != null ? farm.getCreatedBy().getUsername() : "unknown");
+            throw new AccessDeniedException("You can only delete farms that you registered");
+        }
 
         // Soft delete - set isActive to false
         farm.setIsActive(false);

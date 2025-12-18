@@ -10,6 +10,9 @@
     let animalTypes = [];
     let selectedAnimalTags = [];
     let farms = [];
+    let otherFarms = []; // Farms registered by other vets
+    let otherFarmsLoaded = false; // Track if other farms have been loaded
+    let activeTab = 'my-farms'; // Current active tab
     let editingFarmId = null; // Track which farm is being edited
 
     // Map State
@@ -18,7 +21,7 @@
     let mapInitialized = false;
     let searchAutocomplete = null;
 
-    // DOM Elements
+    // DOM Elements - My Farms
     const farmsGrid = document.getElementById('farms-grid');
     const emptyState = document.getElementById('empty-state');
     const loadingState = document.getElementById('loading-state');
@@ -30,6 +33,16 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const submitBtn = document.getElementById('submitBtn');
     const formMessage = document.getElementById('form-message');
+
+    // DOM Elements - Tab Navigation
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const myFarmsTab = document.getElementById('my-farms-tab');
+    const otherFarmsTab = document.getElementById('other-farms-tab');
+
+    // DOM Elements - Other Farms
+    const otherFarmsGrid = document.getElementById('other-farms-grid');
+    const otherFarmsEmptyState = document.getElementById('other-farms-empty-state');
+    const otherFarmsLoadingState = document.getElementById('other-farms-loading-state');
 
     // Form Elements
     const farmTypeSelect = document.getElementById('farmTypeId');
@@ -76,6 +89,11 @@
         cancelBtn?.addEventListener('click', closeModal);
         modal?.addEventListener('click', handleModalBackdropClick);
 
+        // Tab switching
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', handleTabSwitch);
+        });
+
         // Form events
         farmTypeSelect?.addEventListener('change', handleFarmTypeChange);
         provinceSelect?.addEventListener('change', handleProvinceChange);
@@ -92,6 +110,36 @@
                 closeModal();
             }
         });
+    }
+
+    /**
+     * Handle tab switching
+     */
+    function handleTabSwitch(e) {
+        const tabId = e.currentTarget.dataset.tab;
+        if (tabId === activeTab) return;
+
+        // Update active tab state
+        activeTab = tabId;
+
+        // Update tab button styles
+        tabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+
+        // Show/hide tab content
+        if (tabId === 'my-farms') {
+            myFarmsTab?.classList.add('active');
+            otherFarmsTab?.classList.remove('active');
+        } else {
+            myFarmsTab?.classList.remove('active');
+            otherFarmsTab?.classList.add('active');
+
+            // Load other farms on first view
+            if (!otherFarmsLoaded) {
+                loadOtherFarms();
+            }
+        }
     }
 
     /**
@@ -129,6 +177,112 @@
 
         // Attach event listeners to edit/delete buttons
         attachFarmCardEventListeners();
+    }
+
+    /**
+     * Load other vets' farms from API
+     */
+    async function loadOtherFarms() {
+        showOtherFarmsLoading();
+
+        try {
+            const response = await fetch('/api/vet/farms/others', { headers: getHeaders() });
+
+            if (!response.ok) throw new Error('Failed to load other farms');
+
+            otherFarms = await response.json();
+            otherFarmsLoaded = true;
+            renderOtherFarms();
+        } catch (error) {
+            console.error('Error loading other farms:', error);
+            showOtherFarmsEmpty();
+        }
+    }
+
+    /**
+     * Render other farms grid
+     */
+    function renderOtherFarms() {
+        hideOtherFarmsLoading();
+
+        if (!otherFarms || otherFarms.length === 0) {
+            showOtherFarmsEmpty();
+            return;
+        }
+
+        hideOtherFarmsEmpty();
+        otherFarmsGrid.innerHTML = otherFarms.map(farm => createOtherFarmCard(farm)).join('');
+    }
+
+    /**
+     * Create farm card HTML for other vets' farms (view-only, no edit/delete)
+     */
+    function createOtherFarmCard(farm) {
+        return `
+            <div class="farm-card" data-farm-id="${farm.id}">
+                <div class="farm-card-header">
+                    <h3 class="farm-card-title">${escapeHtml(farm.farmName)}</h3>
+                    <span class="farm-card-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span>
+                </div>
+                <div class="farm-card-info">
+                    ${farm.ownerName ? `
+                    <div class="farm-card-info-row">
+                        <span class="farm-card-info-icon">👤</span>
+                        <span>${escapeHtml(farm.ownerName)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="farm-card-info-row">
+                        <span class="farm-card-info-icon">📍</span>
+                        <span>${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}</span>
+                    </div>
+                    ${farm.ownerContact ? `
+                    <div class="farm-card-info-row">
+                        <span class="farm-card-info-icon">📞</span>
+                        <span>${escapeHtml(farm.ownerContact)}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="farm-card-stats">
+                    <div class="farm-card-stat">
+                        <div class="farm-card-stat-value">${farm.totalAnimals || 0}</div>
+                        <div class="farm-card-stat-label">Animals</div>
+                    </div>
+                    <div class="farm-card-stat">
+                        <div class="farm-card-stat-value">${farm.animalTags?.length || 0}</div>
+                        <div class="farm-card-stat-label">Types</div>
+                    </div>
+                </div>
+                <div class="farm-card-registered-by">
+                    <span class="vet-icon">🩺</span>
+                    <span>Registered by:</span>
+                    <span class="vet-name">${escapeHtml(farm.createdByUsername || 'Unknown')}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Show/hide states for other farms tab
+     */
+    function showOtherFarmsLoading() {
+        otherFarmsLoadingState.style.display = 'block';
+        otherFarmsGrid.style.display = 'none';
+        otherFarmsEmptyState.style.display = 'none';
+    }
+
+    function hideOtherFarmsLoading() {
+        otherFarmsLoadingState.style.display = 'none';
+        otherFarmsGrid.style.display = 'grid';
+    }
+
+    function showOtherFarmsEmpty() {
+        otherFarmsLoadingState.style.display = 'none';
+        otherFarmsGrid.style.display = 'none';
+        otherFarmsEmptyState.style.display = 'block';
+    }
+
+    function hideOtherFarmsEmpty() {
+        otherFarmsEmptyState.style.display = 'none';
     }
 
     /**
