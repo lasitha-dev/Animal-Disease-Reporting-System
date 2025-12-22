@@ -185,5 +185,32 @@ public class PageController {
         
         return "vet/farms";
     }
+
+    /**
+     * Displays the map page for vets showing all farm locations.
+     * Uses Google Maps to display farms as markers.
+     *
+     * @param model the model for the view
+     * @return the map view name
+     */
+    @GetMapping("/vet/map")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetMap(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Map page accessed by vet: {}", username);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "Farm Map");
+        
+        // Google Maps configuration
+        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
+        model.addAttribute("mapDefaultLat", mapDefaultLat);
+        model.addAttribute("mapDefaultLng", mapDefaultLng);
+        model.addAttribute("mapDefaultZoom", mapDefaultZoom);
+        
+        return "vet/map";
+    }
 }
 

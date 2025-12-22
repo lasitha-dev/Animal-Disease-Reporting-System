@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Farm Map - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/farms-map.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2>🗺️ Farm Map</h2>
+                <p class="page-subtitle">View all registered farm locations across Sri Lanka</p>
+            </div>
+        </div>
+
+        <!-- Map Controls -->
+        <div class="map-controls-container">
+            <!-- Filter Panel -->
+            <div class="map-filters-panel">
+                <h4>Filters</h4>
+                <div class="filter-group">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filterFarms" checked>
+                        <span class="filter-label">
+                            <span class="filter-icon">🏠</span>
+                            Farms
+                        </span>
+                        <span class="filter-count" id="farmCount">0</span>
+                    </label>
+                </div>
+                <!-- Future filters will be added here -->
+                <div class="filter-group filter-disabled" title="Coming soon">
+                    <label class="filter-checkbox disabled">
+                        <input type="checkbox" disabled>
+                        <span class="filter-label">
+                            <span class="filter-icon">⚠️</span>
+                            Disease Outbreaks
+                        </span>
+                        <span class="filter-badge">Soon</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="google-map-container">
+            <div id="farmMap" class="google-map"></div>
+
+            <!-- Loading Overlay -->
+            <div id="mapLoading" class="map-loading-overlay">
+                <div class="spinner"></div>
+                <p>Loading map...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="mapEmptyState" class="map-empty-state" style="display: none;">
+                <div class="empty-icon">🗺️</div>
+                <h3>No Farms with Location Data</h3>
+                <p>No farms have GPS coordinates registered yet. Add location data when registering farms.</p>
+            </div>
+        </div>
+
+        <!-- Map Legend -->
+        <div class="map-legend-bar">
+            <div class="legend-item">
+                <span class="legend-marker farm-marker"></span>
+                <span>Farm Location</span>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <!-- Map Configuration (from server) -->
+        <script th:inline="javascript">
+            window.mapConfig = {
+                apiKey: /*[[${googleMapsApiKey}]]*/ '',
+                defaultLat: /*[[${mapDefaultLat}]]*/ 7.8731,
+                defaultLng: /*[[${mapDefaultLng}]]*/ 80.7718,
+                defaultZoom: /*[[${mapDefaultZoom}]]*/ 7
+            };
+        </script>
+        <!-- Google Maps API -->
+        <script
+            th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initFarmMap&loading=async'}"
+            async defer></script>
+        <script th:src="@{/js/farms-map.js}"></script>
+    </div>
+
+</body>
+
+</html>

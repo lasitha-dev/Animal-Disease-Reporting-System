@@ -1,0 +1,469 @@
+/**
+ * Farm Map Page Styles
+ * Google Maps integration with farm markers and responsive design
+ */
+
+/* ===========================================
+   Map Controls Container
+   =========================================== */
+
+.map-controls-container {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+/* ===========================================
+   Filter Panel
+   =========================================== */
+
+.map-filters-panel {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    min-width: 200px;
+}
+
+.map-filters-panel h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-group {
+    margin-bottom: var(--spacing-sm);
+}
+
+.filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-checkbox:hover {
+    background: var(--color-primary-light);
+}
+
+.filter-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+
+.filter-checkbox.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.filter-checkbox.disabled:hover {
+    background: var(--color-bg-secondary);
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex: 1;
+    font-size: 0.9375rem;
+    color: var(--color-text-primary);
+}
+
+.filter-icon {
+    font-size: 1rem;
+}
+
+.filter-count {
+    background: var(--color-primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--border-radius-full);
+    min-width: 24px;
+    text-align: center;
+}
+
+.filter-badge {
+    background: var(--color-warning-light);
+    color: var(--color-warning-dark);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+    text-transform: uppercase;
+}
+
+.filter-disabled {
+    opacity: 0.7;
+}
+
+/* ===========================================
+   Google Map Container
+   =========================================== */
+
+.google-map-container {
+    position: relative;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    /* Full height minus header and controls */
+    height: calc(100vh - 280px);
+    min-height: 400px;
+}
+
+.google-map {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===========================================
+   Loading Overlay
+   =========================================== */
+
+.map-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    z-index: 10;
+}
+
+.map-loading-overlay .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.map-loading-overlay p {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===========================================
+   Empty State
+   =========================================== */
+
+.map-empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: var(--color-bg-primary);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+}
+
+.map-empty-state .empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.map-empty-state h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text-primary);
+}
+
+.map-empty-state p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
+
+/* ===========================================
+   Map Legend Bar
+   =========================================== */
+
+.map-legend-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius-sm);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.legend-marker {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.legend-marker.farm-marker {
+    background: #059669;
+    border: 2px solid #047857;
+}
+
+/* ===========================================
+   Custom Info Window Styles
+   =========================================== */
+
+.farm-info-window {
+    padding: var(--spacing-xs);
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.farm-info-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.farm-info-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.farm-info-title {
+    flex: 1;
+}
+
+.farm-info-title h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.farm-info-type {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #DBEAFE;
+    color: #1E40AF;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+.farm-info-body {
+    font-size: 0.875rem;
+}
+
+.farm-info-row {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: 6px;
+    color: #4B5563;
+}
+
+.farm-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.farm-info-row .label {
+    font-weight: 500;
+    color: #6B7280;
+    min-width: 60px;
+}
+
+.farm-info-row .value {
+    color: #111827;
+}
+
+.farm-info-animals {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid #e5e7eb;
+}
+
+.farm-info-animals h5 {
+    margin: 0 0 6px 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.animal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.animal-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: #F3F4F6;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #4B5563;
+}
+
+.animal-tag .count {
+    font-weight: 600;
+    color: #059669;
+}
+
+/* ===========================================
+   Responsive - Tablet
+   =========================================== */
+
+@media (max-width: 1024px) {
+    .google-map-container {
+        height: calc(100vh - 300px);
+    }
+}
+
+/* ===========================================
+   Responsive - Mobile
+   =========================================== */
+
+@media (max-width: 768px) {
+    .map-controls-container {
+        flex-direction: column;
+    }
+    
+    .map-filters-panel {
+        min-width: 100%;
+    }
+    
+    .map-filters-panel h4 {
+        font-size: 0.75rem;
+    }
+    
+    /* Horizontal scroll for filters on mobile */
+    .filter-group {
+        display: inline-flex;
+    }
+    
+    .map-filters-panel {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+    
+    .map-filters-panel h4 {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .filter-checkbox {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .filter-label {
+        font-size: 0.8125rem;
+    }
+    
+    .google-map-container {
+        height: calc(100vh - 340px);
+        min-height: 300px;
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .map-legend-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    .legend-item {
+        font-size: 0.8125rem;
+    }
+    
+    /* Info window adjustments for mobile */
+    .farm-info-window {
+        min-width: 180px;
+        max-width: 240px;
+    }
+    
+    .farm-info-header {
+        gap: var(--spacing-xs);
+    }
+    
+    .farm-info-icon {
+        font-size: 1.25rem;
+    }
+    
+    .farm-info-title h4 {
+        font-size: 0.9375rem;
+    }
+    
+    .farm-info-body {
+        font-size: 0.8125rem;
+    }
+    
+    .farm-info-row .label {
+        min-width: 50px;
+    }
+}
+
+/* ===========================================
+   Responsive - Small Mobile
+   =========================================== */
+
+@media (max-width: 480px) {
+    .google-map-container {
+        height: calc(100vh - 380px);
+        min-height: 250px;
+    }
+    
+    .map-loading-overlay .spinner {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .map-empty-state {
+        padding: var(--spacing-md);
+    }
+    
+    .map-empty-state .empty-icon {
+        font-size: 2.5rem;
+    }
+    
+    .map-empty-state h3 {
+        font-size: 1rem;
+    }
+    
+    .map-empty-state p {
+        font-size: 0.8125rem;
+    }
+}

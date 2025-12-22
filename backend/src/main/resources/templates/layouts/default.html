@@ -90,6 +90,12 @@
                             <span>My Farms</span>
                         </a>
                     </li>
+                    <li sec:authorize="hasRole('VETERINARY_OFFICER')">
+                        <a th:href="@{/vet/map}" th:classappend="${currentUri == '/vet/map'} ? 'active' : ''">
+                            <span class="nav-icon">🗺️</span>
+                            <span>Map</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
@@ -203,6 +209,12 @@
                     th:classappend="${#strings.startsWith(currentUri, '/vet/farms')} ? 'active' : ''">
                     <span class="nav-icon">🏠</span>
                     <span class="nav-label">Farms</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('VETERINARY_OFFICER')">
+                <a th:href="@{/vet/map}" th:classappend="${currentUri == '/vet/map'} ? 'active' : ''">
+                    <span class="nav-icon">🗺️</span>
+                    <span class="nav-label">Map</span>
                 </a>
             </li>
 
