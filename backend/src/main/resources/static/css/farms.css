@@ -682,3 +682,51 @@
         height: 200px;
     }
 }
+
+/* ========================================
+   Auto-populated Address Styles
+   ======================================== */
+
+.auto-populated-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 2px 8px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));
+    color: var(--color-success);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.7rem;
+    font-weight: 500;
+    margin-left: var(--spacing-sm);
+    animation: fadeInBadge 0.3s ease;
+}
+
+@keyframes fadeInBadge {
+    from {
+        opacity: 0;
+        transform: translateX(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.address-helper-text {
+    display: block;
+    margin-top: var(--spacing-xs);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* Address field with auto-populated highlight */
+.form-textarea.auto-populated {
+    border-color: var(--color-success);
+    background: linear-gradient(to bottom, rgba(16, 185, 129, 0.05), transparent);
+}
+
+.form-textarea.auto-populated:focus {
+    border-color: var(--color-primary);
+    background: var(--color-bg-primary);
+}

@@ -158,15 +158,9 @@
                                 </div>
                             </div>
 
+                            <!-- GPS Location Map Picker (Required) -->
                             <div class="form-group">
-                                <label for="address" class="form-label required">Full Address</label>
-                                <textarea id="address" name="address" class="form-textarea"
-                                    placeholder="Enter the complete farm address" rows="2" required></textarea>
-                            </div>
-
-                            <!-- GPS Location Map Picker -->
-                            <div class="form-group">
-                                <label class="form-label">GPS Location (Search or click on map)</label>
+                                <label class="form-label required">GPS Location (Search or click on map)</label>
                                 <div class="map-picker-container">
                                     <!-- Search Box -->
                                     <div class="map-search-container">
@@ -186,6 +180,22 @@
                                 <!-- Hidden inputs for form submission -->
                                 <input type="hidden" id="gpsLatitude" name="gpsLatitude">
                                 <input type="hidden" id="gpsLongitude" name="gpsLongitude">
+                                <span class="form-error" id="gpsLocation-error"></span>
+                            </div>
+
+                            <!-- Full Address (Auto-populated from GPS, editable) -->
+                            <div class="form-group">
+                                <label for="address" class="form-label required">
+                                    Full Address
+                                    <span id="addressAutoIndicator" class="auto-populated-badge" style="display: none;">
+                                        📍 Auto-populated from map
+                                    </span>
+                                </label>
+                                <textarea id="address" name="address" class="form-textarea"
+                                    placeholder="Select a location on the map to auto-fill address, or enter manually"
+                                    rows="2" required></textarea>
+                                <span class="address-helper-text">You can edit the auto-populated address if
+                                    needed</span>
                             </div>
                         </div>
 

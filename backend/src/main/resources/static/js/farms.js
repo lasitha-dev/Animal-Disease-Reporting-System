@@ -20,6 +20,7 @@
     let marker = null;
     let mapInitialized = false;
     let searchAutocomplete = null;
+    let geocoder = null; // For reverse geocoding
 
     // DOM Elements - My Farms
     const farmsGrid = document.getElementById('farms-grid');
@@ -62,6 +63,10 @@
     const gpsLatitudeInput = document.getElementById('gpsLatitude');
     const gpsLongitudeInput = document.getElementById('gpsLongitude');
     const locationSearchInput = document.getElementById('locationSearchInput');
+
+    // Address auto-population elements
+    const addressField = document.getElementById('address');
+    const addressAutoIndicator = document.getElementById('addressAutoIndicator');
 
     // CSRF Token
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -757,6 +762,12 @@
             isValid = false;
         }
 
+        // GPS location is required
+        if (!gpsLatitudeInput.value || !gpsLongitudeInput.value) {
+            showFieldError('gpsLocation', 'Please select a location on the map');
+            isValid = false;
+        }
+
         return isValid;
     }
 
@@ -873,15 +884,18 @@
         // Mark as loaded (removes "Loading..." text)
         locationMapContainer.classList.add('loaded');
 
+        // Initialize Geocoder for reverse geocoding
+        geocoder = new google.maps.Geocoder();
+
         // Add click listener
         map.addListener('click', handleMapClick);
 
         // Initialize Places Autocomplete for search
         initPlacesAutocomplete();
 
-        // If editing and has coordinates, place marker
+        // If editing and has coordinates, place marker (skip reverse geocode to preserve existing address)
         if (!isNaN(existingLat) && !isNaN(existingLng)) {
-            placeMarker({ lat: existingLat, lng: existingLng });
+            placeMarker({ lat: existingLat, lng: existingLng }, true);
         }
 
         mapInitialized = true;
@@ -940,8 +954,13 @@
         map.setCenter(location);
         map.setZoom(15);
 
-        // Place marker
-        placeMarker(location);
+        // Place marker (skip reverse geocode since we have formatted_address from Places)
+        placeMarker(location, true);
+
+        // Use the formatted_address from Places API directly
+        if (place.formatted_address) {
+            updateAddressField(place.formatted_address);
+        }
     }
 
     /**
@@ -958,7 +977,7 @@
     /**
      * Place or move marker on map
      */
-    function placeMarker(location) {
+    function placeMarker(location, skipReverseGeocode = false) {
         if (marker) {
             marker.setPosition(location);
         } else {
@@ -980,6 +999,11 @@
 
         // Update display
         updateCoordinateDisplay(location.lat, location.lng);
+
+        // Reverse geocode to get address (unless skipped, e.g., from Places autocomplete)
+        if (!skipReverseGeocode) {
+            reverseGeocode(location.lat, location.lng);
+        }
     }
 
     /**
@@ -995,6 +1019,9 @@
         gpsLongitudeInput.value = location.lng.toFixed(8);
 
         updateCoordinateDisplay(location.lat, location.lng);
+
+        // Reverse geocode to update address
+        reverseGeocode(location.lat, location.lng);
     }
 
     /**
@@ -1072,6 +1099,69 @@
     }
 
     /**
+     * Reverse geocode coordinates to get address
+     */
+    function reverseGeocode(lat, lng) {
+        if (!geocoder) {
+            console.warn('Geocoder not initialized');
+            return;
+        }
+
+        const latlng = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+        geocoder.geocode({ location: latlng }, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                updateAddressField(results[0].formatted_address);
+            } else {
+                console.warn('Geocoder failed:', status);
+                // Still show indicator that location was selected
+                if (addressAutoIndicator) {
+                    addressAutoIndicator.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    /**
+     * Update address field with auto-populated value
+     */
+    function updateAddressField(address) {
+        if (!addressField) return;
+
+        // Update the address field
+        addressField.value = address;
+        addressField.classList.add('auto-populated');
+
+        // Show the auto-populated indicator
+        if (addressAutoIndicator) {
+            addressAutoIndicator.style.display = 'inline-flex';
+        }
+
+        // Remove auto-populated class when user manually edits
+        addressField.addEventListener('input', function onAddressEdit() {
+            addressField.classList.remove('auto-populated');
+            // Keep indicator but change text to show it was modified
+            if (addressAutoIndicator) {
+                addressAutoIndicator.style.display = 'none';
+            }
+            addressField.removeEventListener('input', onAddressEdit);
+        }, { once: true });
+    }
+
+    /**
+     * Reset address field state
+     */
+    function resetAddressField() {
+        if (addressField) {
+            addressField.value = '';
+            addressField.classList.remove('auto-populated');
+        }
+        if (addressAutoIndicator) {
+            addressAutoIndicator.style.display = 'none';
+        }
+    }
+
+    /**
      * Reset map marker (when form is reset)
      */
     function resetMapMarker() {
@@ -1092,6 +1182,9 @@
             coordinatesDisplay.innerHTML = '<span>No location selected</span>';
             coordinatesDisplay.classList.remove('has-location');
         }
+
+        // Reset address field state
+        resetAddressField();
 
         // Reset map center if map exists
         if (map && window.mapConfig) {
