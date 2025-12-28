@@ -1,6 +1,7 @@
 package com.adrs.repository;
 
 import com.adrs.model.DiseaseReport;
+import com.adrs.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -45,6 +46,30 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
     Long countByCreatedAtAfter(LocalDateTime date);
 
     /**
+     * Find disease reports by the reporting vet, ordered by creation date descending.
+     *
+     * @param reportedBy the vet who reported
+     * @return list of disease reports
+     */
+    List<DiseaseReport> findByReportedByOrderByCreatedAtDesc(User reportedBy);
+
+    /**
+     * Find disease reports for a specific farm, ordered by creation date descending.
+     *
+     * @param farmId the farm ID
+     * @return list of disease reports
+     */
+    List<DiseaseReport> findByFarmIdOrderByCreatedAtDesc(UUID farmId);
+
+    /**
+     * Count disease reports by the reporting vet.
+     *
+     * @param reportedBy the vet who reported
+     * @return count of reports
+     */
+    Long countByReportedBy(User reportedBy);
+
+    /**
      * Get disease report trend grouped by date.
      *
      * @param startDate the start date
@@ -56,3 +81,4 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
            "ORDER BY CAST(dr.reportDate AS LocalDate)")
     List<Object[]> getDiseaseReportTrend(LocalDateTime startDate);
 }
+

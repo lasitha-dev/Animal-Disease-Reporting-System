@@ -75,6 +75,14 @@ public interface DiseaseService {
     List<DiseaseDTO> getNotifiableDiseases();
 
     /**
+     * Get active diseases for a specific animal type.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of active diseases for the animal type
+     */
+    List<DiseaseDTO> getDiseasesByAnimalType(UUID animalTypeId);
+
+    /**
      * Activate or deactivate a disease.
      * This will cascade to all disease reports using this disease.
      *

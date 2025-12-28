@@ -1,6 +1,7 @@
 package com.adrs.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,9 +27,13 @@ public class DiseaseReport {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    /**
+     * The animal type affected by this disease report.
+     * Reports are made per animal type rather than individual animals.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "animal_id", nullable = false)
-    private Animal animal;
+    @JoinColumn(name = "animal_type_id", nullable = false)
+    private AnimalType animalType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_id", nullable = false)
@@ -45,12 +50,21 @@ public class DiseaseReport {
     @Column(name = "report_date", nullable = false)
     private LocalDate reportDate;
 
+    /**
+     * Number of animals affected by this disease.
+     */
+    @Column(name = "affected_count")
+    private Integer affectedCount;
+
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String symptoms;
 
+    @Size(max = 2000, message = "Diagnosis must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String diagnosis;
 
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String treatment;
 
@@ -58,8 +72,16 @@ public class DiseaseReport {
     @Column(length = 20)
     private Outcome outcome;
 
+    @Size(max = 2000, message = "Notes must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * Path to the uploaded image file (relative to storage root).
+     */
+    @Size(max = 255, message = "Image path must not exceed 255 characters")
+    @Column(name = "image_path", length = 255)
+    private String imagePath;
 
     @Column(name = "is_confirmed", nullable = false)
     private Boolean isConfirmed = false;
@@ -89,3 +111,4 @@ public class DiseaseReport {
         EUTHANIZED
     }
 }
+

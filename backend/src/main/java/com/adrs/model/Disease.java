@@ -48,6 +48,22 @@ public class Disease {
     private String description;
 
     /**
+     * Common symptoms associated with this disease.
+     * Can be used as default values when vets report this disease.
+     */
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
+    @Column(columnDefinition = "TEXT")
+    private String symptoms;
+
+    /**
+     * Recommended treatment for this disease.
+     * Can be used as default values when vets report this disease.
+     */
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
+    @Column(columnDefinition = "TEXT")
+    private String treatment;
+
+    /**
      * Array of animal type IDs that can be affected by this disease.
      * Note: In PostgreSQL, this is stored as TEXT[]. 
      * In H2 (for testing), Hibernate serializes it as binary.

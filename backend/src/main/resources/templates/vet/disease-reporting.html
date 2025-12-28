@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Disease Reporting - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/disease-reporting.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2>🦠 Disease Reporting</h2>
+                <p class="page-subtitle">Report and track animal diseases at your farms</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="openReportModal">
+                <span>+</span> New Report
+            </button>
+        </div>
+
+        <!-- Reports Grid -->
+        <div id="reports-container">
+            <!-- Reports Table -->
+            <div id="reports-table-container" class="table-container">
+                <table class="data-table" id="reports-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Farm</th>
+                            <th>Animal Type</th>
+                            <th>Disease</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-tbody">
+                        <!-- Reports will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📋</div>
+                <h3>No Disease Reports</h3>
+                <p>You haven't submitted any disease reports yet. Click the button above to create your first report.
+                </p>
+                <button type="button" class="btn btn-primary" id="emptyStateReportBtn">
+                    Create Your First Report
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading reports...</p>
+            </div>
+        </div>
+
+        <!-- Disease Report Modal -->
+        <div id="reportModal" class="modal-overlay hidden">
+            <div class="modal modal-lg">
+                <div class="modal-header">
+                    <h3 class="modal-title">New Disease Report</h3>
+                    <button type="button" class="modal-close" id="closeModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="disease-report-form">
+                        <!-- Success/Error Messages -->
+                        <div id="form-message" class="alert" style="display: none;"></div>
+
+                        <!-- Farm and Animal Selection -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Location & Animal</h4>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="farmId" class="form-label required">Farm</label>
+                                    <select id="farmId" name="farmId" class="form-select" required>
+                                        <option value="">Select farm...</option>
+                                    </select>
+                                    <span class="form-error" id="farmId-error"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="animalTypeId" class="form-label required">Animal Type</label>
+                                    <select id="animalTypeId" name="animalTypeId" class="form-select" required disabled>
+                                        <option value="">Select farm first...</option>
+                                    </select>
+                                    <span class="form-error" id="animalTypeId-error"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="diseaseId" class="form-label required">Disease</label>
+                                    <select id="diseaseId" name="diseaseId" class="form-select" required disabled>
+                                        <option value="">Select animal type first...</option>
+                                    </select>
+                                    <span class="form-error" id="diseaseId-error"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="affectedCount" class="form-label">Affected Animals</label>
+                                    <input type="number" id="affectedCount" name="affectedCount" class="form-input"
+                                        placeholder="Number affected" min="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Disease Info (Auto-populated) -->
+                        <div class="form-section" id="diseaseInfoSection" style="display: none;">
+                            <h4 class="form-section-title">Disease Information</h4>
+
+                            <div class="disease-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Disease Name</span>
+                                    <span class="info-value" id="display-diseaseName">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Disease Code</span>
+                                    <span class="info-value" id="display-diseaseCode">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Severity</span>
+                                    <span class="info-value severity-badge" id="display-severity">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Notifiable</span>
+                                    <span class="info-value" id="display-notifiable">-</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <div class="info-text" id="display-description">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Report Details -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Report Details</h4>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="reportDate" class="form-label required">Report Date</label>
+                                    <input type="date" id="reportDate" name="reportDate" class="form-input" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="outcome" class="form-label">Current Outcome</label>
+                                    <select id="outcome" name="outcome" class="form-select">
+                                        <option value="ONGOING">Ongoing</option>
+                                        <option value="RECOVERED">Recovered</option>
+                                        <option value="DIED">Died</option>
+                                        <option value="EUTHANIZED">Euthanized</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="symptoms" class="form-label">Symptoms</label>
+                                <textarea id="symptoms" name="symptoms" class="form-textarea"
+                                    placeholder="Describe the symptoms observed" rows="3" maxlength="2000"></textarea>
+                                <span class="form-helper">You can modify the default symptoms if needed</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="treatment" class="form-label">Treatment</label>
+                                <textarea id="treatment" name="treatment" class="form-textarea"
+                                    placeholder="Describe the treatment administered" rows="3"
+                                    maxlength="2000"></textarea>
+                                <span class="form-helper">You can modify the default treatment if needed</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="diagnosis" class="form-label">Diagnosis</label>
+                                <textarea id="diagnosis" name="diagnosis" class="form-textarea"
+                                    placeholder="Your diagnosis" rows="2" maxlength="2000"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="notes" class="form-label">Additional Notes</label>
+                                <textarea id="notes" name="notes" class="form-textarea"
+                                    placeholder="Any additional notes" rows="2" maxlength="2000"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">Photo (Optional)</h4>
+
+                            <div class="image-upload-container">
+                                <div class="image-dropzone" id="imageDropzone">
+                                    <div class="dropzone-content">
+                                        <span class="dropzone-icon">📷</span>
+                                        <p class="dropzone-text">Drag and drop an image here, or</p>
+                                        <label class="btn btn-outline btn-sm" for="imageInput">Browse Files</label>
+                                        <input type="file" id="imageInput" name="image"
+                                            accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;">
+                                        <p class="dropzone-hint">Max 5MB • JPEG, PNG, WebP, GIF</p>
+                                    </div>
+                                </div>
+                                <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                                    <img id="imagePreview" src="" alt="Preview">
+                                    <button type="button" class="remove-image-btn" id="removeImage">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" form="disease-report-form">
+                        <span class="btn-text">Submit Report</span>
+                        <span class="btn-loading" style="display: none;">Submitting...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script th:src="@{/js/disease-reporting.js}"></script>
+    </div>
+
+</body>
+
+</html>

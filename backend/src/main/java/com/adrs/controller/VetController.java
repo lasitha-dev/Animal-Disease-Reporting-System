@@ -4,6 +4,8 @@ import com.adrs.dto.*;
 import com.adrs.model.User;
 import com.adrs.repository.UserRepository;
 import com.adrs.service.AnimalTypeService;
+import com.adrs.service.DiseaseReportService;
+import com.adrs.service.DiseaseService;
 import com.adrs.service.FarmService;
 import com.adrs.service.FarmTypeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,15 +41,21 @@ public class VetController {
     private final FarmService farmService;
     private final FarmTypeService farmTypeService;
     private final AnimalTypeService animalTypeService;
+    private final DiseaseService diseaseService;
+    private final DiseaseReportService diseaseReportService;
     private final UserRepository userRepository;
 
     public VetController(FarmService farmService,
                         FarmTypeService farmTypeService,
                         AnimalTypeService animalTypeService,
+                        DiseaseService diseaseService,
+                        DiseaseReportService diseaseReportService,
                         UserRepository userRepository) {
         this.farmService = farmService;
         this.farmTypeService = farmTypeService;
         this.animalTypeService = animalTypeService;
+        this.diseaseService = diseaseService;
+        this.diseaseReportService = diseaseReportService;
         this.userRepository = userRepository;
     }
 
@@ -248,13 +257,90 @@ public class VetController {
         
         User currentUser = getCurrentUser(userDetails);
         Long farmCount = farmService.getFarmCountByUser(currentUser);
+        Long reportCount = diseaseReportService.getReportCountByVet(currentUser);
         
         VetStatsDTO stats = new VetStatsDTO();
         stats.setFarmsCount(farmCount);
         stats.setAnimalsCount(0L); // TODO: Implement when needed
-        stats.setReportsCount(0L); // TODO: Implement when needed
+        stats.setReportsCount(reportCount);
         
         return ResponseEntity.ok(stats);
+    }
+
+    // ========================================
+    // DISEASE REPORT ENDPOINTS
+    // ========================================
+
+    /**
+     * Get active diseases for a specific animal type.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of diseases
+     */
+    @Operation(summary = "Get diseases by animal type", description = "Retrieves active diseases for a specific animal type")
+    @GetMapping("/diseases")
+    public ResponseEntity<List<DiseaseDTO>> getDiseasesByAnimalType(@RequestParam UUID animalTypeId) {
+        logger.info("GET /api/vet/diseases?animalTypeId={} - Fetching diseases", animalTypeId);
+        
+        List<DiseaseDTO> diseases = diseaseService.getDiseasesByAnimalType(animalTypeId);
+        return ResponseEntity.ok(diseases);
+    }
+
+    /**
+     * Create a new disease report.
+     *
+     * @param request the disease report data
+     * @param image optional image file
+     * @param userDetails the authenticated user
+     * @return the created disease report
+     */
+    @Operation(summary = "Create disease report", description = "Creates a new disease report with optional image")
+    @PostMapping(value = "/disease-reports", consumes = {"multipart/form-data"})
+    public ResponseEntity<DiseaseReportResponseDTO> createDiseaseReport(
+            @RequestPart("report") @Valid DiseaseReportRequestDTO request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("POST /api/vet/disease-reports - Creating report by user: {}", userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        DiseaseReportResponseDTO response = diseaseReportService.createReport(request, image, currentUser);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Get all disease reports by the current vet.
+     *
+     * @param userDetails the authenticated user
+     * @return list of disease reports
+     */
+    @Operation(summary = "Get my disease reports", description = "Retrieves all disease reports by the current vet")
+    @GetMapping("/disease-reports")
+    public ResponseEntity<List<DiseaseReportResponseDTO>> getMyDiseaseReports(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("GET /api/vet/disease-reports - Fetching reports for user: {}", userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        List<DiseaseReportResponseDTO> reports = diseaseReportService.getReportsByVet(currentUser);
+        
+        return ResponseEntity.ok(reports);
+    }
+
+    /**
+     * Get a specific disease report by ID.
+     *
+     * @param id the report ID
+     * @return the disease report
+     */
+    @Operation(summary = "Get disease report by ID", description = "Retrieves a specific disease report")
+    @GetMapping("/disease-reports/{id}")
+    public ResponseEntity<DiseaseReportResponseDTO> getDiseaseReportById(@PathVariable UUID id) {
+        logger.info("GET /api/vet/disease-reports/{} - Fetching report", id);
+        
+        DiseaseReportResponseDTO response = diseaseReportService.getReportById(id);
+        return ResponseEntity.ok(response);
     }
 
     /**

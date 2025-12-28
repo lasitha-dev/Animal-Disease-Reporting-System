@@ -77,6 +77,14 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
     List<Disease> findByIsActiveTrueAndIsNotifiableTrue();
 
     /**
+     * Find active diseases for a specific animal type.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of active diseases for the animal type
+     */
+    List<Disease> findByAnimalTypeIdAndIsActiveTrue(UUID animalTypeId);
+
+    /**
      * Count active diseases.
      *
      * @return count of active diseases

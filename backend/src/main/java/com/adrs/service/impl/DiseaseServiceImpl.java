@@ -59,6 +59,8 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setDiseaseName(diseaseDTO.getDiseaseName());
         disease.setDiseaseCode(diseaseDTO.getDiseaseCode());
         disease.setDescription(diseaseDTO.getDescription());
+        disease.setSymptoms(diseaseDTO.getSymptoms());
+        disease.setTreatment(diseaseDTO.getTreatment());
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
         disease.setIsNotifiable(Boolean.TRUE.equals(diseaseDTO.getIsNotifiable()));
@@ -106,6 +108,8 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setDiseaseName(diseaseDTO.getDiseaseName());
         disease.setDiseaseCode(diseaseDTO.getDiseaseCode());
         disease.setDescription(diseaseDTO.getDescription());
+        disease.setSymptoms(diseaseDTO.getSymptoms());
+        disease.setTreatment(diseaseDTO.getTreatment());
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
         disease.setIsNotifiable(diseaseDTO.getIsNotifiable());
@@ -198,6 +202,17 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<DiseaseDTO> getDiseasesByAnimalType(UUID animalTypeId) {
+        logger.debug("Fetching diseases for animal type: {}", animalTypeId);
+        
+        List<Disease> diseases = diseaseRepository.findByAnimalTypeIdAndIsActiveTrue(animalTypeId);
+        return diseases.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public DiseaseDTO toggleDiseaseStatus(UUID id, Boolean isActive) {
         logger.info("Toggling disease status for ID: {} to {}", id, isActive);
         
@@ -271,6 +286,8 @@ public class DiseaseServiceImpl implements DiseaseService {
         dto.setDiseaseName(disease.getDiseaseName());
         dto.setDiseaseCode(disease.getDiseaseCode());
         dto.setDescription(disease.getDescription());
+        dto.setSymptoms(disease.getSymptoms());
+        dto.setTreatment(disease.getTreatment());
         dto.setAffectedAnimalTypes(disease.getAffectedAnimalTypes());
         dto.setSeverity(disease.getSeverity());
         dto.setIsNotifiable(disease.getIsNotifiable());

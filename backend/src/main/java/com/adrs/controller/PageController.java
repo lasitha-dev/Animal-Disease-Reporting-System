@@ -212,5 +212,26 @@ public class PageController {
         
         return "vet/map";
     }
+
+    /**
+     * Displays the disease reporting page for vets.
+     * Allows vets to submit new disease reports.
+     *
+     * @param model the model for the view
+     * @return the disease reporting view name
+     */
+    @GetMapping("/vet/disease-reporting")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetDiseaseReporting(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Disease reporting page accessed by vet: {}", username);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "Disease Reporting");
+        
+        return "vet/disease-reporting";
+    }
 }
 

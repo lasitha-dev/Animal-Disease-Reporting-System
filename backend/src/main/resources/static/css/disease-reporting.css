@@ -1,0 +1,418 @@
+/**
+ * Disease Reporting Page Styles
+ * Follows the existing modal and form patterns
+ */
+
+/* Page Header */
+.page-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.page-header-info h2 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.page-subtitle {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+/* Reports Table Container */
+.table-container {
+    background: var(--color-white);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    background: var(--color-gray-50);
+}
+
+.data-table th {
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--color-gray-50);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Disease Info Section */
+.disease-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-gray-50);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.info-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.info-text {
+    padding: var(--spacing-sm);
+    background: var(--color-gray-50);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+/* Severity Badges */
+.severity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.severity-badge.low {
+    background-color: #d1fae5;
+    color: #047857;
+}
+
+.severity-badge.medium {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.severity-badge.high {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.severity-badge.critical {
+    background-color: #7f1d1d;
+    color: #fecaca;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.confirmed {
+    background-color: #d1fae5;
+    color: #047857;
+}
+
+.status-badge.pending {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+/* Outcome Badges */
+.outcome-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.outcome-badge.ongoing {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.outcome-badge.recovered {
+    background-color: #d1fae5;
+    color: #047857;
+}
+
+.outcome-badge.died {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.outcome-badge.euthanized {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Image Upload */
+.image-upload-container {
+    position: relative;
+}
+
+.image-dropzone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    background: var(--color-gray-50);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.image-dropzone:hover,
+.image-dropzone.dragover {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-lighter);
+}
+
+.dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.dropzone-icon {
+    font-size: 2.5rem;
+    opacity: 0.5;
+}
+
+.dropzone-text {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.dropzone-hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+    margin-top: var(--spacing-md);
+}
+
+.image-preview-container img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    object-fit: cover;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background: var(--color-error);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+}
+
+.remove-image-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Form Helpers */
+.form-helper {
+    display: block;
+    margin-top: 4px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.form-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.form-section-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+/* Form Row */
+.form-row {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.form-row-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    background: var(--color-white);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text-primary);
+}
+
+.empty-state p {
+    margin: 0 0 var(--spacing-lg) 0;
+    color: var(--color-text-secondary);
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-md);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    transition: all var(--transition-fast);
+    margin-right: 4px;
+}
+
+.action-btn.view {
+    background-color: var(--color-gray-100);
+    color: var(--color-text-secondary);
+}
+
+.action-btn.view:hover {
+    background-color: var(--color-gray-200);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .page-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-header-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .disease-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .data-table th,
+    .data-table td {
+        padding: var(--spacing-sm);
+    }
+}
+
+/* Modal Large Size */
+.modal.modal-lg {
+    max-width: 700px;
+}
+
+@media (max-width: 768px) {
+    .modal.modal-lg {
+        max-width: 95%;
+    }
+}

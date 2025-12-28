@@ -96,6 +96,13 @@
                             <span>Map</span>
                         </a>
                     </li>
+                    <li sec:authorize="hasRole('VETERINARY_OFFICER')">
+                        <a th:href="@{/vet/disease-reporting}"
+                            th:classappend="${#strings.startsWith(currentUri, '/vet/disease-reporting')} ? 'active' : ''">
+                            <span class="nav-icon">🦠</span>
+                            <span>Disease Reporting</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
@@ -215,6 +222,13 @@
                 <a th:href="@{/vet/map}" th:classappend="${currentUri == '/vet/map'} ? 'active' : ''">
                     <span class="nav-icon">🗺️</span>
                     <span class="nav-label">Map</span>
+                </a>
+            </li>
+            <li sec:authorize="hasRole('VETERINARY_OFFICER')">
+                <a th:href="@{/vet/disease-reporting}"
+                    th:classappend="${#strings.startsWith(currentUri, '/vet/disease-reporting')} ? 'active' : ''">
+                    <span class="nav-icon">🦠</span>
+                    <span class="nav-label">Reports</span>
                 </a>
             </li>
 

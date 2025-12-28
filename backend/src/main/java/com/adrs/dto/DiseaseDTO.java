@@ -32,6 +32,12 @@ public class DiseaseDTO {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
+    private String symptoms;
+
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
+    private String treatment;
+
     private String[] affectedAnimalTypes;
 
     /**
