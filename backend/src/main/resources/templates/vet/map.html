@@ -13,7 +13,7 @@
         <div class="page-header-row">
             <div class="page-header-info">
                 <h2>🗺️ Farm Map</h2>
-                <p class="page-subtitle">View all registered farm locations across Sri Lanka</p>
+                <p class="page-subtitle">View all registered farm locations and disease outbreaks across Sri Lanka</p>
             </div>
         </div>
 
@@ -22,6 +22,7 @@
             <!-- Filter Panel -->
             <div class="map-filters-panel">
                 <h4>Filters</h4>
+                <!-- Farm Filter -->
                 <div class="filter-group">
                     <label class="filter-checkbox">
                         <input type="checkbox" id="filterFarms" checked>
@@ -32,16 +33,26 @@
                         <span class="filter-count" id="farmCount">0</span>
                     </label>
                 </div>
-                <!-- Future filters will be added here -->
-                <div class="filter-group filter-disabled" title="Coming soon">
-                    <label class="filter-checkbox disabled">
-                        <input type="checkbox" disabled>
+                <!-- Disease Outbreaks Filter -->
+                <div class="filter-group">
+                    <label class="filter-checkbox">
+                        <input type="checkbox" id="filterDiseases">
                         <span class="filter-label">
                             <span class="filter-icon">⚠️</span>
                             Disease Outbreaks
                         </span>
-                        <span class="filter-badge">Soon</span>
+                        <span class="filter-count disease-count" id="diseaseCount">0</span>
                     </label>
+                </div>
+                <!-- Animal Type Sub-filter (shown when diseases filter is active) -->
+                <div class="animal-type-filter-container" id="animalTypeFilterContainer" style="display: none;">
+                    <div class="sub-filter-header">
+                        <span class="sub-filter-title">🐄 Filter by Animal Type</span>
+                    </div>
+                    <div class="animal-type-filters" id="animalTypeFilters">
+                        <!-- Dynamically populated -->
+                        <div class="loading-text">Loading animal types...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,7 +79,11 @@
         <div class="map-legend-bar">
             <div class="legend-item">
                 <span class="legend-marker farm-marker"></span>
-                <span>Farm Location</span>
+                <span>Farm Only</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-marker disease-marker"></span>
+                <span>Farm with Diseases</span>
             </div>
         </div>
     </div>
@@ -82,7 +97,9 @@
                 defaultLng: /*[[${mapDefaultLng}]]*/ 80.7718,
                 defaultZoom: /*[[${mapDefaultZoom}]]*/ 7
             };
+            window.currentUsername = /*[[${#authentication.name}]]*/ '';
         </script>
+
         <!-- Google Maps API -->
         <script
             th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initFarmMap&loading=async'}"

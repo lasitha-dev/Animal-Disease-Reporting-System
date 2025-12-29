@@ -15,6 +15,10 @@
     let currentViewReport = null;
     let isDiseaseInfoEditMode = false;
     let clearExistingImage = false; // Flag to clear existing image when updating
+    let currentAnimalCount = null; // Track registered animal count for validation
+    let currentTab = 'my-reports'; // Track current tab
+    let isViewingOtherReport = false; // Track if viewing other vet's report
+    let otherReportsLoaded = false; // Track if other reports have been loaded
 
     // DOM Elements
     const elements = {
@@ -85,7 +89,17 @@
         closeDeleteModalBtn: document.getElementById('closeDeleteModal'),
         cancelDeleteBtn: document.getElementById('cancelDeleteBtn'),
         confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
-        deleteReportId: document.getElementById('deleteReportId')
+        deleteReportId: document.getElementById('deleteReportId'),
+
+        // Tab elements
+        tabButtons: document.querySelectorAll('.tab-btn'),
+        myReportsTab: document.getElementById('my-reports-tab'),
+        otherReportsTab: document.getElementById('other-reports-tab'),
+
+        // Other reports elements
+        otherReportsContainer: document.getElementById('other-reports-table-container'),
+        otherLoadingState: document.getElementById('other-loading-state'),
+        otherEmptyState: document.getElementById('other-empty-state')
     };
 
     // CSRF Token
@@ -100,6 +114,8 @@
         setDefaultDate();
         loadFarms();
         loadReports();
+        handleUrlParams();
+        setupTabListeners();
     }
 
     function setupEventListeners() {
@@ -177,8 +193,162 @@
     }
 
     // ========================================
+    // Tab Switching Functions
+    // ========================================
+
+    function setupTabListeners() {
+        elements.tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+    }
+
+    function switchTab(tabName) {
+        currentTab = tabName;
+
+        // Update tab buttons
+        elements.tabButtons.forEach(btn => {
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Update tab content
+        if (tabName === 'my-reports') {
+            elements.myReportsTab?.classList.add('active');
+            elements.otherReportsTab?.classList.remove('active');
+        } else {
+            elements.myReportsTab?.classList.remove('active');
+            elements.otherReportsTab?.classList.add('active');
+
+            // Load other reports on first switch
+            if (!otherReportsLoaded) {
+                loadOtherReports();
+            }
+        }
+    }
+
+    function handleUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        const reportId = urlParams.get('reportId') || urlParams.get('viewReport');
+
+        // Switch to other reports tab if specified
+        if (tab === 'others') {
+            switchTab('other-reports');
+        }
+
+        // Open view modal for specific report
+        if (reportId) {
+            // Determine if this is viewing other vet's report
+            isViewingOtherReport = (tab === 'others');
+
+            // Wait a bit for page to load, then open view modal
+            setTimeout(() => {
+                openViewModal(reportId);
+            }, 500);
+        }
+    }
+
+    async function loadOtherReports() {
+        showOtherLoadingState();
+
+        try {
+            const reports = await fetchAPI('/api/vet/disease-reports/others');
+
+            if (reports.length === 0) {
+                showOtherEmptyState();
+            } else {
+                renderOtherReportsTable(reports);
+                showOtherReportsTable();
+            }
+            otherReportsLoaded = true;
+        } catch (error) {
+            console.error('Error loading other reports:', error);
+            showOtherEmptyState();
+        }
+    }
+
+    function showOtherLoadingState() {
+        if (elements.otherReportsContainer) elements.otherReportsContainer.innerHTML = '';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'block';
+    }
+
+    function showOtherEmptyState() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
+        if (elements.otherReportsContainer) elements.otherReportsContainer.innerHTML = '';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'block';
+    }
+
+    function showOtherReportsTable() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+    }
+
+    function renderOtherReportsTable(reports) {
+        elements.otherReportsContainer.innerHTML = '';
+
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'reports-cards-grid';
+
+        reports.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'report-card other-vet-card';
+
+            const date = new Date(report.reportDate).toLocaleDateString();
+            const severityClass = report.severity?.toLowerCase() || '';
+            const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
+            const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+
+            const imageHtml = report.imageUrl
+                ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
+                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+
+            card.innerHTML = `
+                <div class="report-card-header">
+                    ${imageHtml}
+                    <div class="report-card-badges">
+                        <span class="severity-badge ${severityClass}">${report.severity || '-'}</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <h4 class="report-card-title">${escapeHtml(report.diseaseName)}</h4>
+                    <p class="report-card-subtitle">${escapeHtml(report.animalTypeName)} at ${escapeHtml(report.farmName)}</p>
+                    <div class="report-card-meta">
+                        <span class="meta-item">📅 ${date}</span>
+                        <span class="meta-item">👤 ${escapeHtml(report.reportedByUsername)}</span>
+                    </div>
+                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                </div>
+                <div class="report-card-footer">
+                    <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
+                        👁️ View Details
+                    </button>
+                </div>
+            `;
+
+            // Add click listener for view (no edit/delete for other vets' reports)
+            card.querySelector('.view-btn').addEventListener('click', () => {
+                isViewingOtherReport = true;
+                openViewModal(report.id);
+            });
+
+            cardsGrid.appendChild(card);
+        });
+
+        elements.otherReportsContainer.appendChild(cardsGrid);
+    }
+
+    // ========================================
     // Report Modal Functions
     // ========================================
+
 
     function openModal(isEdit = false, reportData = null) {
         editMode = isEdit;
@@ -414,10 +584,23 @@
             notesSection.style.display = 'none';
         }
 
+        // Determine if this is the current user's report
+        const currentUsername = window.currentUsername || '';
+        const isMyReport = report.reportedByUsername === currentUsername;
+
+        // Show/hide Edit and Delete buttons based on ownership
+        if (elements.editReportBtn) {
+            elements.editReportBtn.style.display = isMyReport ? 'inline-flex' : 'none';
+        }
+        if (elements.deleteReportBtn) {
+            elements.deleteReportBtn.style.display = isMyReport ? 'inline-flex' : 'none';
+        }
+
         // Show content
         elements.viewLoading.style.display = 'none';
         elements.viewContent.style.display = 'block';
     }
+
 
     function onEditReport() {
         if (currentViewReport) {
@@ -572,6 +755,7 @@
             const option = document.createElement('option');
             option.value = animal.animalTypeId;
             option.textContent = `${animal.animalTypeName} (${animal.count})`;
+            option.dataset.count = animal.count; // Store count for validation
             elements.animalTypeSelect.appendChild(option);
         });
     }
@@ -586,8 +770,15 @@
         if (!animalTypeId) {
             elements.diseaseSelect.innerHTML = '<option value="">Select animal type first...</option>';
             elements.diseaseSelect.disabled = true;
+            currentAnimalCount = null;
+            updateAffectedCountMax();
             return;
         }
+
+        // Store the registered animal count for validation
+        const selectedOption = elements.animalTypeSelect.options[elements.animalTypeSelect.selectedIndex];
+        currentAnimalCount = parseInt(selectedOption.dataset.count) || null;
+        updateAffectedCountMax();
 
         try {
             const diseases = await fetchAPI(`/api/vet/diseases?animalTypeId=${animalTypeId}`);
@@ -734,6 +925,15 @@
         // Validate required fields
         if (!elements.farmSelect.value || !elements.animalTypeSelect.value || !elements.diseaseSelect.value) {
             showFormMessage('Please fill in all required fields.', 'error');
+            return;
+        }
+
+        // Validate affected count does not exceed registered animal count
+        const affectedCountInput = document.getElementById('affectedCount');
+        const affectedCount = affectedCountInput.value ? parseInt(affectedCountInput.value) : null;
+        if (affectedCount && currentAnimalCount && affectedCount > currentAnimalCount) {
+            showFormMessage(`Affected count (${affectedCount}) cannot exceed the registered animal count (${currentAnimalCount}) for this farm.`, 'error');
+            affectedCountInput.focus();
             return;
         }
 
@@ -956,4 +1156,36 @@
         elements.formMessage.style.display = 'none';
     }
 
+    // Update affected count input max value and hint
+    function updateAffectedCountMax() {
+        const affectedCountInput = document.getElementById('affectedCount');
+        const affectedCountHint = document.getElementById('affectedCount-hint');
+
+        if (currentAnimalCount && affectedCountInput) {
+            affectedCountInput.max = currentAnimalCount;
+            if (affectedCountHint) {
+                affectedCountHint.textContent = `Maximum: ${currentAnimalCount} (registered count)`;
+                affectedCountHint.style.display = 'block';
+            }
+        } else {
+            if (affectedCountInput) affectedCountInput.removeAttribute('max');
+            if (affectedCountHint) affectedCountHint.style.display = 'none';
+        }
+    }
+
+    // ========================================
+    // Utility Functions
+    // ========================================
+
+    /**
+     * Escape HTML to prevent XSS attacks.
+     */
+    function escapeHtml(text) {
+        if (typeof text !== 'string') return text || '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
 })();
+

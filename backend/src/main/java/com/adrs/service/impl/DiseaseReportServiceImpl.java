@@ -1,5 +1,7 @@
 package com.adrs.service.impl;
 
+import com.adrs.dto.AnimalTypeDTO;
+import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
 import com.adrs.exception.ConfigurationNotFoundException;
@@ -13,8 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +61,21 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
 
         Disease disease = diseaseRepository.findById(request.getDiseaseId())
                 .orElseThrow(() -> new ConfigurationNotFoundException("Disease", request.getDiseaseId()));
+
+        // Validate affected count does not exceed registered animal count
+        if (request.getAffectedCount() != null) {
+            Integer registeredCount = farm.getFarmAnimals().stream()
+                    .filter(fa -> fa.getAnimalType().getId().equals(animalType.getId()))
+                    .findFirst()
+                    .map(fa -> fa.getCount())
+                    .orElse(0);
+            
+            if (request.getAffectedCount() > registeredCount) {
+                throw new IllegalArgumentException(
+                        String.format("Affected count (%d) cannot exceed registered animal count (%d) for %s on this farm",
+                                request.getAffectedCount(), registeredCount, animalType.getTypeName()));
+            }
+        }
 
         // Create the disease report
         DiseaseReport report = new DiseaseReport();
@@ -152,6 +168,23 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
             report.setReportDate(request.getReportDate());
         }
         
+        // Validate affected count does not exceed registered animal count
+        if (request.getAffectedCount() != null) {
+            Farm farm = report.getFarm();
+            AnimalType animalType = report.getAnimalType();
+            Integer registeredCount = farm.getFarmAnimals().stream()
+                    .filter(fa -> fa.getAnimalType().getId().equals(animalType.getId()))
+                    .findFirst()
+                    .map(fa -> fa.getCount())
+                    .orElse(0);
+            
+            if (request.getAffectedCount() > registeredCount) {
+                throw new IllegalArgumentException(
+                        String.format("Affected count (%d) cannot exceed registered animal count (%d) for %s on this farm",
+                                request.getAffectedCount(), registeredCount, animalType.getTypeName()));
+            }
+        }
+        
         report.setAffectedCount(request.getAffectedCount());
         report.setSymptoms(request.getSymptoms());
         report.setDiagnosis(request.getDiagnosis());
@@ -200,11 +233,113 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         logger.info("Disease report deleted: {}", id);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds) {
+        logger.debug("Fetching disease reports for map, animalTypeIds: {}", animalTypeIds);
+
+        List<DiseaseReport> reports;
+        if (animalTypeIds == null || animalTypeIds.isEmpty()) {
+            reports = diseaseReportRepository.findAllWithFarmGpsCoordinates();
+        } else {
+            reports = diseaseReportRepository.findAllWithFarmGpsCoordinatesByAnimalTypeIds(animalTypeIds);
+        }
+
+        // Group reports by farm
+        Map<UUID, List<DiseaseReport>> reportsByFarm = reports.stream()
+                .collect(Collectors.groupingBy(r -> r.getFarm().getId()));
+
+        // Convert to DTOs
+        List<DiseaseMapDTO> mapDTOs = new ArrayList<>();
+        for (Map.Entry<UUID, List<DiseaseReport>> entry : reportsByFarm.entrySet()) {
+            List<DiseaseReport> farmReports = entry.getValue();
+            if (farmReports.isEmpty()) continue;
+
+            Farm farm = farmReports.get(0).getFarm();
+            DiseaseMapDTO mapDTO = new DiseaseMapDTO();
+            mapDTO.setFarmId(farm.getId());
+            mapDTO.setFarmName(farm.getFarmName());
+            mapDTO.setGpsLatitude(farm.getGpsLatitude());
+            mapDTO.setGpsLongitude(farm.getGpsLongitude());
+            mapDTO.setAddress(farm.getAddress());
+            mapDTO.setOwnerName(farm.getOwnerName());
+            
+            if (farm.getDistrict() != null) {
+                mapDTO.setDistrictDisplayName(farm.getDistrict().getDisplayName());
+            }
+            if (farm.getProvince() != null) {
+                mapDTO.setProvinceDisplayName(farm.getProvince().getDisplayName());
+            }
+
+            // Map disease reports
+            List<DiseaseMapDTO.DiseaseInfo> diseaseInfos = farmReports.stream()
+                    .map(r -> {
+                        DiseaseMapDTO.DiseaseInfo info = new DiseaseMapDTO.DiseaseInfo();
+                        info.setReportId(r.getId());
+                        info.setDiseaseName(r.getDisease().getDiseaseName());
+                        info.setDiseaseCode(r.getDisease().getDiseaseCode());
+                        info.setSeverity(r.getDisease().getSeverity());
+                        info.setIsNotifiable(r.getDisease().getIsNotifiable());
+                        info.setAnimalTypeId(r.getAnimalType().getId());
+                        info.setAnimalTypeName(r.getAnimalType().getTypeName());
+                        info.setAffectedCount(r.getAffectedCount());
+                        info.setReportDate(r.getReportDate());
+                        info.setOutcome(r.getOutcome());
+                        info.setReportedByUsername(r.getReportedBy().getUsername());
+                        return info;
+                    })
+                    .collect(Collectors.toList());
+            
+            mapDTO.setDiseases(diseaseInfos);
+            mapDTOs.add(mapDTO);
+        }
+
+        logger.debug("Returning {} farm locations with disease reports", mapDTOs.size());
+        return mapDTOs;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnimalTypeDTO> getAnimalTypesWithReports() {
+        logger.debug("Fetching animal types with disease reports");
+
+        List<UUID> animalTypeIds = diseaseReportRepository.findDistinctAnimalTypeIdsWithReports();
+        
+        if (animalTypeIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return animalTypeIds.stream()
+                .map(id -> animalTypeRepository.findById(id).orElse(null))
+                .filter(Objects::nonNull)
+                .map(at -> {
+                    AnimalTypeDTO dto = new AnimalTypeDTO();
+                    dto.setId(at.getId());
+                    dto.setTypeName(at.getTypeName());
+                    dto.setDescription(at.getDescription());
+                    dto.setIsActive(at.getIsActive());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DiseaseReportResponseDTO> getReportsNotByVet(User vet) {
+        logger.debug("Fetching disease reports NOT by vet: {}", vet.getUsername());
+
+        List<DiseaseReport> reports = diseaseReportRepository.findByReportedByNotOrderByCreatedAtDesc(vet);
+        return reports.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     /**
      * Convert DiseaseReport entity to response DTO.
      */
     private DiseaseReportResponseDTO convertToDTO(DiseaseReport report) {
         DiseaseReportResponseDTO dto = new DiseaseReportResponseDTO();
+
         dto.setId(report.getId());
 
         // Farm info

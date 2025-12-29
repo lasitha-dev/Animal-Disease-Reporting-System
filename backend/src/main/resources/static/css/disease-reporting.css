@@ -26,7 +26,154 @@
     margin: 0;
 }
 
+/* ========================================
+   Reports Tabs
+   ======================================== */
+
+.reports-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: var(--color-primary);
+    background-color: var(--color-primary-lighter);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    background-color: transparent;
+}
+
+.tab-icon {
+    font-size: var(--font-size-md);
+}
+
+.tab-label {
+    white-space: nowrap;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Other Vet Report Card Styling */
+.report-card.other-vet-card {
+    border-left: 3px solid #6366f1;
+}
+
+.report-card.other-vet-card .report-card-meta .meta-item:last-child {
+    color: #6366f1;
+    font-weight: var(--font-weight-medium);
+}
+
+/* Report Card Body and Subtitle */
+.report-card-body {
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.report-card-subtitle {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.report-card-meta .meta-item {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+.affected-count {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.report-card-badges {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.report-card-header {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+}
+
+.report-card-header .report-card-image,
+.report-card-header .report-card-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Responsive Tabs */
+@media (max-width: 768px) {
+    .reports-tabs {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1;
+        justify-content: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .tab-label {
+        font-size: var(--font-size-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-icon {
+        font-size: var(--font-size-sm);
+    }
+
+    .tab-btn {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+}
+
 /* Reports Table Container */
+
 .table-container {
     background: var(--color-white);
     border-radius: var(--border-radius-lg);

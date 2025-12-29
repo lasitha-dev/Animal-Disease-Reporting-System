@@ -22,7 +22,7 @@
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
     padding: var(--spacing-md);
-    min-width: 200px;
+    min-width: 220px;
 }
 
 .map-filters-panel h4 {
@@ -96,6 +96,10 @@
     text-align: center;
 }
 
+.filter-count.disease-count {
+    background: #DC2626;
+}
+
 .filter-badge {
     background: var(--color-warning-light);
     color: var(--color-warning-dark);
@@ -111,6 +115,68 @@
 }
 
 /* ===========================================
+   Animal Type Sub-Filter
+   =========================================== */
+
+.animal-type-filter-container {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.sub-filter-header {
+    margin-bottom: var(--spacing-sm);
+}
+
+.sub-filter-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.animal-type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.animal-type-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #FFF5F5;
+    border: 1px solid #FECACA;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.8125rem;
+}
+
+.animal-type-checkbox:hover {
+    background: #FEE2E2;
+    border-color: #FCA5A5;
+}
+
+.animal-type-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: #DC2626;
+    cursor: pointer;
+}
+
+.animal-type-name {
+    color: #991B1B;
+}
+
+.loading-text,
+.no-types-text {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+/* ===========================================
    Google Map Container
    =========================================== */
 
@@ -120,7 +186,6 @@
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-md);
     overflow: hidden;
-    /* Full height minus header and controls */
     height: calc(100vh - 280px);
     min-height: 400px;
 }
@@ -236,8 +301,13 @@
     border: 2px solid #047857;
 }
 
+.legend-marker.disease-marker {
+    background: #DC2626;
+    border: 2px solid #B91C1C;
+}
+
 /* ===========================================
-   Custom Info Window Styles
+   Farm Info Window Styles
    =========================================== */
 
 .farm-info-window {
@@ -253,6 +323,10 @@
     margin-bottom: var(--spacing-sm);
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid #e5e7eb;
+}
+
+.farm-info-header.disease-header {
+    border-bottom-color: #FECACA;
 }
 
 .farm-info-icon {
@@ -278,6 +352,16 @@
     color: #1E40AF;
     font-size: 0.75rem;
     font-weight: 500;
+    border-radius: 4px;
+}
+
+.disease-count-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #FEE2E2;
+    color: #991B1B;
+    font-size: 0.75rem;
+    font-weight: 600;
     border-radius: 4px;
 }
 
@@ -342,12 +426,156 @@
 }
 
 /* ===========================================
+   Disease Info Window Styles
+   =========================================== */
+
+.disease-info-window {
+    max-width: 320px;
+}
+
+.location-info {
+    font-size: 0.8125rem;
+    color: #6B7280;
+    margin-bottom: var(--spacing-sm);
+}
+
+.disease-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.disease-card {
+    background: #FFF5F5;
+    border: 1px solid #FECACA;
+    border-radius: 6px;
+    margin-bottom: var(--spacing-sm);
+    overflow: hidden;
+}
+
+.disease-card:last-child {
+    margin-bottom: 0;
+}
+
+.disease-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: #FEE2E2;
+    border-bottom: 1px solid #FECACA;
+}
+
+.disease-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #991B1B;
+}
+
+.severity-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+}
+
+.severity-badge.severity-low {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.severity-badge.severity-medium {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.severity-badge.severity-high {
+    background: #FED7AA;
+    color: #9A3412;
+}
+
+.severity-badge.severity-critical {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.disease-card-body {
+    padding: 8px 10px;
+}
+
+.disease-detail {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 0.8125rem;
+}
+
+.disease-detail:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    color: #9CA3AF;
+    min-width: 55px;
+}
+
+.detail-value {
+    color: #374151;
+    font-weight: 500;
+}
+
+.detail-value.outcome-recovered {
+    color: #059669;
+}
+
+.detail-value.outcome-ongoing {
+    color: #D97706;
+}
+
+.detail-value.outcome-died,
+.detail-value.outcome-euthanized {
+    color: #DC2626;
+}
+
+.notifiable-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 6px;
+    background: #FEF3C7;
+    color: #92400E;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 3px;
+}
+
+.disease-card-footer {
+    padding: 6px 10px;
+    background: #FEF2F2;
+    border-top: 1px solid #FECACA;
+}
+
+.view-details-link {
+    font-size: 0.8125rem;
+    color: #DC2626;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.view-details-link:hover {
+    text-decoration: underline;
+}
+
+/* ===========================================
    Responsive - Tablet
    =========================================== */
 
 @media (max-width: 1024px) {
     .google-map-container {
         height: calc(100vh - 300px);
+    }
+
+    .map-filters-panel {
+        min-width: 200px;
     }
 }
 
@@ -359,78 +587,91 @@
     .map-controls-container {
         flex-direction: column;
     }
-    
+
     .map-filters-panel {
         min-width: 100%;
     }
-    
+
     .map-filters-panel h4 {
         font-size: 0.75rem;
     }
-    
-    /* Horizontal scroll for filters on mobile */
+
     .filter-group {
         display: inline-flex;
     }
-    
+
     .map-filters-panel {
         display: flex;
         flex-wrap: wrap;
         gap: var(--spacing-sm);
-        align-items: center;
+        align-items: flex-start;
     }
-    
+
     .map-filters-panel h4 {
         width: 100%;
         margin-bottom: var(--spacing-sm);
     }
-    
+
+    .animal-type-filter-container {
+        width: 100%;
+        border-top: none;
+        padding-top: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+    }
+
     .filter-checkbox {
         padding: var(--spacing-xs) var(--spacing-sm);
     }
-    
+
     .filter-label {
         font-size: 0.8125rem;
     }
-    
+
     .google-map-container {
-        height: calc(100vh - 340px);
+        height: calc(100vh - 380px);
         min-height: 300px;
         border-radius: var(--border-radius-sm);
     }
-    
+
     .map-legend-bar {
         flex-wrap: wrap;
         justify-content: center;
         gap: var(--spacing-md);
     }
-    
+
     .legend-item {
         font-size: 0.8125rem;
     }
-    
-    /* Info window adjustments for mobile */
+
     .farm-info-window {
         min-width: 180px;
         max-width: 240px;
     }
-    
+
+    .disease-info-window {
+        max-width: 260px;
+    }
+
+    .disease-list {
+        max-height: 200px;
+    }
+
     .farm-info-header {
         gap: var(--spacing-xs);
     }
-    
+
     .farm-info-icon {
         font-size: 1.25rem;
     }
-    
+
     .farm-info-title h4 {
         font-size: 0.9375rem;
     }
-    
+
     .farm-info-body {
         font-size: 0.8125rem;
     }
-    
+
     .farm-info-row .label {
         min-width: 50px;
     }
@@ -442,28 +683,49 @@
 
 @media (max-width: 480px) {
     .google-map-container {
-        height: calc(100vh - 380px);
+        height: calc(100vh - 420px);
         min-height: 250px;
     }
-    
+
     .map-loading-overlay .spinner {
         width: 32px;
         height: 32px;
     }
-    
+
     .map-empty-state {
         padding: var(--spacing-md);
     }
-    
+
     .map-empty-state .empty-icon {
         font-size: 2.5rem;
     }
-    
+
     .map-empty-state h3 {
         font-size: 1rem;
     }
-    
+
     .map-empty-state p {
         font-size: 0.8125rem;
+    }
+
+    .animal-type-checkbox {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+    }
+
+    .disease-card-header {
+        padding: 6px 8px;
+    }
+
+    .disease-name {
+        font-size: 0.8125rem;
+    }
+
+    .disease-card-body {
+        padding: 6px 8px;
+    }
+
+    .disease-detail {
+        font-size: 0.75rem;
     }
 }

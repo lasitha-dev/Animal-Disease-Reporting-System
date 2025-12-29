@@ -329,6 +329,25 @@ public class VetController {
     }
 
     /**
+     * Get all disease reports by other vets (not the current user).
+     *
+     * @param userDetails the authenticated user
+     * @return list of disease reports
+     */
+    @Operation(summary = "Get other vets' disease reports", description = "Retrieves all disease reports by other vets")
+    @GetMapping("/disease-reports/others")
+    public ResponseEntity<List<DiseaseReportResponseDTO>> getOtherVetsDiseaseReports(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("GET /api/vet/disease-reports/others - Fetching other vets' reports for user: {}", userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        List<DiseaseReportResponseDTO> reports = diseaseReportService.getReportsNotByVet(currentUser);
+        
+        return ResponseEntity.ok(reports);
+    }
+
+    /**
      * Get a specific disease report by ID.
      *
      * @param id the report ID
@@ -342,6 +361,7 @@ public class VetController {
         DiseaseReportResponseDTO response = diseaseReportService.getReportById(id);
         return ResponseEntity.ok(response);
     }
+
 
     /**
      * Update an existing disease report.
@@ -389,6 +409,41 @@ public class VetController {
         return ResponseEntity.noContent().build();
     }
 
+    // ========================================
+    // MAP ENDPOINTS
+    // ========================================
+
+    /**
+     * Get disease reports for map display, grouped by farm location.
+     *
+     * @param animalTypeIds optional filter by animal type IDs
+     * @return list of disease data grouped by farm
+     */
+    @Operation(summary = "Get disease reports for map", description = "Retrieves disease reports grouped by farm for map display")
+    @GetMapping("/disease-reports/map")
+    public ResponseEntity<List<DiseaseMapDTO>> getDiseaseReportsForMap(
+            @RequestParam(required = false) List<UUID> animalTypeIds) {
+        
+        logger.info("GET /api/vet/disease-reports/map - Fetching reports for map, animalTypeIds: {}", animalTypeIds);
+        
+        List<DiseaseMapDTO> reports = diseaseReportService.getReportsForMap(animalTypeIds);
+        return ResponseEntity.ok(reports);
+    }
+
+    /**
+     * Get animal types that have disease reports with GPS coordinates.
+     *
+     * @return list of animal types with disease reports
+     */
+    @Operation(summary = "Get animal types with disease reports", description = "Retrieves animal types that have disease reports for filtering")
+    @GetMapping("/animal-types/with-reports")
+    public ResponseEntity<List<AnimalTypeDTO>> getAnimalTypesWithReports() {
+        logger.info("GET /api/vet/animal-types/with-reports - Fetching animal types with disease reports");
+        
+        List<AnimalTypeDTO> animalTypes = diseaseReportService.getAnimalTypesWithReports();
+        return ResponseEntity.ok(animalTypes);
+    }
+
     /**
      * Gets the current User entity from UserDetails.
      */
@@ -413,3 +468,4 @@ public class VetController {
         public void setReportsCount(Long reportsCount) { this.reportsCount = reportsCount; }
     }
 }
+

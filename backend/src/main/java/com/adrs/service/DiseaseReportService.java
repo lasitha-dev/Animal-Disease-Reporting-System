@@ -1,5 +1,7 @@
 package com.adrs.service;
 
+import com.adrs.dto.AnimalTypeDTO;
+import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
 import com.adrs.model.User;
@@ -73,4 +75,28 @@ public interface DiseaseReportService {
      * @param user the user deleting the report
      */
     void deleteReport(UUID id, User user);
+
+    /**
+     * Get disease reports grouped by farm for map display.
+     *
+     * @param animalTypeIds optional list of animal type IDs to filter by
+     * @return list of disease data grouped by farm location
+     */
+    List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds);
+
+    /**
+     * Get animal types that have disease reports with GPS coordinates.
+     *
+     * @return list of animal types with disease reports
+     */
+    List<AnimalTypeDTO> getAnimalTypesWithReports();
+
+    /**
+     * Get all disease reports NOT created by the current vet.
+     *
+     * @param vet the current vet user
+     * @return list of reports by other vets
+     */
+    List<DiseaseReportResponseDTO> getReportsNotByVet(User vet);
 }
+

@@ -80,5 +80,52 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
            "GROUP BY CAST(dr.reportDate AS LocalDate) " +
            "ORDER BY CAST(dr.reportDate AS LocalDate)")
     List<Object[]> getDiseaseReportTrend(LocalDateTime startDate);
+
+    /**
+     * Find all disease reports where the farm has GPS coordinates.
+     *
+     * @return list of disease reports with valid GPS locations
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.farm f " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "JOIN FETCH dr.reportedBy rb " +
+           "WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL " +
+           "ORDER BY f.id, dr.reportDate DESC")
+    List<DiseaseReport> findAllWithFarmGpsCoordinates();
+
+    /**
+     * Find all disease reports filtered by animal type IDs where farm has GPS coordinates.
+     *
+     * @param animalTypeIds list of animal type IDs to filter by
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.farm f " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "JOIN FETCH dr.reportedBy rb " +
+           "WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL " +
+           "AND at.id IN :animalTypeIds " +
+           "ORDER BY f.id, dr.reportDate DESC")
+    List<DiseaseReport> findAllWithFarmGpsCoordinatesByAnimalTypeIds(List<UUID> animalTypeIds);
+
+    /**
+     * Find distinct animal type IDs that have disease reports.
+     *
+     * @return list of animal type IDs
+     */
+    @Query("SELECT DISTINCT dr.animalType.id FROM DiseaseReport dr " +
+           "WHERE dr.farm.gpsLatitude IS NOT NULL AND dr.farm.gpsLongitude IS NOT NULL")
+    List<UUID> findDistinctAnimalTypeIdsWithReports();
+
+    /**
+     * Find disease reports NOT created by a specific vet, ordered by creation date descending.
+     *
+     * @param reportedBy the vet to exclude
+     * @return list of disease reports by other vets
+     */
+    List<DiseaseReport> findByReportedByNotOrderByCreatedAtDesc(User reportedBy);
 }
 
