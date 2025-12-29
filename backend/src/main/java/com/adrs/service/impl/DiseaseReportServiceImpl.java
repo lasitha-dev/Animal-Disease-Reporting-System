@@ -159,8 +159,17 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         report.setOutcome(request.getOutcome());
         report.setNotes(request.getNotes());
 
-        // Handle image upload
-        if (image != null && !image.isEmpty()) {
+        // Handle image clear request
+        if (Boolean.TRUE.equals(request.getClearImage())) {
+            // Delete existing image if present
+            if (report.getImagePath() != null) {
+                fileStorageService.deleteFile(report.getImagePath());
+                report.setImagePath(null);
+                logger.info("Existing image cleared for disease report: {}", id);
+            }
+        }
+        // Handle new image upload (only if not cleared and new image provided)
+        else if (image != null && !image.isEmpty()) {
             // Delete old image if exists
             if (report.getImagePath() != null) {
                 fileStorageService.deleteFile(report.getImagePath());

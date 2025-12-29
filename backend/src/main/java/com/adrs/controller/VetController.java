@@ -344,6 +344,52 @@ public class VetController {
     }
 
     /**
+     * Update an existing disease report.
+     *
+     * @param id the report ID
+     * @param request the updated disease report data
+     * @param image optional new image file
+     * @param userDetails the authenticated user
+     * @return the updated disease report
+     */
+    @Operation(summary = "Update disease report", description = "Updates an existing disease report with optional new image")
+    @PutMapping(value = "/disease-reports/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<DiseaseReportResponseDTO> updateDiseaseReport(
+            @PathVariable UUID id,
+            @RequestPart("report") @Valid DiseaseReportRequestDTO request,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("PUT /api/vet/disease-reports/{} - Updating report by user: {}", id, userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        DiseaseReportResponseDTO response = diseaseReportService.updateReport(id, request, image, currentUser);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Delete a disease report.
+     *
+     * @param id the report ID
+     * @param userDetails the authenticated user
+     * @return no content
+     */
+    @Operation(summary = "Delete disease report", description = "Deletes a disease report")
+    @DeleteMapping("/disease-reports/{id}")
+    public ResponseEntity<Void> deleteDiseaseReport(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        logger.info("DELETE /api/vet/disease-reports/{} - Deleting report by user: {}", id, userDetails.getUsername());
+        
+        User currentUser = getCurrentUser(userDetails);
+        diseaseReportService.deleteReport(id, currentUser);
+        
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Gets the current User entity from UserDetails.
      */
     private User getCurrentUser(UserDetails userDetails) {

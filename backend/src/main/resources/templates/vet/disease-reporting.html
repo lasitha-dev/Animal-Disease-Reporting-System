@@ -22,24 +22,9 @@
 
         <!-- Reports Grid -->
         <div id="reports-container">
-            <!-- Reports Table -->
-            <div id="reports-table-container" class="table-container">
-                <table class="data-table" id="reports-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Farm</th>
-                            <th>Animal Type</th>
-                            <th>Disease</th>
-                            <th>Severity</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reports-tbody">
-                        <!-- Reports will be loaded here by JavaScript -->
-                    </tbody>
-                </table>
+            <!-- Reports Cards Container -->
+            <div id="reports-table-container" class="reports-wrapper">
+                <!-- Cards will be loaded here by JavaScript -->
             </div>
 
             <!-- Empty State -->
@@ -64,11 +49,14 @@
         <div id="reportModal" class="modal-overlay hidden">
             <div class="modal modal-lg">
                 <div class="modal-header">
-                    <h3 class="modal-title">New Disease Report</h3>
+                    <h3 class="modal-title" id="reportModalTitle">New Disease Report</h3>
                     <button type="button" class="modal-close" id="closeModal">✕</button>
                 </div>
                 <div class="modal-body">
                     <form id="disease-report-form">
+                        <!-- Hidden field for edit mode -->
+                        <input type="hidden" id="editReportId" value="">
+
                         <!-- Success/Error Messages -->
                         <div id="form-message" class="alert" style="display: none;"></div>
 
@@ -111,32 +99,68 @@
                             </div>
                         </div>
 
-                        <!-- Disease Info (Auto-populated) -->
+                        <!-- Disease Info (Editable) -->
                         <div class="form-section" id="diseaseInfoSection" style="display: none;">
-                            <h4 class="form-section-title">Disease Information</h4>
+                            <div class="disease-info-header">
+                                <h4 class="form-section-title">Disease Information</h4>
+                                <button type="button" class="btn btn-outline btn-sm" id="toggleEditDiseaseInfo">
+                                    <span id="editDiseaseInfoLabel">✏️ Edit Info</span>
+                                </button>
+                            </div>
 
-                            <div class="disease-info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Disease Name</span>
-                                    <span class="info-value" id="display-diseaseName">-</span>
+                            <!-- Display Mode -->
+                            <div id="diseaseInfoDisplay">
+                                <div class="disease-info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Disease Name</span>
+                                        <span class="info-value" id="display-diseaseName">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Disease Code</span>
+                                        <span class="info-value" id="display-diseaseCode">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Severity</span>
+                                        <span class="info-value severity-badge" id="display-severity">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Notifiable</span>
+                                        <span class="info-value" id="display-notifiable">-</span>
+                                    </div>
                                 </div>
-                                <div class="info-item">
-                                    <span class="info-label">Disease Code</span>
-                                    <span class="info-value" id="display-diseaseCode">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Severity</span>
-                                    <span class="info-value severity-badge" id="display-severity">-</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Notifiable</span>
-                                    <span class="info-value" id="display-notifiable">-</span>
+
+                                <div class="form-group">
+                                    <label class="form-label">Description</label>
+                                    <div class="info-text" id="display-description">-</div>
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Description</label>
-                                <div class="info-text" id="display-description">-</div>
+                            <!-- Edit Mode (Hidden by default) -->
+                            <div id="diseaseInfoEdit" style="display: none;">
+                                <div class="form-row form-row-2">
+                                    <div class="form-group">
+                                        <label for="editDiseaseName" class="form-label">Disease Name (Override)</label>
+                                        <input type="text" id="editDiseaseName" class="form-input"
+                                            placeholder="Override disease name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editSeverity" class="form-label">Severity (Override)</label>
+                                        <select id="editSeverity" class="form-select">
+                                            <option value="">Use default</option>
+                                            <option value="LOW">Low</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="HIGH">High</option>
+                                            <option value="CRITICAL">Critical</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editDiseaseDescription" class="form-label">Description
+                                        (Override)</label>
+                                    <textarea id="editDiseaseDescription" class="form-textarea" rows="2"
+                                        placeholder="Add your notes about this disease"></textarea>
+                                    <span class="form-helper">These overrides apply only to this report</span>
+                                </div>
                             </div>
                         </div>
 
@@ -217,6 +241,147 @@
                     <button type="submit" class="btn btn-primary" id="submitBtn" form="disease-report-form">
                         <span class="btn-text">Submit Report</span>
                         <span class="btn-loading" style="display: none;">Submitting...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Details Modal -->
+        <div id="viewModal" class="modal-overlay hidden">
+            <div class="modal modal-lg">
+                <div class="modal-header">
+                    <h3 class="modal-title">Disease Report Details</h3>
+                    <button type="button" class="modal-close" id="closeViewModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div id="viewLoading" class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading report details...</p>
+                    </div>
+
+                    <div id="viewContent" style="display: none;">
+                        <!-- Photo Card -->
+                        <div id="viewPhotoCard" class="photo-card" style="display: none;">
+                            <img id="viewPhoto" src="" alt="Disease Photo">
+                        </div>
+
+                        <!-- Report Info Grid -->
+                        <div class="view-info-section">
+                            <h4 class="view-section-title">📍 Location & Animal</h4>
+                            <div class="view-info-grid">
+                                <div class="view-info-row">
+                                    <span class="view-label">Farm</span>
+                                    <span class="view-value" id="view-farmName">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Address</span>
+                                    <span class="view-value" id="view-farmAddress">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Animal Type</span>
+                                    <span class="view-value" id="view-animalType">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Affected Count</span>
+                                    <span class="view-value" id="view-affectedCount">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="view-info-section">
+                            <h4 class="view-section-title">🦠 Disease Information</h4>
+                            <div class="view-info-grid">
+                                <div class="view-info-row">
+                                    <span class="view-label">Disease</span>
+                                    <span class="view-value" id="view-diseaseName">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Disease Code</span>
+                                    <span class="view-value" id="view-diseaseCode">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Severity</span>
+                                    <span class="view-value" id="view-severity">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Notifiable</span>
+                                    <span class="view-value" id="view-notifiable">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="view-info-section">
+                            <h4 class="view-section-title">📋 Report Details</h4>
+                            <div class="view-info-grid">
+                                <div class="view-info-row">
+                                    <span class="view-label">Report Date</span>
+                                    <span class="view-value" id="view-reportDate">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Status</span>
+                                    <span class="view-value" id="view-status">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Outcome</span>
+                                    <span class="view-value" id="view-outcome">-</span>
+                                </div>
+                                <div class="view-info-row">
+                                    <span class="view-label">Reported By</span>
+                                    <span class="view-value" id="view-reportedBy">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="view-info-section" id="view-symptomsSection">
+                            <h4 class="view-section-title">🩺 Symptoms</h4>
+                            <p class="view-text" id="view-symptoms">-</p>
+                        </div>
+
+                        <div class="view-info-section" id="view-diagnosisSection">
+                            <h4 class="view-section-title">🔬 Diagnosis</h4>
+                            <p class="view-text" id="view-diagnosis">-</p>
+                        </div>
+
+                        <div class="view-info-section" id="view-treatmentSection">
+                            <h4 class="view-section-title">💊 Treatment</h4>
+                            <p class="view-text" id="view-treatment">-</p>
+                        </div>
+
+                        <div class="view-info-section" id="view-notesSection">
+                            <h4 class="view-section-title">📝 Notes</h4>
+                            <p class="view-text" id="view-notes">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="closeViewBtn">Close</button>
+                    <button type="button" class="btn btn-danger" id="deleteReportBtn">
+                        🗑️ Delete
+                    </button>
+                    <button type="button" class="btn btn-primary" id="editReportBtn">
+                        ✏️ Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="modal-overlay hidden">
+            <div class="modal modal-sm">
+                <div class="modal-header">
+                    <h3 class="modal-title">⚠️ Confirm Delete</h3>
+                    <button type="button" class="modal-close" id="closeDeleteModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p class="delete-warning">Are you sure you want to delete this disease report? This action cannot be
+                        undone.</p>
+                    <input type="hidden" id="deleteReportId" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelDeleteBtn">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <span class="btn-text">Delete Report</span>
+                        <span class="btn-loading" style="display: none;">Deleting...</span>
                     </button>
                 </div>
             </div>

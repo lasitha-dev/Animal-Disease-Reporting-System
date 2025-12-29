@@ -48,4 +48,9 @@ public class DiseaseReportRequestDTO {
      * Number of affected animals of this type
      */
     private Integer affectedCount;
+    
+    /**
+     * Flag to indicate that the existing image should be removed
+     */
+    private Boolean clearImage = false;
 }

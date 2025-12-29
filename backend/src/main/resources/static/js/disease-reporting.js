@@ -1,6 +1,6 @@
 /**
  * Disease Reporting Page JavaScript
- * Handles form interactions, cascading dropdowns, image upload, and API calls
+ * Handles form interactions, cascading dropdowns, image upload, view/edit/delete operations
  */
 
 (function () {
@@ -10,15 +10,22 @@
     let farms = [];
     let currentDiseaseData = null;
     let selectedImageFile = null;
+    let editMode = false;
+    let currentReportId = null;
+    let currentViewReport = null;
+    let isDiseaseInfoEditMode = false;
+    let clearExistingImage = false; // Flag to clear existing image when updating
 
     // DOM Elements
     const elements = {
-        // Modal
+        // Report Modal
         reportModal: document.getElementById('reportModal'),
+        reportModalTitle: document.getElementById('reportModalTitle'),
         openReportModalBtn: document.getElementById('openReportModal'),
         closeModalBtn: document.getElementById('closeModal'),
         cancelBtn: document.getElementById('cancelBtn'),
         submitBtn: document.getElementById('submitBtn'),
+        editReportId: document.getElementById('editReportId'),
 
         // Form
         form: document.getElementById('disease-report-form'),
@@ -29,13 +36,20 @@
         animalTypeSelect: document.getElementById('animalTypeId'),
         diseaseSelect: document.getElementById('diseaseId'),
 
-        // Disease info display
+        // Disease info display/edit
         diseaseInfoSection: document.getElementById('diseaseInfoSection'),
+        diseaseInfoDisplay: document.getElementById('diseaseInfoDisplay'),
+        diseaseInfoEdit: document.getElementById('diseaseInfoEdit'),
+        toggleEditDiseaseInfo: document.getElementById('toggleEditDiseaseInfo'),
+        editDiseaseInfoLabel: document.getElementById('editDiseaseInfoLabel'),
         displayDiseaseName: document.getElementById('display-diseaseName'),
         displayDiseaseCode: document.getElementById('display-diseaseCode'),
         displaySeverity: document.getElementById('display-severity'),
         displayNotifiable: document.getElementById('display-notifiable'),
         displayDescription: document.getElementById('display-description'),
+        editDiseaseName: document.getElementById('editDiseaseName'),
+        editSeverity: document.getElementById('editSeverity'),
+        editDiseaseDescription: document.getElementById('editDiseaseDescription'),
 
         // Form fields
         reportDate: document.getElementById('reportDate'),
@@ -49,12 +63,29 @@
         imagePreview: document.getElementById('imagePreview'),
         removeImageBtn: document.getElementById('removeImage'),
 
-        // Reports table
-        reportsTbody: document.getElementById('reports-tbody'),
+        // Reports container
+        reportsContainer: document.getElementById('reports-table-container'),
         loadingState: document.getElementById('loading-state'),
         emptyState: document.getElementById('empty-state'),
-        tableContainer: document.getElementById('reports-table-container'),
-        emptyStateBtn: document.getElementById('emptyStateReportBtn')
+        emptyStateBtn: document.getElementById('emptyStateReportBtn'),
+
+        // View Modal
+        viewModal: document.getElementById('viewModal'),
+        closeViewModalBtn: document.getElementById('closeViewModal'),
+        closeViewBtn: document.getElementById('closeViewBtn'),
+        editReportBtn: document.getElementById('editReportBtn'),
+        deleteReportBtn: document.getElementById('deleteReportBtn'),
+        viewLoading: document.getElementById('viewLoading'),
+        viewContent: document.getElementById('viewContent'),
+        viewPhotoCard: document.getElementById('viewPhotoCard'),
+        viewPhoto: document.getElementById('viewPhoto'),
+
+        // Delete Modal
+        deleteModal: document.getElementById('deleteModal'),
+        closeDeleteModalBtn: document.getElementById('closeDeleteModal'),
+        cancelDeleteBtn: document.getElementById('cancelDeleteBtn'),
+        confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+        deleteReportId: document.getElementById('deleteReportId')
     };
 
     // CSRF Token
@@ -72,11 +103,11 @@
     }
 
     function setupEventListeners() {
-        // Modal controls
-        elements.openReportModalBtn?.addEventListener('click', openModal);
+        // Report Modal controls
+        elements.openReportModalBtn?.addEventListener('click', () => openModal(false));
         elements.closeModalBtn?.addEventListener('click', closeModal);
         elements.cancelBtn?.addEventListener('click', closeModal);
-        elements.emptyStateBtn?.addEventListener('click', openModal);
+        elements.emptyStateBtn?.addEventListener('click', () => openModal(false));
         elements.reportModal?.addEventListener('click', (e) => {
             if (e.target === elements.reportModal) closeModal();
         });
@@ -89,8 +120,16 @@
         elements.animalTypeSelect?.addEventListener('change', onAnimalTypeChange);
         elements.diseaseSelect?.addEventListener('change', onDiseaseChange);
 
-        // Image upload
-        elements.imageDropzone?.addEventListener('click', () => elements.imageInput?.click());
+        // Disease info edit toggle
+        elements.toggleEditDiseaseInfo?.addEventListener('click', toggleDiseaseInfoEditMode);
+
+        // Image upload - only trigger if not clicking the label or input directly
+        elements.imageDropzone?.addEventListener('click', (e) => {
+            // Don't trigger if clicking the label or input (they have their own behavior)
+            if (e.target.tagName !== 'LABEL' && e.target.tagName !== 'INPUT') {
+                elements.imageInput?.click();
+            }
+        });
         elements.imageInput?.addEventListener('change', handleImageSelect);
         elements.removeImageBtn?.addEventListener('click', removeImage);
 
@@ -99,10 +138,33 @@
         elements.imageDropzone?.addEventListener('dragleave', handleDragLeave);
         elements.imageDropzone?.addEventListener('drop', handleDrop);
 
-        // Escape key to close modal
+        // View Modal controls
+        elements.closeViewModalBtn?.addEventListener('click', closeViewModal);
+        elements.closeViewBtn?.addEventListener('click', closeViewModal);
+        elements.editReportBtn?.addEventListener('click', onEditReport);
+        elements.deleteReportBtn?.addEventListener('click', onDeleteReport);
+        elements.viewModal?.addEventListener('click', (e) => {
+            if (e.target === elements.viewModal) closeViewModal();
+        });
+
+        // Delete Modal controls
+        elements.closeDeleteModalBtn?.addEventListener('click', closeDeleteModal);
+        elements.cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+        elements.confirmDeleteBtn?.addEventListener('click', confirmDelete);
+        elements.deleteModal?.addEventListener('click', (e) => {
+            if (e.target === elements.deleteModal) closeDeleteModal();
+        });
+
+        // Escape key to close modals
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !elements.reportModal?.classList.contains('hidden')) {
-                closeModal();
+            if (e.key === 'Escape') {
+                if (!elements.deleteModal?.classList.contains('hidden')) {
+                    closeDeleteModal();
+                } else if (!elements.viewModal?.classList.contains('hidden')) {
+                    closeViewModal();
+                } else if (!elements.reportModal?.classList.contains('hidden')) {
+                    closeModal();
+                }
             }
         });
     }
@@ -114,16 +176,36 @@
         }
     }
 
-    // Modal functions
-    function openModal() {
+    // ========================================
+    // Report Modal Functions
+    // ========================================
+
+    function openModal(isEdit = false, reportData = null) {
+        editMode = isEdit;
+        currentReportId = reportData?.id || null;
+
+        if (isEdit && reportData) {
+            elements.reportModalTitle.textContent = 'Edit Disease Report';
+            elements.submitBtn.querySelector('.btn-text').textContent = 'Update Report';
+            elements.editReportId.value = reportData.id;
+            populateEditForm(reportData);
+        } else {
+            elements.reportModalTitle.textContent = 'New Disease Report';
+            elements.submitBtn.querySelector('.btn-text').textContent = 'Submit Report';
+            elements.editReportId.value = '';
+            resetForm();
+        }
+
         elements.reportModal?.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        resetForm();
     }
 
     function closeModal() {
         elements.reportModal?.classList.add('hidden');
         document.body.style.overflow = '';
+        editMode = false;
+        currentReportId = null;
+        clearExistingImage = false;
     }
 
     function resetForm() {
@@ -134,12 +216,291 @@
         elements.diseaseSelect.disabled = true;
         elements.diseaseSelect.innerHTML = '<option value="">Select animal type first...</option>';
         elements.diseaseInfoSection.style.display = 'none';
+        resetDiseaseInfoEditMode();
         removeImage();
         hideFormMessage();
         currentDiseaseData = null;
+        clearExistingImage = false;
     }
 
+    async function populateEditForm(report) {
+        // Store values we need to set after async operations
+        const farmId = report.farmId || '';
+        const animalTypeId = report.animalTypeId || '';
+        const diseaseId = report.diseaseId || '';
+
+        // Set farm and trigger cascade
+        elements.farmSelect.value = farmId;
+        await onFarmChange();
+
+        // Set animal type after farm change completes and trigger cascade
+        elements.animalTypeSelect.value = animalTypeId;
+        await onAnimalTypeChange();
+
+        // Set disease after animal type change completes
+        elements.diseaseSelect.value = diseaseId;
+        onDiseaseChange();
+
+        // Set all other form values AFTER the cascades complete
+        document.getElementById('affectedCount').value = report.affectedCount || '';
+        elements.reportDate.value = report.reportDate || '';
+        document.getElementById('outcome').value = report.outcome || 'ONGOING';
+
+        // These should not be overwritten by onDiseaseChange since editMode is true
+        elements.symptoms.value = report.symptoms || '';
+        elements.treatment.value = report.treatment || '';
+        document.getElementById('diagnosis').value = report.diagnosis || '';
+        document.getElementById('notes').value = report.notes || '';
+
+        // Handle existing image
+        clearExistingImage = false; // Reset the clear flag
+        selectedImageFile = null; // Reset any selected file
+        if (report.imageUrl) {
+            elements.imagePreview.src = report.imageUrl;
+            elements.imageDropzone.style.display = 'none';
+            elements.imagePreviewContainer.style.display = 'inline-block';
+        } else {
+            elements.imagePreview.src = '';
+            elements.imageDropzone.style.display = 'block';
+            elements.imagePreviewContainer.style.display = 'none';
+        }
+    }
+
+    function toggleDiseaseInfoEditMode() {
+        isDiseaseInfoEditMode = !isDiseaseInfoEditMode;
+
+        if (isDiseaseInfoEditMode) {
+            elements.diseaseInfoDisplay.style.display = 'none';
+            elements.diseaseInfoEdit.style.display = 'block';
+            elements.editDiseaseInfoLabel.textContent = '✓ Done Editing';
+
+            // Pre-fill with current values
+            if (currentDiseaseData) {
+                elements.editDiseaseName.value = currentDiseaseData.diseaseName || '';
+                elements.editSeverity.value = '';
+                elements.editDiseaseDescription.value = '';
+            }
+        } else {
+            elements.diseaseInfoDisplay.style.display = 'block';
+            elements.diseaseInfoEdit.style.display = 'none';
+            elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+        }
+    }
+
+    function resetDiseaseInfoEditMode() {
+        isDiseaseInfoEditMode = false;
+        if (elements.diseaseInfoDisplay) elements.diseaseInfoDisplay.style.display = 'block';
+        if (elements.diseaseInfoEdit) elements.diseaseInfoEdit.style.display = 'none';
+        if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+        if (elements.editDiseaseName) elements.editDiseaseName.value = '';
+        if (elements.editSeverity) elements.editSeverity.value = '';
+        if (elements.editDiseaseDescription) elements.editDiseaseDescription.value = '';
+    }
+
+    // ========================================
+    // View Modal Functions
+    // ========================================
+
+    function openViewModal(reportId) {
+        elements.viewModal?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        elements.viewLoading.style.display = 'block';
+        elements.viewContent.style.display = 'none';
+
+        loadReportDetails(reportId);
+    }
+
+    function closeViewModal() {
+        elements.viewModal?.classList.add('hidden');
+        document.body.style.overflow = '';
+        currentViewReport = null;
+    }
+
+    async function loadReportDetails(reportId) {
+        try {
+            const report = await fetchAPI(`/api/vet/disease-reports/${reportId}`);
+            currentViewReport = report;
+            displayReportDetails(report);
+        } catch (error) {
+            console.error('Error loading report:', error);
+            closeViewModal();
+            alert('Failed to load report details.');
+        }
+    }
+
+    function displayReportDetails(report) {
+        // Photo Card
+        if (report.imageUrl) {
+            elements.viewPhoto.src = report.imageUrl;
+            elements.viewPhotoCard.style.display = 'block';
+        } else {
+            elements.viewPhotoCard.style.display = 'none';
+        }
+
+        // Location & Animal
+        document.getElementById('view-farmName').textContent = report.farmName || '-';
+        document.getElementById('view-farmAddress').textContent = report.farmAddress || '-';
+        document.getElementById('view-animalType').textContent = report.animalTypeName || '-';
+        document.getElementById('view-affectedCount').textContent = report.affectedCount || '-';
+
+        // Disease Information
+        document.getElementById('view-diseaseName').textContent = report.diseaseName || '-';
+        document.getElementById('view-diseaseCode').textContent = report.diseaseCode || '-';
+
+        const severityEl = document.getElementById('view-severity');
+        if (report.severity) {
+            severityEl.innerHTML = `<span class="severity-badge ${report.severity.toLowerCase()}">${report.severity}</span>`;
+        } else {
+            severityEl.textContent = '-';
+        }
+
+        document.getElementById('view-notifiable').textContent = report.isNotifiable ? 'Yes ⚠️' : 'No';
+
+        // Report Details
+        document.getElementById('view-reportDate').textContent = report.reportDate
+            ? new Date(report.reportDate).toLocaleDateString()
+            : '-';
+
+        const statusEl = document.getElementById('view-status');
+        if (report.isConfirmed) {
+            statusEl.innerHTML = '<span class="status-badge confirmed">Confirmed</span>';
+        } else {
+            statusEl.innerHTML = '<span class="status-badge pending">Pending</span>';
+        }
+
+        const outcomeEl = document.getElementById('view-outcome');
+        if (report.outcome) {
+            outcomeEl.innerHTML = `<span class="outcome-badge ${report.outcome.toLowerCase()}">${report.outcome}</span>`;
+        } else {
+            outcomeEl.textContent = '-';
+        }
+
+        document.getElementById('view-reportedBy').textContent = report.reportedByUsername || '-';
+
+        // Text sections
+        const symptomsSection = document.getElementById('view-symptomsSection');
+        const symptomsText = document.getElementById('view-symptoms');
+        if (report.symptoms) {
+            symptomsText.textContent = report.symptoms;
+            symptomsSection.style.display = 'block';
+        } else {
+            symptomsSection.style.display = 'none';
+        }
+
+        const diagnosisSection = document.getElementById('view-diagnosisSection');
+        const diagnosisText = document.getElementById('view-diagnosis');
+        if (report.diagnosis) {
+            diagnosisText.textContent = report.diagnosis;
+            diagnosisSection.style.display = 'block';
+        } else {
+            diagnosisSection.style.display = 'none';
+        }
+
+        const treatmentSection = document.getElementById('view-treatmentSection');
+        const treatmentText = document.getElementById('view-treatment');
+        if (report.treatment) {
+            treatmentText.textContent = report.treatment;
+            treatmentSection.style.display = 'block';
+        } else {
+            treatmentSection.style.display = 'none';
+        }
+
+        const notesSection = document.getElementById('view-notesSection');
+        const notesText = document.getElementById('view-notes');
+        if (report.notes) {
+            notesText.textContent = report.notes;
+            notesSection.style.display = 'block';
+        } else {
+            notesSection.style.display = 'none';
+        }
+
+        // Show content
+        elements.viewLoading.style.display = 'none';
+        elements.viewContent.style.display = 'block';
+    }
+
+    function onEditReport() {
+        if (currentViewReport) {
+            // Save the report data before closing the modal (which resets currentViewReport to null)
+            const reportToEdit = { ...currentViewReport };
+            closeViewModal();
+            openModal(true, reportToEdit);
+        }
+    }
+
+    function onDeleteReport() {
+        if (currentViewReport) {
+            elements.deleteReportId.value = currentViewReport.id;
+            closeViewModal();
+            openDeleteModal();
+        }
+    }
+
+    // ========================================
+    // Delete Modal Functions
+    // ========================================
+
+    function openDeleteModal() {
+        elements.deleteModal?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        elements.deleteModal?.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function confirmDelete() {
+        const reportId = elements.deleteReportId.value;
+        if (!reportId) return;
+
+        setDeleteLoading(true);
+
+        try {
+            const headers = {};
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+
+            const response = await fetch(`/api/vet/disease-reports/${reportId}`, {
+                method: 'DELETE',
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete report');
+            }
+
+            closeDeleteModal();
+            await loadReports();
+
+        } catch (error) {
+            console.error('Error deleting report:', error);
+            alert('Failed to delete report. Please try again.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    }
+
+    function setDeleteLoading(loading) {
+        const btnText = elements.confirmDeleteBtn.querySelector('.btn-text');
+        const btnLoading = elements.confirmDeleteBtn.querySelector('.btn-loading');
+
+        if (loading) {
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            elements.confirmDeleteBtn.disabled = true;
+        } else {
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            elements.confirmDeleteBtn.disabled = false;
+        }
+    }
+
+    // ========================================
     // API Functions
+    // ========================================
+
     async function fetchAPI(url, options = {}) {
         const headers = {
             ...options.headers
@@ -198,8 +559,6 @@
         // Get farm animals from the selected option
         const selectedOption = elements.farmSelect.options[elements.farmSelect.selectedIndex];
         const farmAnimals = JSON.parse(selectedOption.dataset.animals || '[]');
-
-        console.log('Farm animals for selected farm:', farmAnimals);
 
         if (farmAnimals.length === 0) {
             elements.animalTypeSelect.innerHTML = '<option value="">No animals registered for this farm</option>';
@@ -282,18 +641,23 @@
         elements.displayNotifiable.textContent = disease.isNotifiable ? 'Yes ⚠️' : 'No';
         elements.displayDescription.textContent = disease.description || 'No description available';
 
-        // Auto-fill symptoms and treatment from disease defaults
-        if (disease.symptoms) {
-            elements.symptoms.value = disease.symptoms;
-        }
-        if (disease.treatment) {
-            elements.treatment.value = disease.treatment;
+        // Auto-fill symptoms and treatment from disease defaults (only for new reports)
+        if (!editMode) {
+            if (disease.symptoms) {
+                elements.symptoms.value = disease.symptoms;
+            }
+            if (disease.treatment) {
+                elements.treatment.value = disease.treatment;
+            }
         }
 
         elements.diseaseInfoSection.style.display = 'block';
     }
 
+    // ========================================
     // Image handling
+    // ========================================
+
     function handleDragOver(e) {
         e.preventDefault();
         elements.imageDropzone.classList.add('dragover');
@@ -349,19 +713,33 @@
 
     function removeImage() {
         selectedImageFile = null;
-        elements.imageInput.value = '';
-        elements.imagePreview.src = '';
-        elements.imageDropzone.style.display = 'block';
-        elements.imagePreviewContainer.style.display = 'none';
+        if (elements.imageInput) elements.imageInput.value = '';
+        if (elements.imagePreview) elements.imagePreview.src = '';
+        if (elements.imageDropzone) elements.imageDropzone.style.display = 'block';
+        if (elements.imagePreviewContainer) elements.imagePreviewContainer.style.display = 'none';
+
+        // If in edit mode, mark that the existing image should be cleared
+        if (editMode) {
+            clearExistingImage = true;
+        }
     }
 
+    // ========================================
     // Form submission
+    // ========================================
+
     async function handleSubmit(e) {
         e.preventDefault();
 
         // Validate required fields
         if (!elements.farmSelect.value || !elements.animalTypeSelect.value || !elements.diseaseSelect.value) {
             showFormMessage('Please fill in all required fields.', 'error');
+            return;
+        }
+
+        // Validate we have a report ID when in edit mode
+        if (editMode && !currentReportId) {
+            showFormMessage('Unable to update: Report ID is missing. Please try again.', 'error');
             return;
         }
 
@@ -376,7 +754,8 @@
             diagnosis: document.getElementById('diagnosis').value,
             treatment: elements.treatment.value,
             outcome: document.getElementById('outcome').value,
-            notes: document.getElementById('notes').value
+            notes: document.getElementById('notes').value,
+            clearImage: editMode && clearExistingImage // Include flag to clear existing image
         };
 
         // Create FormData for multipart request
@@ -396,8 +775,14 @@
                 headers[csrfHeader] = csrfToken;
             }
 
-            const response = await fetch('/api/vet/disease-reports', {
-                method: 'POST',
+            const url = editMode
+                ? `/api/vet/disease-reports/${currentReportId}`
+                : '/api/vet/disease-reports';
+
+            const method = editMode ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: headers,
                 body: formData
             });
@@ -409,7 +794,10 @@
 
             const result = await response.json();
 
-            showFormMessage('Disease report submitted successfully!', 'success');
+            const successMessage = editMode
+                ? 'Disease report updated successfully!'
+                : 'Disease report submitted successfully!';
+            showFormMessage(successMessage, 'success');
 
             // Refresh reports table
             await loadReports();
@@ -442,7 +830,10 @@
         }
     }
 
+    // ========================================
     // Reports table
+    // ========================================
+
     async function loadReports() {
         showLoadingState();
 
@@ -462,10 +853,16 @@
     }
 
     function renderReportsTable(reports) {
-        elements.reportsTbody.innerHTML = '';
+        // Clear the reports container and create card grid
+        elements.reportsContainer.innerHTML = '';
+
+        // Create cards grid container
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'reports-cards-grid';
 
         reports.forEach(report => {
-            const tr = document.createElement('tr');
+            const card = document.createElement('div');
+            card.className = 'report-card';
 
             // Format date
             const date = new Date(report.reportDate).toLocaleDateString();
@@ -477,41 +874,75 @@
             const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
             const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
 
-            tr.innerHTML = `
-                <td>${date}</td>
-                <td>${report.farmName || '-'}</td>
-                <td>${report.animalTypeName || '-'}</td>
-                <td>${report.diseaseName || '-'}</td>
-                <td><span class="severity-badge ${severityClass}">${report.severity || '-'}</span></td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>
-                    <button class="action-btn view" data-id="${report.id}">View</button>
-                </td>
+            // Image HTML - show actual image or placeholder
+            const imageHtml = report.imageUrl
+                ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
+                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+
+            card.innerHTML = `
+                <div class="report-card-media">
+                    ${imageHtml}
+                </div>
+                <div class="report-card-content">
+                    <div class="report-card-header">
+                        <h4 class="report-card-title">${report.diseaseName || 'Unknown Disease'}</h4>
+                        <span class="severity-badge ${severityClass}">${report.severity || '-'}</span>
+                    </div>
+                    <div class="report-card-meta">
+                        <div class="report-card-info">
+                            <span class="info-icon">🏠</span>
+                            <span>${report.farmName || '-'}</span>
+                        </div>
+                        <div class="report-card-info">
+                            <span class="info-icon">🐄</span>
+                            <span>${report.animalTypeName || '-'}</span>
+                        </div>
+                        <div class="report-card-info">
+                            <span class="info-icon">📅</span>
+                            <span>${date}</span>
+                        </div>
+                    </div>
+                    <div class="report-card-footer">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
+                            👁️ View Details
+                        </button>
+                    </div>
+                </div>
             `;
 
-            elements.reportsTbody.appendChild(tr);
+            // Add click event for view button
+            const viewBtn = card.querySelector('.view-btn');
+            viewBtn.addEventListener('click', () => openViewModal(report.id));
+
+            cardsGrid.appendChild(card);
         });
+
+        elements.reportsContainer.appendChild(cardsGrid);
     }
 
     function showLoadingState() {
         elements.loadingState.style.display = 'block';
         elements.emptyState.style.display = 'none';
-        elements.tableContainer.style.display = 'none';
+        elements.reportsContainer.style.display = 'none';
     }
 
     function showEmptyState() {
         elements.loadingState.style.display = 'none';
         elements.emptyState.style.display = 'block';
-        elements.tableContainer.style.display = 'none';
+        elements.reportsContainer.style.display = 'none';
     }
 
     function showReportsTable() {
         elements.loadingState.style.display = 'none';
         elements.emptyState.style.display = 'none';
-        elements.tableContainer.style.display = 'block';
+        elements.reportsContainer.style.display = 'block';
     }
 
+    // ========================================
     // Message helpers
+    // ========================================
+
     function showFormMessage(message, type) {
         elements.formMessage.textContent = message;
         elements.formMessage.className = `alert alert-${type}`;
