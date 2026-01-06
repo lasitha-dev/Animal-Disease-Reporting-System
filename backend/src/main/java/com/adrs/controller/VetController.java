@@ -2,6 +2,9 @@ package com.adrs.controller;
 
 import com.adrs.dto.*;
 import com.adrs.model.User;
+import com.adrs.repository.DiseaseReportRepository;
+import com.adrs.repository.FarmAnimalRepository;
+import com.adrs.repository.FarmRepository;
 import com.adrs.repository.UserRepository;
 import com.adrs.service.AnimalTypeService;
 import com.adrs.service.DiseaseReportService;
@@ -44,19 +47,28 @@ public class VetController {
     private final DiseaseService diseaseService;
     private final DiseaseReportService diseaseReportService;
     private final UserRepository userRepository;
+    private final FarmRepository farmRepository;
+    private final FarmAnimalRepository farmAnimalRepository;
+    private final DiseaseReportRepository diseaseReportRepository;
 
     public VetController(FarmService farmService,
                         FarmTypeService farmTypeService,
                         AnimalTypeService animalTypeService,
                         DiseaseService diseaseService,
                         DiseaseReportService diseaseReportService,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        FarmRepository farmRepository,
+                        FarmAnimalRepository farmAnimalRepository,
+                        DiseaseReportRepository diseaseReportRepository) {
         this.farmService = farmService;
         this.farmTypeService = farmTypeService;
         this.animalTypeService = animalTypeService;
         this.diseaseService = diseaseService;
         this.diseaseReportService = diseaseReportService;
         this.userRepository = userRepository;
+        this.farmRepository = farmRepository;
+        this.farmAnimalRepository = farmAnimalRepository;
+        this.diseaseReportRepository = diseaseReportRepository;
     }
 
     // ========================================
@@ -255,13 +267,14 @@ public class VetController {
     public ResponseEntity<VetStatsDTO> getVetStats(@AuthenticationPrincipal UserDetails userDetails) {
         logger.info("GET /api/vet/stats - Fetching stats for user: {}", userDetails.getUsername());
         
-        User currentUser = getCurrentUser(userDetails);
-        Long farmCount = farmService.getFarmCountByUser(currentUser);
-        Long reportCount = diseaseReportService.getReportCountByVet(currentUser);
+        // Use system-wide counts for dashboard display
+        Long farmCount = farmRepository.count();
+        Long animalsCount = farmAnimalRepository.sumTotalAnimals();
+        Long reportCount = diseaseReportRepository.count();
         
         VetStatsDTO stats = new VetStatsDTO();
         stats.setFarmsCount(farmCount);
-        stats.setAnimalsCount(0L); // TODO: Implement when needed
+        stats.setAnimalsCount(animalsCount);
         stats.setReportsCount(reportCount);
         
         return ResponseEntity.ok(stats);
