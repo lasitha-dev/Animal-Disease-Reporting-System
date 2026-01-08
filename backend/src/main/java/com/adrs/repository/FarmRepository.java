@@ -1,9 +1,11 @@
 package com.adrs.repository;
 
 import com.adrs.model.Farm;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -75,5 +77,33 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
      * @return list of active farms created by other users
      */
     List<Farm> findByCreatedByNotAndIsActiveTrue(User user);
+
+    /**
+     * Find distinct provinces that have farms with GPS coordinates.
+     *
+     * @return list of provinces with GPS-enabled farms
+     */
+    @Query("SELECT DISTINCT f.province FROM Farm f WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL AND f.isActive = true ORDER BY f.province")
+    List<Province> findDistinctProvincesWithGpsCoordinates();
+
+    /**
+     * Find all active farms in a specific province with GPS coordinates, created by a user.
+     *
+     * @param user the user who created the farms
+     * @param province the province to filter by
+     * @return list of farms
+     */
+    @Query("SELECT f FROM Farm f WHERE f.createdBy = :user AND f.isActive = true AND f.province = :province AND f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL")
+    List<Farm> findByCreatedByAndProvinceWithGps(@Param("user") User user, @Param("province") Province province);
+
+    /**
+     * Find all active farms NOT created by a specific user in a specific province with GPS coordinates.
+     *
+     * @param user the user to exclude
+     * @param province the province to filter by
+     * @return list of farms
+     */
+    @Query("SELECT f FROM Farm f WHERE f.createdBy != :user AND f.isActive = true AND f.province = :province AND f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL")
+    List<Farm> findByCreatedByNotAndProvinceWithGps(@Param("user") User user, @Param("province") Province province);
 }
 

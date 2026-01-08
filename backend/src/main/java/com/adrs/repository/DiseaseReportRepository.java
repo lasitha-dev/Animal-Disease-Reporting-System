@@ -127,5 +127,59 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
      * @return list of disease reports by other vets
      */
     List<DiseaseReport> findByReportedByNotOrderByCreatedAtDesc(User reportedBy);
+
+    /**
+     * Find distinct disease IDs that have reports with GPS coordinates.
+     *
+     * @return list of disease IDs
+     */
+    @Query("SELECT DISTINCT dr.disease.id FROM DiseaseReport dr " +
+           "WHERE dr.farm.gpsLatitude IS NOT NULL AND dr.farm.gpsLongitude IS NOT NULL")
+    List<UUID> findDistinctDiseaseIdsWithReports();
+
+    /**
+     * Find distinct disease IDs that have reports with GPS coordinates, filtered by animal type IDs.
+     *
+     * @param animalTypeIds list of animal type IDs to filter by
+     * @return list of disease IDs
+     */
+    @Query("SELECT DISTINCT dr.disease.id FROM DiseaseReport dr " +
+           "WHERE dr.farm.gpsLatitude IS NOT NULL AND dr.farm.gpsLongitude IS NOT NULL " +
+           "AND dr.animalType.id IN :animalTypeIds")
+    List<UUID> findDistinctDiseaseIdsByAnimalTypeIds(List<UUID> animalTypeIds);
+
+    /**
+     * Find all disease reports filtered by animal type and disease IDs where farm has GPS coordinates.
+     *
+     * @param animalTypeIds list of animal type IDs to filter by
+     * @param diseaseIds list of disease IDs to filter by
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.farm f " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "JOIN FETCH dr.reportedBy rb " +
+           "WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL " +
+           "AND at.id IN :animalTypeIds AND d.id IN :diseaseIds " +
+           "ORDER BY f.id, dr.reportDate DESC")
+    List<DiseaseReport> findAllWithFarmGpsCoordinatesByAnimalTypeIdsAndDiseaseIds(
+            List<UUID> animalTypeIds, List<UUID> diseaseIds);
+
+    /**
+     * Find all disease reports filtered by disease IDs where farm has GPS coordinates.
+     *
+     * @param diseaseIds list of disease IDs to filter by
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.farm f " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "JOIN FETCH dr.reportedBy rb " +
+           "WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL " +
+           "AND d.id IN :diseaseIds " +
+           "ORDER BY f.id, dr.reportDate DESC")
+    List<DiseaseReport> findAllWithFarmGpsCoordinatesByDiseaseIds(List<UUID> diseaseIds);
 }
 

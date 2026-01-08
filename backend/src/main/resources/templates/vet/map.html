@@ -17,43 +17,60 @@
             </div>
         </div>
 
-        <!-- Map Controls -->
-        <div class="map-controls-container">
-            <!-- Filter Panel -->
-            <div class="map-filters-panel">
-                <h4>Filters</h4>
-                <!-- Farm Filter -->
-                <div class="filter-group">
-                    <label class="filter-checkbox">
-                        <input type="checkbox" id="filterFarms" checked>
-                        <span class="filter-label">
-                            <span class="filter-icon">🏠</span>
-                            Farms
-                        </span>
-                        <span class="filter-count" id="farmCount">0</span>
-                    </label>
-                </div>
-                <!-- Disease Outbreaks Filter -->
-                <div class="filter-group">
-                    <label class="filter-checkbox">
-                        <input type="checkbox" id="filterDiseases">
-                        <span class="filter-label">
-                            <span class="filter-icon">⚠️</span>
-                            Disease Outbreaks
-                        </span>
-                        <span class="filter-count disease-count" id="diseaseCount">0</span>
-                    </label>
-                </div>
-                <!-- Animal Type Sub-filter (shown when diseases filter is active) -->
-                <div class="animal-type-filter-container" id="animalTypeFilterContainer" style="display: none;">
-                    <div class="sub-filter-header">
-                        <span class="sub-filter-title">🐄 Filter by Animal Type</span>
-                    </div>
-                    <div class="animal-type-filters" id="animalTypeFilters">
-                        <!-- Dynamically populated -->
-                        <div class="loading-text">Loading animal types...</div>
-                    </div>
-                </div>
+        <!-- Map Filters Bar -->
+        <div class="map-filters-bar">
+            <!-- Main Toggles Section -->
+            <div class="filter-section filter-toggles">
+                <span class="section-label">Show:</span>
+                <label class="filter-toggle">
+                    <input type="checkbox" id="filterFarms" checked>
+                    <span class="toggle-content">
+                        <span class="toggle-icon">🏠</span>
+                        <span class="toggle-text">Farms</span>
+                        <span class="toggle-count" id="farmCount">0</span>
+                    </span>
+                </label>
+                <label class="filter-toggle filter-toggle-disease">
+                    <input type="checkbox" id="filterDiseases">
+                    <span class="toggle-content">
+                        <span class="toggle-icon">⚠️</span>
+                        <span class="toggle-text">Disease Outbreaks</span>
+                        <span class="toggle-count" id="diseaseCount">0</span>
+                    </span>
+                </label>
+            </div>
+
+            <!-- Province Filter (shown when Farms checked) -->
+            <div class="filter-section filter-select-group" id="provinceFilterSection">
+                <label class="select-label" for="provinceSelect">
+                    <span class="label-icon">📍</span>
+                    Province
+                </label>
+                <select id="provinceSelect" class="filter-select">
+                    <option value="">All Provinces</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Disease Filters (shown when Disease Outbreaks checked) -->
+            <div class="filter-section filter-select-group" id="animalTypeFilterSection" style="display: none;">
+                <label class="select-label" for="animalTypeSelect">
+                    <span class="label-icon">🐄</span>
+                    Animal Type
+                </label>
+                <select id="animalTypeSelect" class="filter-select filter-select-multi" multiple>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <div class="filter-section filter-select-group" id="diseaseFilterSection" style="display: none;">
+                <label class="select-label" for="diseaseSelect">
+                    <span class="label-icon">🦠</span>
+                    Disease
+                </label>
+                <select id="diseaseSelect" class="filter-select filter-select-multi" multiple>
+                    <!-- Dynamically populated -->
+                </select>
             </div>
         </div>
 

@@ -1,6 +1,7 @@
 package com.adrs.service.impl;
 
 import com.adrs.dto.AnimalTypeDTO;
+import com.adrs.dto.DiseaseDTO;
 import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
@@ -235,14 +236,28 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds) {
-        logger.debug("Fetching disease reports for map, animalTypeIds: {}", animalTypeIds);
+    public List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province) {
+        logger.debug("Fetching disease reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}", animalTypeIds, diseaseIds, province);
 
         List<DiseaseReport> reports;
-        if (animalTypeIds == null || animalTypeIds.isEmpty()) {
-            reports = diseaseReportRepository.findAllWithFarmGpsCoordinates();
-        } else {
+        boolean hasAnimalFilter = animalTypeIds != null && !animalTypeIds.isEmpty();
+        boolean hasDiseaseFilter = diseaseIds != null && !diseaseIds.isEmpty();
+
+        if (hasAnimalFilter && hasDiseaseFilter) {
+            reports = diseaseReportRepository.findAllWithFarmGpsCoordinatesByAnimalTypeIdsAndDiseaseIds(animalTypeIds, diseaseIds);
+        } else if (hasAnimalFilter) {
             reports = diseaseReportRepository.findAllWithFarmGpsCoordinatesByAnimalTypeIds(animalTypeIds);
+        } else if (hasDiseaseFilter) {
+            reports = diseaseReportRepository.findAllWithFarmGpsCoordinatesByDiseaseIds(diseaseIds);
+        } else {
+            reports = diseaseReportRepository.findAllWithFarmGpsCoordinates();
+        }
+
+        // Filter by province if specified
+        if (province != null) {
+            reports = reports.stream()
+                    .filter(r -> r.getFarm().getProvince() == province)
+                    .collect(Collectors.toList());
         }
 
         // Group reports by farm
@@ -318,6 +333,43 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
                     dto.setTypeName(at.getTypeName());
                     dto.setDescription(at.getDescription());
                     dto.setIsActive(at.getIsActive());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DiseaseDTO> getDiseasesWithReports(List<UUID> animalTypeIds) {
+        logger.debug("Fetching diseases with reports, animalTypeIds: {}", animalTypeIds);
+
+        List<UUID> diseaseIds;
+        if (animalTypeIds == null || animalTypeIds.isEmpty()) {
+            diseaseIds = diseaseReportRepository.findDistinctDiseaseIdsWithReports();
+        } else {
+            diseaseIds = diseaseReportRepository.findDistinctDiseaseIdsByAnimalTypeIds(animalTypeIds);
+        }
+        
+        if (diseaseIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return diseaseIds.stream()
+                .map(id -> diseaseRepository.findById(id).orElse(null))
+                .filter(Objects::nonNull)
+                .map(d -> {
+                    DiseaseDTO dto = new DiseaseDTO();
+                    dto.setId(d.getId());
+                    dto.setDiseaseName(d.getDiseaseName());
+                    dto.setDiseaseCode(d.getDiseaseCode());
+                    dto.setDescription(d.getDescription());
+                    dto.setSeverity(d.getSeverity());
+                    dto.setIsNotifiable(d.getIsNotifiable());
+                    dto.setIsActive(d.getIsActive());
+                    if (d.getAnimalType() != null) {
+                        dto.setAnimalTypeId(d.getAnimalType().getId());
+                        dto.setAnimalTypeName(d.getAnimalType().getTypeName());
+                    }
                     return dto;
                 })
                 .collect(Collectors.toList());

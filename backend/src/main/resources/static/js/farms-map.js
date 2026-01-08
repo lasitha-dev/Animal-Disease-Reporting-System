@@ -10,7 +10,11 @@ let infoWindow = null;
 let allFarms = [];
 let diseaseData = [];
 let animalTypesWithReports = [];
-let selectedAnimalTypeIds = new Set();
+let diseasesWithReports = [];
+let provincesWithFarms = [];
+let selectedAnimalTypeIds = [];
+let selectedDiseaseIds = [];
+let selectedProvince = '';
 
 /**
  * Initialize the farm map (called by Google Maps API callback)
@@ -55,12 +59,53 @@ function initFarmMap() {
     // Create single info window instance (reused for all markers)
     infoWindow = new google.maps.InfoWindow();
 
-    // Load farms and animal types
+    // Load initial data
+    loadProvincesWithFarms();
     loadAllFarms();
     loadAnimalTypesWithReports();
 
     // Setup filter listeners
     setupFilterListeners();
+}
+
+/**
+ * Load provinces that have registered farms
+ */
+async function loadProvincesWithFarms() {
+    try {
+        const response = await fetch('/api/vet/farms/provinces', {
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch provinces');
+
+        provincesWithFarms = await response.json();
+        console.log(`Loaded ${provincesWithFarms.length} provinces with farms`);
+
+        populateProvinceDropdown();
+    } catch (error) {
+        console.error('Error loading provinces:', error);
+        provincesWithFarms = [];
+    }
+}
+
+/**
+ * Populate province dropdown
+ */
+function populateProvinceDropdown() {
+    const select = document.getElementById('provinceSelect');
+    if (!select) return;
+
+    // Keep the "All Provinces" option
+    select.innerHTML = '<option value="">All Provinces</option>';
+
+    provincesWithFarms.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.code;
+        option.textContent = p.displayName;
+        select.appendChild(option);
+    });
 }
 
 /**
@@ -71,18 +116,13 @@ async function loadAllFarms() {
     const emptyState = document.getElementById('mapEmptyState');
 
     try {
-        // Fetch current user's farms and other vets' farms
         const [myFarmsResponse, otherFarmsResponse] = await Promise.all([
             fetch('/api/vet/farms', {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin'
             }),
             fetch('/api/vet/farms/others', {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin'
             })
         ]);
@@ -94,40 +134,28 @@ async function loadAllFarms() {
         const myFarms = await myFarmsResponse.json();
         const otherFarms = await otherFarmsResponse.json();
 
-        // Combine all farms
         allFarms = [...myFarms, ...otherFarms];
-
         console.log(`Loaded ${allFarms.length} farms total`);
 
-        // Filter farms with valid GPS coordinates
         const farmsWithLocation = allFarms.filter(
             farm => farm.gpsLatitude && farm.gpsLongitude
         );
 
-        // Update farm count in filter
         updateFarmCount(farmsWithLocation.length);
 
         if (farmsWithLocation.length === 0) {
-            // Show empty state
             loadingOverlay.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
 
-        // Create markers for farms
         createMapMarkers();
-
-        // Hide loading overlay
         loadingOverlay.style.display = 'none';
-
-        // Fit map to show all markers
         fitMapToMarkers();
 
     } catch (error) {
         console.error('Error loading farms:', error);
         loadingOverlay.style.display = 'none';
-
-        // Show error in empty state
         emptyState.querySelector('h3').textContent = 'Error Loading Data';
         emptyState.querySelector('p').textContent = 'Failed to load farm data. Please refresh the page.';
         emptyState.style.display = 'block';
@@ -140,32 +168,35 @@ async function loadAllFarms() {
 async function loadDiseaseReports() {
     try {
         let url = '/api/vet/disease-reports/map';
+        const params = new URLSearchParams();
 
-        // Add animal type filter if any are selected
-        if (selectedAnimalTypeIds.size > 0) {
-            const idsParam = Array.from(selectedAnimalTypeIds).join(',');
-            url += `?animalTypeIds=${idsParam}`;
+        if (selectedAnimalTypeIds.length > 0) {
+            selectedAnimalTypeIds.forEach(id => params.append('animalTypeIds', id));
+        }
+        if (selectedDiseaseIds.length > 0) {
+            selectedDiseaseIds.forEach(id => params.append('diseaseIds', id));
+        }
+        if (selectedProvince) {
+            params.append('province', selectedProvince);
+        }
+
+        if (params.toString()) {
+            url += `?${params.toString()}`;
         }
 
         const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin'
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch disease reports');
-        }
+        if (!response.ok) throw new Error('Failed to fetch disease reports');
 
         diseaseData = await response.json();
         console.log(`Loaded ${diseaseData.length} farms with disease reports`);
 
-        // Update disease count
         const totalDiseases = diseaseData.reduce((sum, farm) => sum + farm.diseases.length, 0);
         updateDiseaseCount(totalDiseases);
 
-        // Refresh markers
         createMapMarkers();
 
     } catch (error) {
@@ -180,22 +211,16 @@ async function loadDiseaseReports() {
 async function loadAnimalTypesWithReports() {
     try {
         const response = await fetch('/api/vet/animal-types/with-reports', {
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin'
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch animal types');
-        }
+        if (!response.ok) throw new Error('Failed to fetch animal types');
 
         animalTypesWithReports = await response.json();
         console.log(`Loaded ${animalTypesWithReports.length} animal types with reports`);
 
-        // Populate the animal type filter checkboxes
-        populateAnimalTypeFilters();
-
+        populateAnimalTypeDropdown();
     } catch (error) {
         console.error('Error loading animal types:', error);
         animalTypesWithReports = [];
@@ -203,89 +228,137 @@ async function loadAnimalTypesWithReports() {
 }
 
 /**
- * Populate animal type filter checkboxes
+ * Load diseases that have reports for selected animal types
  */
-function populateAnimalTypeFilters() {
-    const container = document.getElementById('animalTypeFilters');
+async function loadDiseasesWithReports() {
+    try {
+        let url = '/api/vet/diseases/with-reports';
 
-    if (animalTypesWithReports.length === 0) {
-        container.innerHTML = '<div class="no-types-text">No animal types with disease reports</div>';
-        return;
-    }
+        if (selectedAnimalTypeIds.length > 0) {
+            const params = new URLSearchParams();
+            selectedAnimalTypeIds.forEach(id => params.append('animalTypeIds', id));
+            url += `?${params.toString()}`;
+        }
 
-    // Select all by default
-    selectedAnimalTypeIds = new Set(animalTypesWithReports.map(at => at.id));
-
-    container.innerHTML = animalTypesWithReports.map(at => `
-        <label class="animal-type-checkbox">
-            <input type="checkbox" value="${at.id}" checked>
-            <span class="animal-type-name">${escapeHtml(at.typeName)}</span>
-        </label>
-    `).join('');
-
-    // Add event listeners to checkboxes
-    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const id = e.target.value;
-            if (e.target.checked) {
-                selectedAnimalTypeIds.add(id);
-            } else {
-                selectedAnimalTypeIds.delete(id);
-            }
-            // Reload disease data with new filters
-            loadDiseaseReports();
+        const response = await fetch(url, {
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin'
         });
-    });
+
+        if (!response.ok) throw new Error('Failed to fetch diseases');
+
+        diseasesWithReports = await response.json();
+        console.log(`Loaded ${diseasesWithReports.length} diseases with reports`);
+
+        populateDiseaseDropdown();
+    } catch (error) {
+        console.error('Error loading diseases:', error);
+        diseasesWithReports = [];
+        populateDiseaseDropdown();
+    }
 }
 
 /**
- * Create markers on the map (merged farm + disease)
+ * Populate animal type dropdown
+ */
+function populateAnimalTypeDropdown() {
+    const select = document.getElementById('animalTypeSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">— All Animal Types —</option>';
+
+    animalTypesWithReports.forEach(at => {
+        const option = document.createElement('option');
+        option.value = at.id;
+        option.textContent = at.typeName;
+        select.appendChild(option);
+    });
+
+    selectedAnimalTypeIds = [];
+}
+
+/**
+ * Populate disease dropdown
+ */
+function populateDiseaseDropdown() {
+    const select = document.getElementById('diseaseSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">— All Diseases —</option>';
+
+    diseasesWithReports.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d.id;
+        option.textContent = d.diseaseName + (d.diseaseCode ? ` (${d.diseaseCode})` : '');
+        select.appendChild(option);
+    });
+
+    selectedDiseaseIds = [];
+}
+
+/**
+ * Get selected values from a multi-select dropdown
+ */
+function getSelectedValues(selectElement) {
+    const selected = [];
+    for (const option of selectElement.options) {
+        if (option.selected && option.value !== '') {
+            selected.push(option.value);
+        }
+    }
+    return selected;
+}
+
+/**
+ * Get filtered farms based on province selection
+ */
+function getFilteredFarms() {
+    let farms = allFarms.filter(farm => farm.gpsLatitude && farm.gpsLongitude);
+
+    if (selectedProvince) {
+        farms = farms.filter(farm => farm.province === selectedProvince);
+    }
+
+    return farms;
+}
+
+/**
+ * Create markers on the map
  */
 function createMapMarkers() {
-    // Clear existing markers
     clearMarkers();
 
     const showFarms = document.getElementById('filterFarms').checked;
     const showDiseases = document.getElementById('filterDiseases').checked;
 
-    if (!showFarms && !showDiseases) {
-        return;
-    }
+    if (!showFarms && !showDiseases) return;
 
-    // Build a map of farmId -> disease data for quick lookup
     const diseaseByFarmId = new Map();
     if (showDiseases && diseaseData.length > 0) {
-        diseaseData.forEach(d => {
-            diseaseByFarmId.set(d.farmId, d);
-        });
+        diseaseData.forEach(d => diseaseByFarmId.set(d.farmId, d));
     }
 
-    // Filter farms with valid GPS coordinates
-    const farmsWithLocation = allFarms.filter(
-        farm => farm.gpsLatitude && farm.gpsLongitude
-    );
+    const filteredFarms = getFilteredFarms();
 
-    farmsWithLocation.forEach(farm => {
+    // Update farm count after filtering
+    updateFarmCount(filteredFarms.length);
+
+    filteredFarms.forEach(farm => {
         const farmDiseases = diseaseByFarmId.get(farm.id);
         const hasDiseases = !!farmDiseases && farmDiseases.diseases.length > 0;
 
-        // Determine if we should show this marker
         let shouldShow = false;
         if (showFarms && !showDiseases) {
-            // Show all farms
             shouldShow = true;
         } else if (!showFarms && showDiseases) {
-            // Only show farms with diseases
             shouldShow = hasDiseases;
         } else if (showFarms && showDiseases) {
-            // Show all farms (disease ones will have different color)
             shouldShow = true;
         }
 
         if (!shouldShow) return;
 
-        // Determine marker color
-        const markerColor = hasDiseases ? '#DC2626' : '#059669'; // Red for disease, green for farm
+        const markerColor = hasDiseases ? '#DC2626' : '#059669';
         const borderColor = hasDiseases ? '#B91C1C' : '#047857';
 
         const marker = new google.maps.Marker({
@@ -303,12 +376,10 @@ function createMapMarkers() {
                 strokeColor: borderColor,
                 strokeWeight: 2
             },
-            // Store data in marker
             farmData: farm,
             diseaseData: farmDiseases
         });
 
-        // Add click listener for info window
         marker.addListener('click', () => {
             if (hasDiseases && showDiseases) {
                 showMergedInfoWindow(marker, farm, farmDiseases);
@@ -345,22 +416,12 @@ function showMergedInfoWindow(marker, farm, diseaseInfo) {
  * Generate HTML content for farm-only info window
  */
 function generateFarmInfoWindowContent(farm) {
-    // Build animal tags HTML
     let animalsHtml = '';
     if (farm.animalTags && farm.animalTags.length > 0) {
         const tagsHtml = farm.animalTags.map(tag =>
-            `<span class="animal-tag">
-                ${escapeHtml(tag.animalTypeName)} 
-                <span class="count">×${tag.count}</span>
-            </span>`
+            `<span class="animal-tag">${escapeHtml(tag.animalTypeName)} <span class="count">×${tag.count}</span></span>`
         ).join('');
-
-        animalsHtml = `
-            <div class="farm-info-animals">
-                <h5>Animals</h5>
-                <div class="animal-tags">${tagsHtml}</div>
-            </div>
-        `;
+        animalsHtml = `<div class="farm-info-animals"><h5>Animals</h5><div class="animal-tags">${tagsHtml}</div></div>`;
     }
 
     return `
@@ -373,30 +434,10 @@ function generateFarmInfoWindowContent(farm) {
                 </div>
             </div>
             <div class="farm-info-body">
-                ${farm.districtDisplayName ? `
-                    <div class="farm-info-row">
-                        <span class="label">District:</span>
-                        <span class="value">${escapeHtml(farm.districtDisplayName)}</span>
-                    </div>
-                ` : ''}
-                ${farm.provinceDisplayName ? `
-                    <div class="farm-info-row">
-                        <span class="label">Province:</span>
-                        <span class="value">${escapeHtml(farm.provinceDisplayName)}</span>
-                    </div>
-                ` : ''}
-                ${farm.address ? `
-                    <div class="farm-info-row">
-                        <span class="label">Address:</span>
-                        <span class="value">${escapeHtml(farm.address)}</span>
-                    </div>
-                ` : ''}
-                ${farm.ownerName ? `
-                    <div class="farm-info-row">
-                        <span class="label">Owner:</span>
-                        <span class="value">${escapeHtml(farm.ownerName)}</span>
-                    </div>
-                ` : ''}
+                ${farm.districtDisplayName ? `<div class="farm-info-row"><span class="label">District:</span><span class="value">${escapeHtml(farm.districtDisplayName)}</span></div>` : ''}
+                ${farm.provinceDisplayName ? `<div class="farm-info-row"><span class="label">Province:</span><span class="value">${escapeHtml(farm.provinceDisplayName)}</span></div>` : ''}
+                ${farm.address ? `<div class="farm-info-row"><span class="label">Address:</span><span class="value">${escapeHtml(farm.address)}</span></div>` : ''}
+                ${farm.ownerName ? `<div class="farm-info-row"><span class="label">Owner:</span><span class="value">${escapeHtml(farm.ownerName)}</span></div>` : ''}
                 ${animalsHtml}
             </div>
         </div>
@@ -407,7 +448,6 @@ function generateFarmInfoWindowContent(farm) {
  * Generate HTML content for merged farm + disease info window
  */
 function generateMergedInfoWindowContent(farm, diseaseInfo) {
-    // Farm header
     const farmHeader = `
         <div class="farm-info-header disease-header">
             <span class="farm-info-icon">⚠️</span>
@@ -418,12 +458,9 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
         </div>
     `;
 
-    // Disease list
     const diseaseListHtml = diseaseInfo.diseases.map(d => {
         const severityClass = `severity-${(d.severity || 'UNKNOWN').toLowerCase()}`;
         const outcomeText = d.outcome ? d.outcome.replace('_', ' ') : '-';
-
-        // Determine if this report is by the current user
         const currentUsername = window.currentUsername || '';
         const isOtherVetsReport = d.reportedByUsername && d.reportedByUsername !== currentUsername;
         const reportUrl = isOtherVetsReport
@@ -437,35 +474,19 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
                     <span class="severity-badge ${severityClass}">${d.severity || '-'}</span>
                 </div>
                 <div class="disease-card-body">
-                    <div class="disease-detail">
-                        <span class="detail-label">Animal:</span>
-                        <span class="detail-value">${escapeHtml(d.animalTypeName)}</span>
-                    </div>
-                    <div class="disease-detail">
-                        <span class="detail-label">Affected:</span>
-                        <span class="detail-value">${d.affectedCount || '-'}</span>
-                    </div>
-                    <div class="disease-detail">
-                        <span class="detail-label">Date:</span>
-                        <span class="detail-value">${d.reportDate || '-'}</span>
-                    </div>
-                    <div class="disease-detail">
-                        <span class="detail-label">Outcome:</span>
-                        <span class="detail-value outcome-${(d.outcome || 'unknown').toLowerCase()}">${outcomeText}</span>
-                    </div>
+                    <div class="disease-detail"><span class="detail-label">Animal:</span><span class="detail-value">${escapeHtml(d.animalTypeName)}</span></div>
+                    <div class="disease-detail"><span class="detail-label">Affected:</span><span class="detail-value">${d.affectedCount || '-'}</span></div>
+                    <div class="disease-detail"><span class="detail-label">Date:</span><span class="detail-value">${d.reportDate || '-'}</span></div>
+                    <div class="disease-detail"><span class="detail-label">Outcome:</span><span class="detail-value outcome-${(d.outcome || 'unknown').toLowerCase()}">${outcomeText}</span></div>
                     ${d.isNotifiable ? '<span class="notifiable-badge">⚡ Notifiable</span>' : ''}
                 </div>
                 <div class="disease-card-footer">
-                    <a href="${reportUrl}" class="view-details-link" target="_blank">
-                        View Full Report →
-                    </a>
+                    <a href="${reportUrl}" class="view-details-link" target="_blank">View Full Report →</a>
                 </div>
             </div>
         `;
     }).join('');
 
-
-    // Location info
     const locationHtml = `
         <div class="location-info">
             ${diseaseInfo.districtDisplayName ? `<span>📍 ${escapeHtml(diseaseInfo.districtDisplayName)}</span>` : ''}
@@ -477,9 +498,7 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
         <div class="farm-info-window disease-info-window">
             ${farmHeader}
             ${locationHtml}
-            <div class="disease-list">
-                ${diseaseListHtml}
-            </div>
+            <div class="disease-list">${diseaseListHtml}</div>
         </div>
     `;
 }
@@ -491,17 +510,11 @@ function fitMapToMarkers() {
     if (farmMarkers.length === 0) return;
 
     const bounds = new google.maps.LatLngBounds();
-    farmMarkers.forEach(marker => {
-        bounds.extend(marker.getPosition());
-    });
-
+    farmMarkers.forEach(marker => bounds.extend(marker.getPosition()));
     map.fitBounds(bounds);
 
-    // Don't zoom in too much for single marker
     google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
-        if (map.getZoom() > 15) {
-            map.setZoom(15);
-        }
+        if (map.getZoom() > 15) map.setZoom(15);
     });
 }
 
@@ -509,60 +522,106 @@ function fitMapToMarkers() {
  * Clear all markers from the map
  */
 function clearMarkers() {
-    farmMarkers.forEach(marker => {
-        marker.setMap(null);
-    });
+    farmMarkers.forEach(marker => marker.setMap(null));
     farmMarkers = [];
 }
 
 /**
- * Update farm count in filter button
+ * Update farm count
  */
 function updateFarmCount(count) {
-    const countElement = document.getElementById('farmCount');
-    if (countElement) {
-        countElement.textContent = count;
-    }
+    const el = document.getElementById('farmCount');
+    if (el) el.textContent = count;
 }
 
 /**
- * Update disease count in filter button
+ * Update disease count
  */
 function updateDiseaseCount(count) {
-    const countElement = document.getElementById('diseaseCount');
-    if (countElement) {
-        countElement.textContent = count;
-    }
+    const el = document.getElementById('diseaseCount');
+    if (el) el.textContent = count;
 }
 
 /**
- * Setup filter checkbox listeners
+ * Setup filter listeners
  */
 function setupFilterListeners() {
     const farmFilter = document.getElementById('filterFarms');
     const diseaseFilter = document.getElementById('filterDiseases');
-    const animalTypeContainer = document.getElementById('animalTypeFilterContainer');
+    const provinceSection = document.getElementById('provinceFilterSection');
+    const provinceSelect = document.getElementById('provinceSelect');
+    const animalTypeSection = document.getElementById('animalTypeFilterSection');
+    const diseaseSection = document.getElementById('diseaseFilterSection');
+    const animalTypeSelect = document.getElementById('animalTypeSelect');
+    const diseaseSelect = document.getElementById('diseaseSelect');
 
+    // Farm filter toggle
     if (farmFilter) {
-        farmFilter.addEventListener('change', () => {
+        farmFilter.addEventListener('change', (e) => {
+            if (provinceSection) {
+                provinceSection.style.display = e.target.checked ? 'flex' : 'none';
+            }
+            if (!e.target.checked) {
+                selectedProvince = '';
+                if (provinceSelect) provinceSelect.value = '';
+            }
             createMapMarkers();
             fitMapToMarkers();
         });
     }
 
+    // Disease filter toggle
     if (diseaseFilter) {
         diseaseFilter.addEventListener('change', (e) => {
             if (e.target.checked) {
-                // Show animal type filter and load disease data
-                animalTypeContainer.style.display = 'block';
+                if (animalTypeSection) animalTypeSection.style.display = 'flex';
+                if (diseaseSection) diseaseSection.style.display = 'flex';
+                loadDiseasesWithReports();
                 loadDiseaseReports();
             } else {
-                // Hide animal type filter and clear disease data
-                animalTypeContainer.style.display = 'none';
+                if (animalTypeSection) animalTypeSection.style.display = 'none';
+                if (diseaseSection) diseaseSection.style.display = 'none';
                 diseaseData = [];
+                selectedAnimalTypeIds = [];
+                selectedDiseaseIds = [];
                 updateDiseaseCount(0);
                 createMapMarkers();
             }
+        });
+    }
+
+    // Province select
+    if (provinceSelect) {
+        provinceSelect.addEventListener('change', () => {
+            selectedProvince = provinceSelect.value;
+            console.log('Selected province:', selectedProvince);
+
+            // Reload disease reports with province filter if diseases are enabled
+            if (diseaseFilter && diseaseFilter.checked) {
+                loadDiseaseReports();
+            } else {
+                createMapMarkers();
+                fitMapToMarkers();
+            }
+        });
+    }
+
+    // Animal type select
+    if (animalTypeSelect) {
+        animalTypeSelect.addEventListener('change', () => {
+            selectedAnimalTypeIds = getSelectedValues(animalTypeSelect);
+            console.log('Selected animal types:', selectedAnimalTypeIds);
+            loadDiseasesWithReports();
+            loadDiseaseReports();
+        });
+    }
+
+    // Disease select
+    if (diseaseSelect) {
+        diseaseSelect.addEventListener('change', () => {
+            selectedDiseaseIds = getSelectedValues(diseaseSelect);
+            console.log('Selected diseases:', selectedDiseaseIds);
+            loadDiseaseReports();
         });
     }
 }

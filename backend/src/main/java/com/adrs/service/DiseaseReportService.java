@@ -1,9 +1,11 @@
 package com.adrs.service;
 
 import com.adrs.dto.AnimalTypeDTO;
+import com.adrs.dto.DiseaseDTO;
 import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,9 +82,11 @@ public interface DiseaseReportService {
      * Get disease reports grouped by farm for map display.
      *
      * @param animalTypeIds optional list of animal type IDs to filter by
+     * @param diseaseIds optional list of disease IDs to filter by
+     * @param province optional province to filter by
      * @return list of disease data grouped by farm location
      */
-    List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds);
+    List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province);
 
     /**
      * Get animal types that have disease reports with GPS coordinates.
@@ -92,6 +96,14 @@ public interface DiseaseReportService {
     List<AnimalTypeDTO> getAnimalTypesWithReports();
 
     /**
+     * Get diseases that have reports with GPS coordinates, filtered by animal type IDs.
+     *
+     * @param animalTypeIds optional list of animal type IDs to filter by
+     * @return list of diseases with disease reports
+     */
+    List<DiseaseDTO> getDiseasesWithReports(List<UUID> animalTypeIds);
+
+    /**
      * Get all disease reports NOT created by the current vet.
      *
      * @param vet the current vet user
@@ -99,4 +111,3 @@ public interface DiseaseReportService {
      */
     List<DiseaseReportResponseDTO> getReportsNotByVet(User vet);
 }
-

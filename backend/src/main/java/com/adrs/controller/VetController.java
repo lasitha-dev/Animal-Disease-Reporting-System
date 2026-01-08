@@ -1,6 +1,7 @@
 package com.adrs.controller;
 
 import com.adrs.dto.*;
+import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.DiseaseReportRepository;
 import com.adrs.repository.FarmAnimalRepository;
@@ -435,11 +436,22 @@ public class VetController {
     @Operation(summary = "Get disease reports for map", description = "Retrieves disease reports grouped by farm for map display")
     @GetMapping("/disease-reports/map")
     public ResponseEntity<List<DiseaseMapDTO>> getDiseaseReportsForMap(
-            @RequestParam(required = false) List<UUID> animalTypeIds) {
+            @RequestParam(required = false) List<UUID> animalTypeIds,
+            @RequestParam(required = false) List<UUID> diseaseIds,
+            @RequestParam(required = false) String province) {
         
-        logger.info("GET /api/vet/disease-reports/map - Fetching reports for map, animalTypeIds: {}", animalTypeIds);
+        logger.info("GET /api/vet/disease-reports/map - Fetching reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}", animalTypeIds, diseaseIds, province);
         
-        List<DiseaseMapDTO> reports = diseaseReportService.getReportsForMap(animalTypeIds);
+        Province provinceEnum = null;
+        if (province != null && !province.isEmpty()) {
+            try {
+                provinceEnum = Province.valueOf(province);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid province value: {}", province);
+            }
+        }
+        
+        List<DiseaseMapDTO> reports = diseaseReportService.getReportsForMap(animalTypeIds, diseaseIds, provinceEnum);
         return ResponseEntity.ok(reports);
     }
 
@@ -455,6 +467,40 @@ public class VetController {
         
         List<AnimalTypeDTO> animalTypes = diseaseReportService.getAnimalTypesWithReports();
         return ResponseEntity.ok(animalTypes);
+    }
+
+    /**
+     * Get diseases that have disease reports with GPS coordinates, filtered by animal type IDs.
+     *
+     * @param animalTypeIds optional filter by animal type IDs
+     * @return list of diseases with reports
+     */
+    @Operation(summary = "Get diseases with disease reports", description = "Retrieves diseases that have disease reports for filtering")
+    @GetMapping("/diseases/with-reports")
+    public ResponseEntity<List<DiseaseDTO>> getDiseasesWithReports(
+            @RequestParam(required = false) List<UUID> animalTypeIds) {
+        logger.info("GET /api/vet/diseases/with-reports - Fetching diseases with reports, animalTypeIds: {}", animalTypeIds);
+        
+        List<DiseaseDTO> diseases = diseaseReportService.getDiseasesWithReports(animalTypeIds);
+        return ResponseEntity.ok(diseases);
+    }
+
+    /**
+     * Get provinces that have farms with GPS coordinates.
+     *
+     * @return list of provinces with farms
+     */
+    @Operation(summary = "Get provinces with farms", description = "Retrieves provinces that have registered farms with GPS coordinates")
+    @GetMapping("/farms/provinces")
+    public ResponseEntity<List<ProvinceDTO>> getProvincesWithFarms() {
+        logger.info("GET /api/vet/farms/provinces - Fetching provinces with farms");
+        
+        List<Province> provinces = farmRepository.findDistinctProvincesWithGpsCoordinates();
+        List<ProvinceDTO> provinceDTOs = provinces.stream()
+                .map(p -> new ProvinceDTO(p.name(), p.getDisplayName()))
+                .toList();
+        
+        return ResponseEntity.ok(provinceDTOs);
     }
 
     /**
