@@ -51,16 +51,31 @@
                 </select>
             </div>
 
-            <!-- Disease Multi-Select -->
+            <!-- Disease Multi-Select Dropdown with Checkboxes -->
             <div class="filter-group">
-                <label class="filter-label" for="diseaseSelect">
+                <label class="filter-label">
                     <span class="label-icon">🦠</span>
                     Diseases
                 </label>
-                <select id="diseaseSelect" class="filter-select" multiple>
-                    <!-- Dynamically populated -->
-                </select>
-                <span class="filter-hint">Hold Ctrl/Cmd to select multiple</span>
+                <div class="checkbox-dropdown" id="diseaseDropdown">
+                    <button type="button" class="dropdown-toggle" id="diseaseDropdownToggle">
+                        <span class="dropdown-text">Select diseases...</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="diseaseDropdownMenu">
+                        <div class="dropdown-search">
+                            <input type="text" placeholder="Search diseases..." id="diseaseSearch">
+                        </div>
+                        <div class="dropdown-options" id="diseaseOptions">
+                            <!-- Dynamically populated with checkboxes -->
+                        </div>
+                        <div class="dropdown-actions">
+                            <button type="button" class="dropdown-action-btn" id="selectAllDiseases">Select All</button>
+                            <button type="button" class="dropdown-action-btn" id="clearAllDiseases">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+                <span class="filter-hint" id="selectedCount">0 diseases selected</span>
             </div>
 
             <!-- Apply Button -->
@@ -129,7 +144,21 @@
     <div layout:fragment="scripts">
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script th:src="@{/js/analytics.js}"></script>
+        <script th:src="@{/js/analytics.js(v=5)}"></script>
+        <!-- Fallback initialization in case the automatic one fails -->
+        <script>
+            // The analytics.js now handles DOM ready properly
+            // This is just a safety fallback that retries if needed
+            (function ensureInit() {
+                // Give the main script time to initialize
+                setTimeout(function() {
+                    if (!window.analyticsInitialized && typeof window.initAnalytics === 'function') {
+                        console.log('Fallback: Triggering analytics initialization...');
+                        window.initAnalytics();
+                    }
+                }, 500);
+            })();
+        </script>
     </div>
 
 </body>

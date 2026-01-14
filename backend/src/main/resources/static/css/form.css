@@ -50,6 +50,7 @@
   background-size: 12px;
   padding-right: 36px;
   cursor: pointer;
+  background-color: var(--color-white, #ffffff);
 }
 
 .form-select:focus {
@@ -62,15 +63,24 @@
   opacity: 0.7;
 }
 
+/* Native select option styling (limited browser support) */
 .form-select option {
-  padding: var(--spacing-md);
-  background-color: var(--color-white, #ffffff);
-  color: var(--color-text-primary, #1f2937);
+  padding: 12px 16px;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-.form-select option:checked {
-  background-color: var(--color-primary-lighter, #dbeafe);
-  color: var(--color-primary, #2563eb);
+.form-select option:hover {
+  background-color: #f3f4f6;
+}
+
+.form-select option:checked,
+.form-select option:focus {
+  background: linear-gradient(0deg, #2563eb 0%, #2563eb 100%);
+  background-color: #2563eb !important;
+  color: #ffffff !important;
 }
 
 .form-input:focus,
@@ -337,6 +347,8 @@
   .form-textarea {
     padding: var(--spacing-md);
     font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 44px; /* Touch-friendly height */
+    width: 100%;
   }
 
   /* Mobile-specific select dropdown styling */
@@ -349,12 +361,34 @@
     background-position: right 12px center;
     background-size: 12px;
     padding-right: 36px;
-    min-height: var(--touch-target-min, 44px);
+    min-height: 44px;
     cursor: pointer;
+    background-color: #ffffff;
   }
 
   .form-select:focus {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232563eb' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  }
+
+  /* Mobile date input styling */
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
+    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 44px;
+    padding: var(--spacing-md);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #ffffff;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    padding: 4px;
+    margin-left: 4px;
   }
 
   .form-actions {
