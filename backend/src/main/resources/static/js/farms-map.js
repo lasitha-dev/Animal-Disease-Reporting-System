@@ -265,7 +265,7 @@ function populateAnimalTypeDropdown() {
     const select = document.getElementById('animalTypeSelect');
     if (!select) return;
 
-    select.innerHTML = '<option value="">— All Animal Types —</option>';
+    select.innerHTML = '<option value="">All Animal Types</option>';
 
     animalTypesWithReports.forEach(at => {
         const option = document.createElement('option');
@@ -284,7 +284,7 @@ function populateDiseaseDropdown() {
     const select = document.getElementById('diseaseSelect');
     if (!select) return;
 
-    select.innerHTML = '<option value="">— All Diseases —</option>';
+    select.innerHTML = '<option value="">All Diseases</option>';
 
     diseasesWithReports.forEach(d => {
         const option = document.createElement('option');
@@ -296,18 +296,7 @@ function populateDiseaseDropdown() {
     selectedDiseaseIds = [];
 }
 
-/**
- * Get selected values from a multi-select dropdown
- */
-function getSelectedValues(selectElement) {
-    const selected = [];
-    for (const option of selectElement.options) {
-        if (option.selected && option.value !== '') {
-            selected.push(option.value);
-        }
-    }
-    return selected;
-}
+
 
 /**
  * Get filtered farms based on province selection
@@ -609,8 +598,8 @@ function setupFilterListeners() {
     // Animal type select
     if (animalTypeSelect) {
         animalTypeSelect.addEventListener('change', () => {
-            selectedAnimalTypeIds = getSelectedValues(animalTypeSelect);
-            console.log('Selected animal types:', selectedAnimalTypeIds);
+            selectedAnimalTypeIds = animalTypeSelect.value ? [animalTypeSelect.value] : [];
+            console.log('Selected animal type:', selectedAnimalTypeIds);
             loadDiseasesWithReports();
             loadDiseaseReports();
         });
@@ -619,8 +608,8 @@ function setupFilterListeners() {
     // Disease select
     if (diseaseSelect) {
         diseaseSelect.addEventListener('change', () => {
-            selectedDiseaseIds = getSelectedValues(diseaseSelect);
-            console.log('Selected diseases:', selectedDiseaseIds);
+            selectedDiseaseIds = diseaseSelect.value ? [diseaseSelect.value] : [];
+            console.log('Selected disease:', selectedDiseaseIds);
             loadDiseaseReports();
         });
     }
