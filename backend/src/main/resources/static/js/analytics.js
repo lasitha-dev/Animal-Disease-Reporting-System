@@ -227,6 +227,33 @@ function initEventListeners() {
         });
     }
 
+    // Date range validation - update min/max constraints when dates change
+    if (elements.startDateInput && elements.endDateInput) {
+        // When start date changes, update end date's minimum value
+        elements.startDateInput.addEventListener('change', function () {
+            const startDate = this.value;
+            if (startDate) {
+                elements.endDateInput.min = startDate;
+                // If end date is now before start date, reset it to start date
+                if (elements.endDateInput.value && elements.endDateInput.value < startDate) {
+                    elements.endDateInput.value = startDate;
+                }
+            }
+        });
+
+        // When end date changes, update start date's maximum value
+        elements.endDateInput.addEventListener('change', function () {
+            const endDate = this.value;
+            if (endDate) {
+                elements.startDateInput.max = endDate;
+                // If start date is now after end date, reset it to end date
+                if (elements.startDateInput.value && elements.startDateInput.value > endDate) {
+                    elements.startDateInput.value = endDate;
+                }
+            }
+        });
+    }
+
     // Apply button
     if (elements.applyButton) {
         elements.applyButton.addEventListener('click', fetchAndRenderChart);
@@ -253,14 +280,20 @@ function setDefaultDateRange() {
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
+    const todayStr = formatDateForInput(today);
+    const oneMonthAgoStr = formatDateForInput(oneMonthAgo);
+
     if (elements.endDateInput) {
-        elements.endDateInput.value = formatDateForInput(today);
+        elements.endDateInput.value = todayStr;
+        elements.endDateInput.max = todayStr; // Can't select future dates
+        elements.endDateInput.min = oneMonthAgoStr; // Initially set to start date
     } else {
         console.error('Analytics: End date input not found');
     }
     
     if (elements.startDateInput) {
-        elements.startDateInput.value = formatDateForInput(oneMonthAgo);
+        elements.startDateInput.value = oneMonthAgoStr;
+        elements.startDateInput.max = todayStr; // Can't be after end date
     } else {
         console.error('Analytics: Start date input not found');
     }
@@ -596,7 +629,9 @@ function renderChart(data) {
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        padding: 20,
+                        padding: 25,
+                        boxWidth: 12,
+                        boxHeight: 12,
                         font: {
                             size: 12
                         }
@@ -663,7 +698,7 @@ function renderChart(data) {
  */
 function getXAxisLabel() {
     switch (selectedGroupBy) {
-        case 'WEEKLY': return 'Week';
+        case 'WEEKLY': return 'Week (Date Range)';
         case 'MONTHLY': return 'Month';
         case 'ANNUALLY': return 'Year';
         default: return 'Period';

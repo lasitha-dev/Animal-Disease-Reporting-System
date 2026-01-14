@@ -126,10 +126,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             case WEEKLY:
                 // Align to start of week (Monday)
                 current = current.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+                DateTimeFormatter weekDayFormatter = DateTimeFormatter.ofPattern("MMM d");
                 while (!current.isAfter(endDate)) {
-                    int year = current.get(IsoFields.WEEK_BASED_YEAR);
-                    int week = current.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-                    labels.add(String.format("%d-W%02d", year, week));
+                    LocalDate weekEnd = current.plusDays(6);
+                    // Format: "Dec 9-15" or "Dec 30-Jan 5" if crossing month boundary
+                    String startStr = current.format(weekDayFormatter);
+                    String endStr;
+                    if (current.getMonth() == weekEnd.getMonth()) {
+                        // Same month: "Dec 9-15"
+                        endStr = String.valueOf(weekEnd.getDayOfMonth());
+                    } else {
+                        // Different months: "Dec 30-Jan 5"
+                        endStr = weekEnd.format(weekDayFormatter);
+                    }
+                    labels.add(startStr + "-" + endStr);
                     current = current.plusWeeks(1);
                 }
                 break;
@@ -219,9 +229,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private String getPeriodKey(LocalDate date, GroupBy groupBy) {
         switch (groupBy) {
             case WEEKLY:
-                int year = date.get(IsoFields.WEEK_BASED_YEAR);
-                int week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-                return String.format("%d-W%02d", year, week);
+                // Align to start of week (Monday) to match label generation
+                LocalDate weekStart = date.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+                LocalDate weekEnd = weekStart.plusDays(6);
+                DateTimeFormatter weekDayFormatter = DateTimeFormatter.ofPattern("MMM d");
+                String startStr = weekStart.format(weekDayFormatter);
+                String endStr;
+                if (weekStart.getMonth() == weekEnd.getMonth()) {
+                    // Same month: "Dec 9-15"
+                    endStr = String.valueOf(weekEnd.getDayOfMonth());
+                } else {
+                    // Different months: "Dec 30-Jan 5"
+                    endStr = weekEnd.format(weekDayFormatter);
+                }
+                return startStr + "-" + endStr;
                 
             case MONTHLY:
                 DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy");
