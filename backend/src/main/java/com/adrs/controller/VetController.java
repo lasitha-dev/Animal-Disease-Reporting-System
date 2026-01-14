@@ -7,6 +7,7 @@ import com.adrs.repository.DiseaseReportRepository;
 import com.adrs.repository.FarmAnimalRepository;
 import com.adrs.repository.FarmRepository;
 import com.adrs.repository.UserRepository;
+import com.adrs.service.AnalyticsService;
 import com.adrs.service.AnimalTypeService;
 import com.adrs.service.DiseaseReportService;
 import com.adrs.service.DiseaseService;
@@ -26,6 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,6 +49,7 @@ public class VetController {
     private final AnimalTypeService animalTypeService;
     private final DiseaseService diseaseService;
     private final DiseaseReportService diseaseReportService;
+    private final AnalyticsService analyticsService;
     private final UserRepository userRepository;
     private final FarmRepository farmRepository;
     private final FarmAnimalRepository farmAnimalRepository;
@@ -57,6 +60,7 @@ public class VetController {
                         AnimalTypeService animalTypeService,
                         DiseaseService diseaseService,
                         DiseaseReportService diseaseReportService,
+                        AnalyticsService analyticsService,
                         UserRepository userRepository,
                         FarmRepository farmRepository,
                         FarmAnimalRepository farmAnimalRepository,
@@ -66,6 +70,7 @@ public class VetController {
         this.animalTypeService = animalTypeService;
         this.diseaseService = diseaseService;
         this.diseaseReportService = diseaseReportService;
+        this.analyticsService = analyticsService;
         this.userRepository = userRepository;
         this.farmRepository = farmRepository;
         this.farmAnimalRepository = farmAnimalRepository;
@@ -501,6 +506,43 @@ public class VetController {
                 .toList();
         
         return ResponseEntity.ok(provinceDTOs);
+    }
+
+    // ========================================
+    // ANALYTICS ENDPOINTS
+    // ========================================
+
+    /**
+     * Get disease trends for analytics.
+     *
+     * @param animalTypeId optional filter by animal type
+     * @param diseaseIds optional filter by disease IDs
+     * @param startDate start of date range
+     * @param endDate end of date range
+     * @param groupBy aggregation period: WEEKLY, MONTHLY, ANNUALLY
+     * @return analytics data for charting
+     */
+    @Operation(summary = "Get disease trends", description = "Retrieves aggregated disease report data for analytics charts")
+    @GetMapping("/analytics/trends")
+    public ResponseEntity<AnalyticsResponseDTO> getDiseaseTrends(
+            @RequestParam(required = false) UUID animalTypeId,
+            @RequestParam(required = false) List<UUID> diseaseIds,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            @RequestParam(defaultValue = "MONTHLY") AnalyticsRequestDTO.GroupBy groupBy) {
+        
+        logger.info("GET /api/vet/analytics/trends - animalTypeId: {}, diseaseIds: {}, startDate: {}, endDate: {}, groupBy: {}",
+                animalTypeId, diseaseIds, startDate, endDate, groupBy);
+        
+        AnalyticsRequestDTO request = new AnalyticsRequestDTO();
+        request.setAnimalTypeId(animalTypeId);
+        request.setDiseaseIds(diseaseIds);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setGroupBy(groupBy);
+        
+        AnalyticsResponseDTO response = analyticsService.getDiseaseTrends(request);
+        return ResponseEntity.ok(response);
     }
 
     /**

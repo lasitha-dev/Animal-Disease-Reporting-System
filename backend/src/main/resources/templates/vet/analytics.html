@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Analytics - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/analytics.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2>📊 Analytics</h2>
+                <p class="page-subtitle">Analyze disease contraction trends over time</p>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="analytics-filters-bar">
+            <!-- Time Period Toggle -->
+            <div class="filter-group">
+                <label class="filter-label">Time Period</label>
+                <div class="period-toggle">
+                    <button type="button" class="period-btn" data-period="WEEKLY">Weekly</button>
+                    <button type="button" class="period-btn active" data-period="MONTHLY">Monthly</button>
+                    <button type="button" class="period-btn" data-period="ANNUALLY">Annually</button>
+                </div>
+            </div>
+
+            <!-- Date Range -->
+            <div class="filter-group date-range-group">
+                <label class="filter-label">Date Range</label>
+                <div class="date-inputs">
+                    <input type="date" id="startDate" class="date-input" title="Start Date">
+                    <span class="date-separator">to</span>
+                    <input type="date" id="endDate" class="date-input" title="End Date">
+                </div>
+            </div>
+
+            <!-- Animal Type Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="animalTypeSelect">
+                    <span class="label-icon">🐄</span>
+                    Animal Type
+                </label>
+                <select id="animalTypeSelect" class="filter-select">
+                    <option value="">All Animal Types</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Disease Multi-Select -->
+            <div class="filter-group">
+                <label class="filter-label" for="diseaseSelect">
+                    <span class="label-icon">🦠</span>
+                    Diseases
+                </label>
+                <select id="diseaseSelect" class="filter-select" multiple>
+                    <!-- Dynamically populated -->
+                </select>
+                <span class="filter-hint">Hold Ctrl/Cmd to select multiple</span>
+            </div>
+
+            <!-- Apply Button -->
+            <div class="filter-group filter-actions">
+                <button type="button" id="applyFilters" class="btn btn-primary">
+                    Apply Filters
+                </button>
+                <button type="button" id="resetFilters" class="btn btn-outline">
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-wrapper">
+            <div class="chart-header">
+                <h3 id="chartTitle">Disease Trends</h3>
+                <div class="chart-info">
+                    <span id="chartPeriodInfo" class="period-info"></span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+
+                <!-- Loading Overlay -->
+                <div id="chartLoading" class="chart-loading-overlay">
+                    <div class="spinner"></div>
+                    <p>Loading analytics data...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="chartEmptyState" class="chart-empty-state" style="display: none;">
+                    <div class="empty-icon">📊</div>
+                    <h3>No Data Available</h3>
+                    <p>No disease reports found for the selected filters and date range.</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="chartErrorState" class="chart-error-state" style="display: none;">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Error Loading Data</h3>
+                    <p id="chartErrorMessage">Failed to load analytics data. Please try again.</p>
+                    <button type="button" id="retryButton" class="btn btn-outline">Retry</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats (optional future enhancement) -->
+        <div class="analytics-summary" id="analyticsSummary" style="display: none;">
+            <div class="summary-card">
+                <div class="summary-value" id="totalReports">0</div>
+                <div class="summary-label">Total Reports</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="peakPeriod">-</div>
+                <div class="summary-label">Peak Period</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="trendDirection">-</div>
+                <div class="summary-label">Overall Trend</div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <!-- Chart.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script th:src="@{/js/analytics.js}"></script>
+    </div>
+
+</body>
+
+</html>

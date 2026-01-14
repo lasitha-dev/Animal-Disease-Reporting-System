@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -181,5 +182,86 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
            "AND d.id IN :diseaseIds " +
            "ORDER BY f.id, dr.reportDate DESC")
     List<DiseaseReport> findAllWithFarmGpsCoordinatesByDiseaseIds(List<UUID> diseaseIds);
+
+    // ========================================
+    // ANALYTICS QUERIES
+    // ========================================
+
+    /**
+     * Find all disease reports within a date range.
+     *
+     * @param startDate start of date range (inclusive)
+     * @param endDate end of date range (inclusive)
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "WHERE dr.reportDate >= :startDate AND dr.reportDate <= :endDate " +
+           "ORDER BY dr.reportDate")
+    List<DiseaseReport> findByReportDateBetween(LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Find disease reports within a date range filtered by animal type.
+     *
+     * @param animalTypeId the animal type ID
+     * @param startDate start of date range (inclusive)
+     * @param endDate end of date range (inclusive)
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "WHERE dr.animalType.id = :animalTypeId " +
+           "AND dr.reportDate >= :startDate AND dr.reportDate <= :endDate " +
+           "ORDER BY dr.reportDate")
+    List<DiseaseReport> findByAnimalTypeIdAndReportDateBetween(
+            UUID animalTypeId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Find disease reports within a date range filtered by disease IDs.
+     *
+     * @param diseaseIds list of disease IDs to filter by
+     * @param startDate start of date range (inclusive)
+     * @param endDate end of date range (inclusive)
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "WHERE dr.disease.id IN :diseaseIds " +
+           "AND dr.reportDate >= :startDate AND dr.reportDate <= :endDate " +
+           "ORDER BY dr.reportDate")
+    List<DiseaseReport> findByDiseaseIdInAndReportDateBetween(
+            List<UUID> diseaseIds, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Find disease reports within a date range filtered by animal type and disease IDs.
+     *
+     * @param animalTypeId the animal type ID
+     * @param diseaseIds list of disease IDs to filter by
+     * @param startDate start of date range (inclusive)
+     * @param endDate end of date range (inclusive)
+     * @return list of disease reports
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "JOIN FETCH dr.disease d " +
+           "JOIN FETCH dr.animalType at " +
+           "WHERE dr.animalType.id = :animalTypeId " +
+           "AND dr.disease.id IN :diseaseIds " +
+           "AND dr.reportDate >= :startDate AND dr.reportDate <= :endDate " +
+           "ORDER BY dr.reportDate")
+    List<DiseaseReport> findByAnimalTypeIdAndDiseaseIdInAndReportDateBetween(
+            UUID animalTypeId, List<UUID> diseaseIds, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Find all distinct diseases that have reports for a specific animal type.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of disease IDs
+     */
+    @Query("SELECT DISTINCT dr.disease.id FROM DiseaseReport dr " +
+           "WHERE dr.animalType.id = :animalTypeId")
+    List<UUID> findDistinctDiseaseIdsByAnimalTypeId(UUID animalTypeId);
 }
 

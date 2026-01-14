@@ -233,5 +233,26 @@ public class PageController {
         
         return "vet/disease-reporting";
     }
+
+    /**
+     * Displays the analytics page for vets.
+     * Shows disease trend charts with filtering options.
+     *
+     * @param model the model for the view
+     * @return the analytics view name
+     */
+    @GetMapping("/vet/analytics")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetAnalytics(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Analytics page accessed by vet: {}", username);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "Analytics");
+        
+        return "vet/analytics";
+    }
 }
 
