@@ -2,6 +2,7 @@ package com.adrs.service.impl;
 
 import com.adrs.dto.AnalyticsRequestDTO;
 import com.adrs.dto.AnalyticsRequestDTO.GroupBy;
+import com.adrs.dto.AnalyticsRequestDTO.MetricType;
 import com.adrs.dto.AnalyticsResponseDTO;
 import com.adrs.dto.AnalyticsResponseDTO.DatasetDTO;
 import com.adrs.model.Disease;
@@ -42,9 +43,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Override
     public AnalyticsResponseDTO getDiseaseTrends(AnalyticsRequestDTO request) {
-        logger.info("Getting disease trends: animalTypeId={}, diseaseIds={}, startDate={}, endDate={}, groupBy={}",
+        logger.info("Getting disease trends: animalTypeId={}, diseaseIds={}, startDate={}, endDate={}, groupBy={}, metricType={}",
                 request.getAnimalTypeId(), request.getDiseaseIds(), request.getStartDate(), 
-                request.getEndDate(), request.getGroupBy());
+                request.getEndDate(), request.getGroupBy(), request.getMetricType());
 
         // Fetch disease reports based on filters
         List<DiseaseReport> reports = fetchReports(request);
@@ -58,7 +59,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         
         // Create datasets for each disease
         List<DatasetDTO> datasets = createDatasets(reports, diseaseMap, labels, 
-                request.getStartDate(), request.getEndDate(), request.getGroupBy());
+                request.getStartDate(), request.getEndDate(), request.getGroupBy(), request.getMetricType());
 
         AnalyticsResponseDTO response = new AnalyticsResponseDTO();
         response.setLabels(labels);
@@ -172,7 +173,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
      */
     private List<DatasetDTO> createDatasets(List<DiseaseReport> reports, Map<UUID, Disease> diseaseMap,
                                             List<String> labels, LocalDate startDate, LocalDate endDate, 
-                                            GroupBy groupBy) {
+                                            GroupBy groupBy, MetricType metricType) {
         List<DatasetDTO> datasets = new ArrayList<>();
 
         // Group reports by disease
@@ -185,8 +186,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Disease disease = entry.getValue();
             List<DiseaseReport> diseaseReports = reportsByDisease.getOrDefault(diseaseId, Collections.emptyList());
 
-            // Count reports per period
-            Map<String, Long> countsByPeriod = countReportsByPeriod(diseaseReports, groupBy);
+            // Count reports or animals per period based on metric type
+            Map<String, Long> countsByPeriod = countByPeriod(diseaseReports, groupBy, metricType);
 
             // Create data array matching labels
             List<Long> data = labels.stream()
@@ -209,15 +210,27 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     /**
-     * Count reports by time period.
+     * Count by time period based on metric type.
+     * REPORT_COUNT: Count each report as 1
+     * ANIMAL_COUNT: Sum affectedCount values (null treated as 0)
      */
-    private Map<String, Long> countReportsByPeriod(List<DiseaseReport> reports, GroupBy groupBy) {
+    private Map<String, Long> countByPeriod(List<DiseaseReport> reports, GroupBy groupBy, MetricType metricType) {
         Map<String, Long> counts = new HashMap<>();
 
         for (DiseaseReport report : reports) {
             LocalDate reportDate = report.getReportDate();
             String periodKey = getPeriodKey(reportDate, groupBy);
-            counts.merge(periodKey, 1L, Long::sum);
+            
+            long value;
+            if (metricType == MetricType.ANIMAL_COUNT) {
+                // Sum affected animals (null treated as 0)
+                value = report.getAffectedCount() != null ? report.getAffectedCount().longValue() : 0L;
+            } else {
+                // Count each report as 1
+                value = 1L;
+            }
+            
+            counts.merge(periodKey, value, Long::sum);
         }
 
         return counts;

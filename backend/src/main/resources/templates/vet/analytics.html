@@ -29,6 +29,18 @@
                 </div>
             </div>
 
+            <!-- Metric Type Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="metricTypeSelect">
+                    <span class="label-icon">📈</span>
+                    Metric
+                </label>
+                <select id="metricTypeSelect" class="filter-select">
+                    <option value="REPORT_COUNT">Report Count</option>
+                    <option value="ANIMAL_COUNT">Animal Count</option>
+                </select>
+            </div>
+
             <!-- Date Range -->
             <div class="filter-group date-range-group">
                 <label class="filter-label">Date Range</label>
@@ -144,14 +156,14 @@
     <div layout:fragment="scripts">
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script th:src="@{/js/analytics.js(v=5)}"></script>
+        <script th:src="@{/js/analytics.js(v=6)}"></script>
         <!-- Fallback initialization in case the automatic one fails -->
         <script>
             // The analytics.js now handles DOM ready properly
             // This is just a safety fallback that retries if needed
             (function ensureInit() {
                 // Give the main script time to initialize
-                setTimeout(function() {
+                setTimeout(function () {
                     if (!window.analyticsInitialized && typeof window.initAnalytics === 'function') {
                         console.log('Fallback: Triggering analytics initialization...');
                         window.initAnalytics();

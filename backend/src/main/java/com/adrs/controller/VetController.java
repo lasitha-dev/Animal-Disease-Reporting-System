@@ -529,10 +529,11 @@ public class VetController {
             @RequestParam(required = false) List<UUID> diseaseIds,
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate,
-            @RequestParam(defaultValue = "MONTHLY") AnalyticsRequestDTO.GroupBy groupBy) {
+            @RequestParam(defaultValue = "MONTHLY") AnalyticsRequestDTO.GroupBy groupBy,
+            @RequestParam(defaultValue = "REPORT_COUNT") AnalyticsRequestDTO.MetricType metricType) {
         
-        logger.info("GET /api/vet/analytics/trends - animalTypeId: {}, diseaseIds: {}, startDate: {}, endDate: {}, groupBy: {}",
-                animalTypeId, diseaseIds, startDate, endDate, groupBy);
+        logger.info("GET /api/vet/analytics/trends - animalTypeId: {}, diseaseIds: {}, startDate: {}, endDate: {}, groupBy: {}, metricType: {}",
+                animalTypeId, diseaseIds, startDate, endDate, groupBy, metricType);
         
         AnalyticsRequestDTO request = new AnalyticsRequestDTO();
         request.setAnimalTypeId(animalTypeId);
@@ -540,6 +541,7 @@ public class VetController {
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setGroupBy(groupBy);
+        request.setMetricType(metricType);
         
         AnalyticsResponseDTO response = analyticsService.getDiseaseTrends(request);
         return ResponseEntity.ok(response);

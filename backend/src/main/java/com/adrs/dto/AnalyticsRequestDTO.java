@@ -50,11 +50,25 @@ public class AnalyticsRequestDTO {
     private GroupBy groupBy = GroupBy.MONTHLY;
 
     /**
+     * Metric type for Y-axis: REPORT_COUNT or ANIMAL_COUNT.
+     * Defaults to REPORT_COUNT if not specified.
+     */
+    private MetricType metricType = MetricType.REPORT_COUNT;
+
+    /**
      * Enum for aggregation periods.
      */
     public enum GroupBy {
         WEEKLY,
         MONTHLY,
         ANNUALLY
+    }
+
+    /**
+     * Enum for Y-axis metric types.
+     */
+    public enum MetricType {
+        REPORT_COUNT,
+        ANIMAL_COUNT
     }
 }
