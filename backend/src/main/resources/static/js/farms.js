@@ -14,6 +14,8 @@
     let otherFarmsLoaded = false; // Track if other farms have been loaded
     let activeTab = 'my-farms'; // Current active tab
     let editingFarmId = null; // Track which farm is being edited
+    let currentViewMode = 'grid'; // View mode: 'grid' or 'table'
+    const VIEW_MODE_STORAGE_KEY = 'farms-view-mode'; // localStorage key
 
     // Map State
     let map = null;
@@ -44,6 +46,14 @@
     const otherFarmsGrid = document.getElementById('other-farms-grid');
     const otherFarmsEmptyState = document.getElementById('other-farms-empty-state');
     const otherFarmsLoadingState = document.getElementById('other-farms-loading-state');
+
+    // DOM Elements - View Toggle
+    const gridViewBtn = document.getElementById('gridViewBtn');
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const farmsTableContainer = document.getElementById('farms-table-container');
+    const farmsTableBody = document.getElementById('farms-table-body');
+    const otherFarmsTableContainer = document.getElementById('other-farms-table-container');
+    const otherFarmsTableBody = document.getElementById('other-farms-table-body');
 
     // Form Elements
     const farmTypeSelect = document.getElementById('farmTypeId');
@@ -76,6 +86,7 @@
      * Initialize
      */
     function init() {
+        loadViewPreference(); // Load saved view preference first
         loadFarms();
         loadFarmTypes();
         loadProvinces();
@@ -98,6 +109,10 @@
         tabButtons.forEach(btn => {
             btn.addEventListener('click', handleTabSwitch);
         });
+
+        // View toggle
+        gridViewBtn?.addEventListener('click', () => setViewMode('grid'));
+        tableViewBtn?.addEventListener('click', () => setViewMode('table'));
 
         // Form events
         farmTypeSelect?.addEventListener('change', handleFarmTypeChange);
@@ -148,6 +163,61 @@
     }
 
     /**
+     * View Toggle Functions
+     */
+    function loadViewPreference() {
+        const savedMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (savedMode && (savedMode === 'grid' || savedMode === 'table')) {
+            currentViewMode = savedMode;
+        }
+        applyViewMode();
+    }
+
+    function saveViewPreference(mode) {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    }
+
+    function setViewMode(mode) {
+        if (mode === currentViewMode) return;
+        currentViewMode = mode;
+        saveViewPreference(mode);
+        applyViewMode();
+
+        // Re-render to apply new view mode
+        if (farms.length > 0) {
+            renderFarms();
+        }
+        if (otherFarmsLoaded && otherFarms.length > 0) {
+            renderOtherFarms();
+        }
+    }
+
+    function applyViewMode() {
+        // Update toggle button active states
+        if (currentViewMode === 'grid') {
+            gridViewBtn?.classList.add('active');
+            tableViewBtn?.classList.remove('active');
+        } else {
+            gridViewBtn?.classList.remove('active');
+            tableViewBtn?.classList.add('active');
+        }
+    }
+
+    function updateViewDisplay(showGrid = true) {
+        if (currentViewMode === 'grid') {
+            farmsGrid.style.display = 'grid';
+            farmsTableContainer.style.display = 'none';
+            otherFarmsGrid.style.display = 'grid';
+            otherFarmsTableContainer.style.display = 'none';
+        } else {
+            farmsGrid.style.display = 'none';
+            farmsTableContainer.style.display = 'block';
+            otherFarmsGrid.style.display = 'none';
+            otherFarmsTableContainer.style.display = 'block';
+        }
+    }
+
+    /**
      * Load farms from API
      */
     async function loadFarms() {
@@ -167,7 +237,7 @@
     }
 
     /**
-     * Render farms grid
+     * Render farms grid and table
      */
     function renderFarms() {
         hideLoading();
@@ -178,10 +248,19 @@
         }
 
         hideEmpty();
+
+        // Render grid view
         farmsGrid.innerHTML = farms.map(farm => createFarmCard(farm)).join('');
 
-        // Attach event listeners to edit/delete buttons
+        // Render table view
+        farmsTableBody.innerHTML = farms.map(farm => createFarmTableRow(farm)).join('');
+
+        // Apply current view mode
+        updateViewDisplay();
+
+        // Attach event listeners to edit/delete buttons (both grid and table)
         attachFarmCardEventListeners();
+        attachFarmTableEventListeners();
     }
 
     /**
@@ -205,7 +284,7 @@
     }
 
     /**
-     * Render other farms grid
+     * Render other farms grid and table
      */
     function renderOtherFarms() {
         hideOtherFarmsLoading();
@@ -216,7 +295,15 @@
         }
 
         hideOtherFarmsEmpty();
+
+        // Render grid view
         otherFarmsGrid.innerHTML = otherFarms.map(farm => createOtherFarmCard(farm)).join('');
+
+        // Render table view
+        otherFarmsTableBody.innerHTML = otherFarms.map(farm => createOtherFarmTableRow(farm)).join('');
+
+        // Apply current view mode
+        updateViewDisplay();
     }
 
     /**
@@ -267,22 +354,76 @@
     }
 
     /**
+     * Create table row HTML for a farm (My Farms)
+     */
+    function createFarmTableRow(farm) {
+        const location = `${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}`;
+
+        return `
+            <tr data-farm-id="${farm.id}">
+                <td><span class="table-farm-name">${escapeHtml(farm.farmName)}</span></td>
+                <td><span class="table-farm-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span></td>
+                <td>${farm.ownerName ? escapeHtml(farm.ownerName) : '-'}</td>
+                <td><span class="table-location">${location}</span></td>
+                <td class="table-stat">${farm.totalAnimals || 0}</td>
+                <td class="table-stat">${farm.animalTags?.length || 0}</td>
+                <td>
+                    <div class="table-actions">
+                        <button type="button" class="btn btn-sm btn-outline farm-edit-btn" data-farm-id="${farm.id}">
+                            ✏️ Edit
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger-outline farm-delete-btn" data-farm-id="${farm.id}">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Create table row HTML for other vets' farms (view-only)
+     */
+    function createOtherFarmTableRow(farm) {
+        const location = `${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}`;
+
+        return `
+            <tr data-farm-id="${farm.id}">
+                <td><span class="table-farm-name">${escapeHtml(farm.farmName)}</span></td>
+                <td><span class="table-farm-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span></td>
+                <td>${farm.ownerName ? escapeHtml(farm.ownerName) : '-'}</td>
+                <td><span class="table-location">${location}</span></td>
+                <td class="table-stat">${farm.totalAnimals || 0}</td>
+                <td class="table-stat">${farm.animalTags?.length || 0}</td>
+                <td>
+                    <div class="table-vet-name">
+                        <span class="vet-icon">🩺</span>
+                        <span>${escapeHtml(farm.createdByUsername || 'Unknown')}</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    /**
      * Show/hide states for other farms tab
      */
     function showOtherFarmsLoading() {
         otherFarmsLoadingState.style.display = 'block';
         otherFarmsGrid.style.display = 'none';
+        otherFarmsTableContainer.style.display = 'none';
         otherFarmsEmptyState.style.display = 'none';
     }
 
     function hideOtherFarmsLoading() {
         otherFarmsLoadingState.style.display = 'none';
-        otherFarmsGrid.style.display = 'grid';
+        // View mode will be applied by updateViewDisplay()
     }
 
     function showOtherFarmsEmpty() {
         otherFarmsLoadingState.style.display = 'none';
         otherFarmsGrid.style.display = 'none';
+        otherFarmsTableContainer.style.display = 'none';
         otherFarmsEmptyState.style.display = 'block';
     }
 
@@ -301,6 +442,21 @@
 
         // Delete buttons
         farmsGrid.querySelectorAll('.farm-delete-btn').forEach(btn => {
+            btn.addEventListener('click', handleDeleteFarm);
+        });
+    }
+
+    /**
+     * Attach event listeners to farm table action buttons
+     */
+    function attachFarmTableEventListeners() {
+        // Edit buttons
+        farmsTableBody?.querySelectorAll('.farm-edit-btn').forEach(btn => {
+            btn.addEventListener('click', handleEditFarm);
+        });
+
+        // Delete buttons
+        farmsTableBody?.querySelectorAll('.farm-delete-btn').forEach(btn => {
             btn.addEventListener('click', handleDeleteFarm);
         });
     }

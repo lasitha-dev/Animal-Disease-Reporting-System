@@ -90,6 +90,183 @@
     }
 }
 
+/* ========================================
+   View Toggle
+   ======================================== */
+
+.view-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-primary);
+}
+
+.view-toggle-btn.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+.view-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ========================================
+   Table View Styles
+   ======================================== */
+
+.table-container {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+.table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+.data-table thead {
+    background: var(--color-bg-secondary);
+}
+
+.data-table th {
+    padding: var(--spacing-md);
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: var(--spacing-md);
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--color-bg-secondary);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Table cell styles */
+.table-farm-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.table-farm-type {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--color-primary-lighter);
+    color: var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.table-location {
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+}
+
+.table-stat {
+    font-weight: 600;
+    color: var(--color-primary);
+    text-align: center;
+}
+
+.table-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+}
+
+.table-actions .btn {
+    white-space: nowrap;
+}
+
+.table-vet-name {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+}
+
+.table-vet-name .vet-icon {
+    font-size: 1rem;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 600px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: var(--spacing-sm);
+        font-size: 0.8rem;
+    }
+
+    .view-toggle-container {
+        margin-bottom: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .view-toggle-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .view-toggle-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
 /* Registered By Badge (for Other Farms cards) */
 .farm-card-registered-by {
     display: flex;
@@ -572,17 +749,21 @@
     .form-input,
     .form-select,
     .form-textarea {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-md);
-        min-height: 44px; /* Touch-friendly height */
+        min-height: 44px;
+        /* Touch-friendly height */
     }
 
     .form-select {
-        padding-right: 36px; /* Space for dropdown arrow */
+        padding-right: 36px;
+        /* Space for dropdown arrow */
     }
 }
 
 @media (max-width: 480px) {
+
     .form-input,
     .form-select,
     .form-textarea {
@@ -753,6 +934,7 @@
         opacity: 0;
         transform: translateX(-5px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);

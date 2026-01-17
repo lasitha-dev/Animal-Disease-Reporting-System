@@ -172,6 +172,96 @@
     }
 }
 
+/* ========================================
+   View Toggle
+   ======================================== */
+
+.view-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.view-toggle-btn:hover {
+    background: var(--color-gray-50);
+    color: var(--color-text-primary);
+    border-color: var(--color-primary);
+}
+
+.view-toggle-btn.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+.view-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Table cell styles for reports */
+.table-disease-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+}
+
+.table-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+}
+
+.table-actions .btn {
+    white-space: nowrap;
+}
+
+.table-vet-name {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+/* Responsive view toggle */
+@media (max-width: 768px) {
+    .view-toggle-container {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .reports-table {
+        min-width: 800px;
+    }
+}
+
+@media (max-width: 480px) {
+    .view-toggle-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .view-toggle-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
 /* Reports Table Container */
 
 .table-container {
@@ -549,9 +639,11 @@
     .form-input,
     .form-select,
     .form-textarea {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-md);
-        min-height: 44px; /* Touch-friendly height */
+        min-height: 44px;
+        /* Touch-friendly height */
         width: 100%;
     }
 

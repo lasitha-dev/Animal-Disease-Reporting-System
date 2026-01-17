@@ -19,6 +19,8 @@
     let currentTab = 'my-reports'; // Track current tab
     let isViewingOtherReport = false; // Track if viewing other vet's report
     let otherReportsLoaded = false; // Track if other reports have been loaded
+    let currentViewMode = 'grid'; // View mode: 'grid' or 'table'
+    const VIEW_MODE_STORAGE_KEY = 'disease-reports-view-mode'; // localStorage key
 
     // DOM Elements
     const elements = {
@@ -97,9 +99,19 @@
         otherReportsTab: document.getElementById('other-reports-tab'),
 
         // Other reports elements
-        otherReportsContainer: document.getElementById('other-reports-table-container'),
+        otherReportsContainer: document.getElementById('other-reports-grid-container'),
         otherLoadingState: document.getElementById('other-loading-state'),
-        otherEmptyState: document.getElementById('other-empty-state')
+        otherEmptyState: document.getElementById('other-empty-state'),
+
+        // View Toggle elements
+        gridViewBtn: document.getElementById('gridViewBtn'),
+        tableViewBtn: document.getElementById('tableViewBtn'),
+        reportsGridContainer: document.getElementById('reports-grid-container'),
+        reportsTableContainer: document.getElementById('reports-table-container'),
+        reportsTableBody: document.getElementById('reports-table-body'),
+        otherReportsGridContainer: document.getElementById('other-reports-grid-container'),
+        otherReportsTableContainer: document.getElementById('other-reports-table-container'),
+        otherReportsTableBody: document.getElementById('other-reports-table-body')
     };
 
     // CSRF Token
@@ -110,12 +122,14 @@
     document.addEventListener('DOMContentLoaded', init);
 
     function init() {
+        loadViewPreference(); // Load saved view preference first
         setupEventListeners();
         setDefaultDate();
         loadFarms();
         loadReports();
         handleUrlParams();
         setupTabListeners();
+        setupViewToggleListeners();
     }
 
     function setupEventListeners() {
@@ -232,6 +246,60 @@
         }
     }
 
+    // ========================================
+    // View Toggle Functions
+    // ========================================
+
+    function setupViewToggleListeners() {
+        elements.gridViewBtn?.addEventListener('click', () => setViewMode('grid'));
+        elements.tableViewBtn?.addEventListener('click', () => setViewMode('table'));
+    }
+
+    function loadViewPreference() {
+        const savedMode = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (savedMode && (savedMode === 'grid' || savedMode === 'table')) {
+            currentViewMode = savedMode;
+        }
+        applyViewMode();
+    }
+
+    function saveViewPreference(mode) {
+        localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    }
+
+    function setViewMode(mode) {
+        if (mode === currentViewMode) return;
+        currentViewMode = mode;
+        saveViewPreference(mode);
+        applyViewMode();
+        updateViewDisplay();
+    }
+
+    function applyViewMode() {
+        // Update toggle button active states
+        if (currentViewMode === 'grid') {
+            elements.gridViewBtn?.classList.add('active');
+            elements.tableViewBtn?.classList.remove('active');
+        } else {
+            elements.gridViewBtn?.classList.remove('active');
+            elements.tableViewBtn?.classList.add('active');
+        }
+    }
+
+    function updateViewDisplay() {
+        if (currentViewMode === 'grid') {
+            if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'block';
+            if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'none';
+            if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.style.display = 'block';
+            if (elements.otherReportsTableContainer) elements.otherReportsTableContainer.style.display = 'none';
+        } else {
+            if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'none';
+            if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'block';
+            if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.style.display = 'none';
+            if (elements.otherReportsTableContainer) elements.otherReportsTableContainer.style.display = 'block';
+        }
+    }
+
     function handleUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
@@ -274,25 +342,27 @@
     }
 
     function showOtherLoadingState() {
-        if (elements.otherReportsContainer) elements.otherReportsContainer.innerHTML = '';
+        if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.innerHTML = '';
+        if (elements.otherReportsTableContainer) elements.otherReportsTableContainer.style.display = 'none';
         if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
         if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'block';
     }
 
     function showOtherEmptyState() {
         if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
-        if (elements.otherReportsContainer) elements.otherReportsContainer.innerHTML = '';
+        if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.style.display = 'none';
+        if (elements.otherReportsTableContainer) elements.otherReportsTableContainer.style.display = 'none';
         if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'block';
     }
 
     function showOtherReportsTable() {
         if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
         if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        updateViewDisplay();
     }
 
     function renderOtherReportsTable(reports) {
-        elements.otherReportsContainer.innerHTML = '';
-
+        // Render grid view
         const cardsGrid = document.createElement('div');
         cardsGrid.className = 'reports-cards-grid';
 
@@ -342,7 +412,61 @@
             cardsGrid.appendChild(card);
         });
 
-        elements.otherReportsContainer.appendChild(cardsGrid);
+        // Clear and populate grid container
+        if (elements.otherReportsGridContainer) {
+            elements.otherReportsGridContainer.innerHTML = '';
+            elements.otherReportsGridContainer.appendChild(cardsGrid);
+        }
+
+        // Render table view
+        if (elements.otherReportsTableBody) {
+            elements.otherReportsTableBody.innerHTML = reports.map(report => createOtherReportTableRow(report)).join('');
+            // Add click events for table view buttons
+            elements.otherReportsTableBody.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    isViewingOtherReport = true;
+                    openViewModal(btn.dataset.id);
+                });
+            });
+        }
+
+        // Apply current view mode
+        updateViewDisplay();
+    }
+
+    /**
+     * Create table row HTML for other vet's report (view-only)
+     */
+    function createOtherReportTableRow(report) {
+        const date = new Date(report.reportDate).toLocaleDateString();
+        const severityClass = report.severity?.toLowerCase() || '';
+        const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
+        const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+
+        return `
+            <tr data-report-id="${report.id}">
+                <td><span class="table-disease-name">${escapeHtml(report.diseaseName || 'Unknown')}</span></td>
+                <td>${escapeHtml(report.farmName || '-')}</td>
+                <td>${escapeHtml(report.animalTypeName || '-')}</td>
+                <td>${date}</td>
+                <td><span class="severity-badge ${severityClass}">${report.severity || '-'}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${report.affectedCount || '-'}</td>
+                <td>
+                    <div class="table-vet-name">
+                        <span>🩺</span>
+                        <span>${escapeHtml(report.reportedByUsername || 'Unknown')}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
+                            👁️ View
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
     // ========================================
@@ -1053,10 +1177,7 @@
     }
 
     function renderReportsTable(reports) {
-        // Clear the reports container and create card grid
-        elements.reportsContainer.innerHTML = '';
-
-        // Create cards grid container
+        // Render grid view
         const cardsGrid = document.createElement('div');
         cardsGrid.className = 'reports-cards-grid';
 
@@ -1118,25 +1239,72 @@
             cardsGrid.appendChild(card);
         });
 
-        elements.reportsContainer.appendChild(cardsGrid);
+        // Clear and populate grid container
+        if (elements.reportsGridContainer) {
+            elements.reportsGridContainer.innerHTML = '';
+            elements.reportsGridContainer.appendChild(cardsGrid);
+        }
+
+        // Render table view
+        if (elements.reportsTableBody) {
+            elements.reportsTableBody.innerHTML = reports.map(report => createReportTableRow(report)).join('');
+            // Add click events for table view buttons
+            elements.reportsTableBody.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', () => openViewModal(btn.dataset.id));
+            });
+        }
+
+        // Apply current view mode
+        updateViewDisplay();
+    }
+
+    /**
+     * Create table row HTML for a report (My Reports)
+     */
+    function createReportTableRow(report) {
+        const date = new Date(report.reportDate).toLocaleDateString();
+        const severityClass = report.severity?.toLowerCase() || '';
+        const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
+        const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+
+        return `
+            <tr data-report-id="${report.id}">
+                <td><span class="table-disease-name">${escapeHtml(report.diseaseName || 'Unknown')}</span></td>
+                <td>${escapeHtml(report.farmName || '-')}</td>
+                <td>${escapeHtml(report.animalTypeName || '-')}</td>
+                <td>${date}</td>
+                <td><span class="severity-badge ${severityClass}">${report.severity || '-'}</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${report.affectedCount || '-'}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
+                            👁️ View
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
     function showLoadingState() {
         elements.loadingState.style.display = 'block';
         elements.emptyState.style.display = 'none';
-        elements.reportsContainer.style.display = 'none';
+        if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'none';
+        if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'none';
     }
 
     function showEmptyState() {
         elements.loadingState.style.display = 'none';
         elements.emptyState.style.display = 'block';
-        elements.reportsContainer.style.display = 'none';
+        if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'none';
+        if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'none';
     }
 
     function showReportsTable() {
         elements.loadingState.style.display = 'none';
         elements.emptyState.style.display = 'none';
-        elements.reportsContainer.style.display = 'block';
+        updateViewDisplay();
     }
 
     // ========================================
