@@ -1,64 +1,102 @@
 /**
  * Global styles for the Animal Disease Reporting System
+ * Design System: Modern Clinical Theme
  */
 
-* {
+/* ========================================
+   Google Fonts Import - Inter
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   Base Reset
+   ======================================== */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html,
+/* ========================================
+   Root Styles
+   ======================================== */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  height: 100%;
+  min-height: 100vh;
   font-family: var(--font-family-primary);
   font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.6;
+  /* Improved readability */
   color: var(--color-text-primary);
   background-color: var(--color-bg-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   /* Prevent horizontal scroll on mobile */
   overflow-x: hidden;
   max-width: 100vw;
 }
 
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
+/* ========================================
+   Typography
+   ======================================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
+  font-family: var(--font-family-primary);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
   color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 h1 {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
 }
 
 h2 {
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-3xl);
 }
 
 h3 {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
 }
 
 h4 {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
 }
 
 h5 {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
 }
 
 h6 {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
 }
 
 p {
   margin: 0;
+  line-height: 1.6;
 }
 
+/* ========================================
+   Links
+   ======================================== */
 a {
   color: var(--color-primary);
   text-decoration: none;
@@ -69,7 +107,78 @@ a:hover {
   color: var(--color-primary-dark);
 }
 
-/* Scrollbar */
+a:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* ========================================
+   Focus Ring for Interactive Elements
+   ======================================== */
+button:focus-visible,
+[type="button"]:focus-visible,
+[type="submit"]:focus-visible,
+[type="reset"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible:not([tabindex="-1"]) {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove default focus outline when using focus-visible */
+button:focus:not(:focus-visible),
+[type="button"]:focus:not(:focus-visible),
+[type="submit"]:focus:not(:focus-visible),
+[type="reset"]:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ========================================
+   Form Elements Base Styles
+   ======================================== */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ========================================
+   Selection Styles
+   ======================================== */
+::selection {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary-lighter);
+  color: var(--color-primary-dark);
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -77,25 +186,38 @@ a:hover {
 
 ::-webkit-scrollbar-track {
   background: var(--color-gray-100);
+  border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-gray-400);
   border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-500);
 }
 
-/* Utilities */
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-400) var(--color-gray-100);
+}
+
+/* ========================================
+   Container
+   ======================================== */
 .container {
   width: 100%;
   max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding-inline: var(--space-4);
 }
 
+/* ========================================
+   Text Alignment Utilities
+   ======================================== */
 .text-center {
   text-align: center;
 }
@@ -108,91 +230,558 @@ a:hover {
   text-align: left;
 }
 
-.mt-sm { margin-top: var(--spacing-sm); }
-.mt-md { margin-top: var(--spacing-md); }
-.mt-lg { margin-top: var(--spacing-lg); }
-.mt-xl { margin-top: var(--spacing-xl); }
+/* ========================================
+   Spacing Utilities using 8-point scale
+   ======================================== */
+/* Margin Top */
+.mt-1 {
+  margin-top: var(--space-1);
+}
 
-.mb-sm { margin-bottom: var(--spacing-sm); }
-.mb-md { margin-bottom: var(--spacing-md); }
-.mb-lg { margin-bottom: var(--spacing-lg); }
-.mb-xl { margin-bottom: var(--spacing-xl); }
+.mt-2 {
+  margin-top: var(--space-2);
+}
 
-.ml-sm { margin-left: var(--spacing-sm); }
-.ml-md { margin-left: var(--spacing-md); }
-.ml-lg { margin-left: var(--spacing-lg); }
+.mt-3 {
+  margin-top: var(--space-3);
+}
 
-.mr-sm { margin-right: var(--spacing-sm); }
-.mr-md { margin-right: var(--spacing-md); }
-.mr-lg { margin-right: var(--spacing-lg); }
+.mt-4 {
+  margin-top: var(--space-4);
+}
 
-/* Flex utilities */
-.d-flex { display: flex; }
-.d-block { display: block; }
-.d-none { display: none; }
+.mt-6 {
+  margin-top: var(--space-6);
+}
 
-.flex-column { flex-direction: column; }
-.flex-row { flex-direction: row; }
-.flex-wrap { flex-wrap: wrap; }
+.mt-8 {
+  margin-top: var(--space-8);
+}
 
-.justify-start { justify-content: flex-start; }
-.justify-end { justify-content: flex-end; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
+.mt-12 {
+  margin-top: var(--space-12);
+}
 
-.align-start { align-items: flex-start; }
-.align-end { align-items: flex-end; }
-.align-center { align-items: center; }
+/* Margin Bottom */
+.mb-1 {
+  margin-bottom: var(--space-1);
+}
 
-.gap-sm { gap: var(--spacing-sm); }
-.gap-md { gap: var(--spacing-md); }
-.gap-lg { gap: var(--spacing-lg); }
+.mb-2 {
+  margin-bottom: var(--space-2);
+}
 
-/* Width utilities */
-.w-100 { width: 100%; }
-.w-auto { width: auto; }
+.mb-3 {
+  margin-bottom: var(--space-3);
+}
 
-/* Visibility utilities */
-.visible { visibility: visible; }
-.invisible { visibility: hidden; }
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
 
-/* Overflow utilities */
-.overflow-hidden { overflow: hidden; }
-.overflow-auto { overflow: auto; }
-.overflow-x-auto { 
-  overflow-x: auto; 
+.mb-6 {
+  margin-bottom: var(--space-6);
+}
+
+.mb-8 {
+  margin-bottom: var(--space-8);
+}
+
+.mb-12 {
+  margin-bottom: var(--space-12);
+}
+
+/* Margin Left */
+.ml-1 {
+  margin-left: var(--space-1);
+}
+
+.ml-2 {
+  margin-left: var(--space-2);
+}
+
+.ml-3 {
+  margin-left: var(--space-3);
+}
+
+.ml-4 {
+  margin-left: var(--space-4);
+}
+
+.ml-6 {
+  margin-left: var(--space-6);
+}
+
+/* Margin Right */
+.mr-1 {
+  margin-right: var(--space-1);
+}
+
+.mr-2 {
+  margin-right: var(--space-2);
+}
+
+.mr-3 {
+  margin-right: var(--space-3);
+}
+
+.mr-4 {
+  margin-right: var(--space-4);
+}
+
+.mr-6 {
+  margin-right: var(--space-6);
+}
+
+/* Padding utilities */
+.p-1 {
+  padding: var(--space-1);
+}
+
+.p-2 {
+  padding: var(--space-2);
+}
+
+.p-3 {
+  padding: var(--space-3);
+}
+
+.p-4 {
+  padding: var(--space-4);
+}
+
+.p-6 {
+  padding: var(--space-6);
+}
+
+.p-8 {
+  padding: var(--space-8);
+}
+
+/* Legacy spacing (backward compatibility) */
+.mt-sm {
+  margin-top: var(--space-2);
+}
+
+.mt-md {
+  margin-top: var(--space-4);
+}
+
+.mt-lg {
+  margin-top: var(--space-6);
+}
+
+.mt-xl {
+  margin-top: var(--space-8);
+}
+
+.mb-sm {
+  margin-bottom: var(--space-2);
+}
+
+.mb-md {
+  margin-bottom: var(--space-4);
+}
+
+.mb-lg {
+  margin-bottom: var(--space-6);
+}
+
+.mb-xl {
+  margin-bottom: var(--space-8);
+}
+
+.ml-sm {
+  margin-left: var(--space-2);
+}
+
+.ml-md {
+  margin-left: var(--space-4);
+}
+
+.ml-lg {
+  margin-left: var(--space-6);
+}
+
+.mr-sm {
+  margin-right: var(--space-2);
+}
+
+.mr-md {
+  margin-right: var(--space-4);
+}
+
+.mr-lg {
+  margin-right: var(--space-6);
+}
+
+/* ========================================
+   Flex Utilities
+   ======================================== */
+.d-flex {
+  display: flex;
+}
+
+.d-inline-flex {
+  display: inline-flex;
+}
+
+.d-block {
+  display: block;
+}
+
+.d-inline-block {
+  display: inline-block;
+}
+
+.d-none {
+  display: none;
+}
+
+.d-grid {
+  display: grid;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+.align-start {
+  align-items: flex-start;
+}
+
+.align-end {
+  align-items: flex-end;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.align-stretch {
+  align-items: stretch;
+}
+
+.align-baseline {
+  align-items: baseline;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-auto {
+  flex: auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+/* Gap utilities using 8-point scale */
+.gap-1 {
+  gap: var(--space-1);
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.gap-6 {
+  gap: var(--space-6);
+}
+
+.gap-8 {
+  gap: var(--space-8);
+}
+
+/* Legacy gap */
+.gap-sm {
+  gap: var(--space-2);
+}
+
+.gap-md {
+  gap: var(--space-4);
+}
+
+.gap-lg {
+  gap: var(--space-6);
+}
+
+/* ========================================
+   Width Utilities
+   ======================================== */
+.w-100 {
+  width: 100%;
+}
+
+.w-auto {
+  width: auto;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+.max-w-full {
+  max-width: 100%;
+}
+
+/* ========================================
+   Visibility Utilities
+   ======================================== */
+.visible {
+  visibility: visible;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+/* ========================================
+   Overflow Utilities
+   ======================================== */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-visible {
+  overflow: visible;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   Screen Reader Only
+   ======================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ========================================
+   Focus Visible Utility Class
+   ======================================== */
+.focus-ring:focus-visible {
+  outline: var(--focus-ring-width) var(--focus-ring-style) var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 /* ========================================
    Responsive Utilities
    ======================================== */
 
+/* Tablet and below (max-width: 768px) */
 @media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
   .container {
-    padding: 0 var(--spacing-sm);
+    padding-inline: var(--space-3);
   }
 
   /* Responsive display utilities */
-  .d-none-mobile { display: none !important; }
-  .d-block-mobile { display: block !important; }
-  .d-flex-mobile { display: flex !important; }
+  .d-none-mobile {
+    display: none !important;
+  }
+
+  .d-block-mobile {
+    display: block !important;
+  }
+
+  .d-flex-mobile {
+    display: flex !important;
+  }
 
   /* Responsive flex utilities */
-  .flex-column-mobile { flex-direction: column !important; }
-  .flex-row-mobile { flex-direction: row !important; }
+  .flex-column-mobile {
+    flex-direction: column !important;
+  }
+
+  .flex-row-mobile {
+    flex-direction: row !important;
+  }
 
   /* Responsive text */
-  .text-center-mobile { text-align: center !important; }
-  .text-left-mobile { text-align: left !important; }
+  .text-center-mobile {
+    text-align: center !important;
+  }
+
+  .text-left-mobile {
+    text-align: left !important;
+  }
 
   /* Responsive width */
-  .w-100-mobile { width: 100% !important; }
+  .w-100-mobile {
+    width: 100% !important;
+  }
+
+  /* Responsive typography */
+  h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-xl);
+  }
 }
 
+/* Small phones (max-width: 480px) */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  .container {
+    padding-inline: var(--space-2);
+  }
+
+  h1 {
+    font-size: var(--font-size-2xl);
+  }
+
+  h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  h3 {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* Desktop utilities (min-width: 769px) */
 @media (min-width: 769px) {
-  .d-none-desktop { display: none !important; }
-  .d-block-desktop { display: block !important; }
-  .d-flex-desktop { display: flex !important; }
+  .d-none-desktop {
+    display: none !important;
+  }
+
+  .d-block-desktop {
+    display: block !important;
+  }
+
+  .d-flex-desktop {
+    display: flex !important;
+  }
 }
 
+/* Large Desktop (min-width: 1200px) */
+@media (min-width: 1200px) {
+  .container {
+    padding-inline: var(--space-6);
+  }
+}
+
+/* ========================================
+   Reduced Motion Preferences
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  .d-none-print {
+    display: none !important;
+  }
+}
