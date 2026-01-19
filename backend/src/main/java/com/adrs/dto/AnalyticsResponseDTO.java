@@ -58,5 +58,23 @@ public class AnalyticsResponseDTO {
          * Each value is the count of disease reports for that period.
          */
         private List<Long> data;
+
+        /**
+         * Moving average of the data points for trend smoothing.
+         * Uses a sliding window (7 periods for weekly, 3 for monthly).
+         */
+        private List<Double> movingAverage;
+
+        /**
+         * Baseline mean of all data points.
+         * Serves as the center line for control charts.
+         */
+        private Double baselineMean;
+
+        /**
+         * Standard deviation of the data points.
+         * Used to calculate warning (±1σ) and outbreak (±2σ) thresholds.
+         */
+        private Double standardDeviation;
     }
 }

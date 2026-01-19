@@ -105,6 +105,25 @@
         <div class="chart-wrapper">
             <div class="chart-header">
                 <h3 id="chartTitle">Disease Trends</h3>
+
+                <!-- Chart View Selector -->
+                <div class="view-filters" id="chartViewFilters">
+                    <label class="view-filter-label">Chart View</label>
+                    <div class="view-toggle" role="group" aria-label="Chart view options">
+                        <button type="button" class="view-btn active" data-view="epi-curve"
+                            title="Raw case counts as bars">
+                            Raw Epi Curve
+                        </button>
+                        <button type="button" class="view-btn" data-view="trend" title="Smoothed moving average line">
+                            Smoothed Trend
+                        </button>
+                        <button type="button" class="view-btn" data-view="control"
+                            title="Control chart with sigma thresholds">
+                            Control Chart
+                        </button>
+                    </div>
+                </div>
+
                 <div class="chart-info">
                     <span id="chartPeriodInfo" class="period-info"></span>
                 </div>
@@ -156,7 +175,7 @@
     <div layout:fragment="scripts">
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <script th:src="@{/js/analytics.js(v=6)}"></script>
+        <script th:src="@{/js/analytics.js(v=7)}"></script>
         <!-- Fallback initialization in case the automatic one fails -->
         <script>
             // The analytics.js now handles DOM ready properly

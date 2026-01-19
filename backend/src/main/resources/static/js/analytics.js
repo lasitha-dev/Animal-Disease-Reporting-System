@@ -8,8 +8,10 @@
 
     // Local state (scoped to this IIFE)
     let currentChart = null;
+    let currentData = null; // Store fetched data for re-rendering
     let selectedGroupBy = 'MONTHLY';
     let selectedMetricType = 'REPORT_COUNT';
+    let selectedChartView = 'epi-curve'; // 'epi-curve', 'trend', 'control'
     let animalTypes = [];
     let diseases = [];
 
@@ -28,6 +30,16 @@
         'rgb(99, 102, 241)',   // Indigo
         'rgb(107, 114, 128)',  // Gray
     ];
+
+    // R-inspired colors for epidemiological charts (Viridis-style palette)
+    const EPI_COLORS = {
+        primary: '#4f46e5',      // Deep Indigo - raw bars
+        primaryAlpha: 'rgba(79, 70, 229, 0.7)',  // Bars with transparency
+        movingAvg: '#10b981',    // Emerald - moving average line
+        baseline: '#64748b',     // Slate - baseline mean
+        sigma1: '#f59e0b',       // Amber - ±1σ warning threshold
+        sigma2: '#dc2626',       // Red - ±2σ outbreak threshold
+    };
 
     // Elements
     const elements = {
@@ -55,6 +67,8 @@
         chartErrorState: null,
         chartTitle: null,
         chartPeriodInfo: null,
+        // View selector elements
+        viewButtons: null,
     };
 
     /**
@@ -137,6 +151,8 @@
         elements.chartErrorState = document.getElementById('chartErrorState');
         elements.chartTitle = document.getElementById('chartTitle');
         elements.chartPeriodInfo = document.getElementById('chartPeriodInfo');
+        // View selector elements
+        elements.viewButtons = document.querySelectorAll('.view-btn');
 
         // Log which elements were found/missing for debugging
         console.log('initElements complete:', {
@@ -147,7 +163,8 @@
             diseaseDropdown: !!elements.diseaseDropdown,
             applyButton: !!elements.applyButton,
             chartCanvas: !!elements.chartCanvas,
-            chartLoading: !!elements.chartLoading
+            chartLoading: !!elements.chartLoading,
+            viewButtons: elements.viewButtons?.length || 0
         });
     }
 
@@ -281,6 +298,26 @@
         // Retry button
         if (elements.retryButton) {
             elements.retryButton.addEventListener('click', fetchAndRenderChart);
+        }
+
+        // View selector buttons
+        if (elements.viewButtons && elements.viewButtons.length > 0) {
+            elements.viewButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    // Update active state
+                    elements.viewButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update selected view and re-render
+                    selectedChartView = this.dataset.view;
+
+                    // Re-render chart with current data if available
+                    if (currentData) {
+                        hideAllStates();
+                        renderChart(currentData);
+                    }
+                });
+            });
         }
     }
 
@@ -538,6 +575,7 @@
             }
 
             hideAllStates();
+            currentData = data; // Store for re-rendering on view change
             renderChart(data);
             updateChartInfo();
 
@@ -617,16 +655,58 @@
 
         const ctx = elements.chartCanvas.getContext('2d');
 
-        // Prepare datasets with colors
+        // Route to appropriate render function based on view type
+        switch (selectedChartView) {
+            case 'epi-curve':
+                renderEpiCurveChart(ctx, data);
+                break;
+            case 'trend':
+                renderTrendChart(ctx, data);
+                break;
+            case 'control':
+                renderControlChart(ctx, data);
+                break;
+            default:
+                renderEpiCurveChart(ctx, data);
+        }
+    }
+
+    /**
+     * Render Raw Epi Curve - Bar chart with case counts per disease
+     */
+    function renderEpiCurveChart(ctx, data) {
         const datasets = data.datasets.map((ds, index) => ({
             label: ds.diseaseName,
             data: ds.data,
+            backgroundColor: CHART_COLORS[index % CHART_COLORS.length].replace('rgb', 'rgba').replace(')', ', 0.7)'),
             borderColor: CHART_COLORS[index % CHART_COLORS.length],
-            backgroundColor: CHART_COLORS[index % CHART_COLORS.length].replace('rgb', 'rgba').replace(')', ', 0.1)'),
-            borderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            tension: 0.3, // Smooth curves
+            borderWidth: 1,
+            borderRadius: 4,
+        }));
+
+        currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: datasets
+            },
+            options: getChartOptions('Raw Epi Curve - Case Counts')
+        });
+    }
+
+    /**
+     * Render Smoothed Trend - Line chart with moving averages only
+     */
+    function renderTrendChart(ctx, data) {
+        const datasets = data.datasets.map((ds, index) => ({
+            label: `${ds.diseaseName} (MA)`,
+            data: ds.movingAverage || ds.data, // Fallback to raw if no MA
+            borderColor: CHART_COLORS[index % CHART_COLORS.length],
+            backgroundColor: 'transparent',
+            borderWidth: 3,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            tension: 0.4,
             fill: false,
         }));
 
@@ -636,81 +716,180 @@
                 labels: data.labels,
                 datasets: datasets
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 25,
-                            boxWidth: 12,
-                            boxHeight: 12,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleFont: {
-                            size: 13
-                        },
-                        bodyFont: {
-                            size: 12
-                        },
-                        padding: 12,
-                        callbacks: {
-                            label: function (context) {
-                                const metricLabel = selectedMetricType === 'ANIMAL_COUNT' ? 'animals' : 'reports';
-                                return `${context.dataset.label}: ${context.parsed.y} ${metricLabel}`;
-                            }
+            options: getChartOptions('Smoothed Trend Analysis')
+        });
+    }
+
+    /**
+     * Render Control Chart - Combined bar (raw) + line (MA) + sigma thresholds
+     * Uses aggregated totals for cleaner epidemiological analysis
+     */
+    function renderControlChart(ctx, data) {
+        // Aggregate all disease data into totals for control chart
+        const totalRaw = new Array(data.labels.length).fill(0);
+        const totalMA = new Array(data.labels.length).fill(0);
+        let totalMean = 0;
+        let totalStdDev = 0;
+
+        data.datasets.forEach(ds => {
+            ds.data.forEach((val, i) => {
+                totalRaw[i] += val;
+            });
+            if (ds.movingAverage) {
+                ds.movingAverage.forEach((val, i) => {
+                    totalMA[i] += val;
+                });
+            }
+            totalMean += ds.baselineMean || 0;
+            totalStdDev += ds.standardDeviation || 0;
+        });
+
+        // If no moving average from backend, use raw totals
+        const hasMA = data.datasets.some(ds => ds.movingAverage && ds.movingAverage.length > 0);
+        const maData = hasMA ? totalMA : totalRaw;
+
+        const datasets = [
+            // Raw case counts as bars
+            {
+                label: 'Case Count',
+                type: 'bar',
+                data: totalRaw,
+                backgroundColor: EPI_COLORS.primaryAlpha,
+                borderColor: EPI_COLORS.primary,
+                borderWidth: 1,
+                borderRadius: 4,
+                order: 2,
+            },
+            // Moving average line
+            {
+                label: 'Moving Average',
+                type: 'line',
+                data: maData,
+                borderColor: EPI_COLORS.movingAvg,
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.4,
+                order: 1,
+            },
+            // Baseline mean line
+            {
+                label: 'Baseline Mean',
+                type: 'line',
+                data: new Array(data.labels.length).fill(totalMean),
+                borderColor: EPI_COLORS.baseline,
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [8, 4],
+                pointRadius: 0,
+                order: 0,
+            },
+        ];
+
+        // Add sigma threshold lines if we have standard deviation
+        if (totalStdDev > 0) {
+            // +1σ Warning
+            datasets.push({
+                label: '+1σ Warning',
+                type: 'line',
+                data: new Array(data.labels.length).fill(totalMean + totalStdDev),
+                borderColor: EPI_COLORS.sigma1,
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderDash: [4, 4],
+                pointRadius: 0,
+                order: 0,
+            });
+            // +2σ Outbreak
+            datasets.push({
+                label: '+2σ Outbreak',
+                type: 'line',
+                data: new Array(data.labels.length).fill(totalMean + 2 * totalStdDev),
+                borderColor: EPI_COLORS.sigma2,
+                backgroundColor: 'transparent',
+                borderWidth: 1.5,
+                borderDash: [4, 4],
+                pointRadius: 0,
+                order: 0,
+            });
+        }
+
+        currentChart = new Chart(ctx, {
+            type: 'bar', // Base type for mixed chart
+            data: {
+                labels: data.labels,
+                datasets: datasets
+            },
+            options: getChartOptions('Epidemiological Control Chart')
+        });
+    }
+
+    /**
+     * Get common chart options with view-specific title
+     */
+    function getChartOptions(viewTitle) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        font: {
+                            size: 11
                         }
                     }
                 },
-                scales: {
-                    x: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: getXAxisLabel(),
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        },
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 0
-                        }
-                    },
-                    y: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: selectedMetricType === 'ANIMAL_COUNT' ? 'Number of Affected Animals' : 'Number of Reports',
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        },
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            precision: 0
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 13 },
+                    bodyFont: { size: 12 },
+                    padding: 12,
+                    callbacks: {
+                        label: function (context) {
+                            const metricLabel = selectedMetricType === 'ANIMAL_COUNT' ? 'animals' : 'reports';
+                            const value = typeof context.parsed.y === 'number'
+                                ? context.parsed.y.toFixed(1)
+                                : context.parsed.y;
+                            return `${context.dataset.label}: ${value} ${metricLabel}`;
                         }
                     }
+                },
+                title: {
+                    display: false, // Title shown in chart header
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: getXAxisLabel(),
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: { display: false },
+                    ticks: { maxRotation: 45, minRotation: 0 }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: selectedMetricType === 'ANIMAL_COUNT' ? 'Number of Animals' : 'Number of Reports',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
                 }
             }
-        });
+        };
     }
 
     /**

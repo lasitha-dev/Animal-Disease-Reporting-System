@@ -403,6 +403,55 @@
     border-radius: var(--border-radius-sm);
 }
 
+/* ========================================
+   Chart View Selector (R-Style Toggle)
+   ======================================== */
+.view-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.view-filter-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.view-toggle {
+    display: flex;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+}
+
+.view-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.view-btn:not(:last-child) {
+    border-right: 1px solid var(--color-border);
+}
+
+.view-btn:hover:not(.active) {
+    background: var(--color-bg-tertiary);
+}
+
+.view-btn.active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
 .chart-container {
     position: relative;
     min-height: 400px;
@@ -621,9 +670,11 @@
         flex: 1;
         min-width: 120px;
         width: 100%;
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-md);
-        min-height: 44px; /* Touch-friendly height */
+        min-height: 44px;
+        /* Touch-friendly height */
     }
 
     .period-toggle {
@@ -634,15 +685,18 @@
         flex: 1;
         padding: var(--spacing-sm);
         font-size: 0.8rem;
-        min-height: 44px; /* Touch-friendly height */
+        min-height: 44px;
+        /* Touch-friendly height */
     }
 
     .filter-select {
         max-width: 100%;
         width: 100%;
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-md) 2.25rem var(--spacing-md) var(--spacing-md);
-        min-height: 44px; /* Touch-friendly height */
+        min-height: 44px;
+        /* Touch-friendly height */
     }
 
     .filter-select[multiple] {
@@ -657,8 +711,10 @@
 
     .dropdown-toggle {
         width: 200px;
-        min-height: 44px; /* Touch-friendly height */
-        font-size: 16px; /* Prevent zoom on iOS */
+        min-height: 44px;
+        /* Touch-friendly height */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
     }
 
     .filter-hint {
@@ -685,6 +741,25 @@
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-sm);
+    }
+
+    /* View selector responsive */
+    .view-filters {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+
+    .view-toggle {
+        width: 100%;
+    }
+
+    .view-btn {
+        flex: 1;
+        padding: var(--spacing-sm);
+        font-size: 0.7rem;
+        min-height: 40px;
     }
 
     .chart-container {
@@ -721,7 +796,8 @@
     }
 
     .date-input {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-sm) var(--spacing-md);
         min-width: 100px;
         min-height: 44px;
@@ -732,13 +808,15 @@
     }
 
     .filter-select {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-sm) 2rem var(--spacing-sm) var(--spacing-sm);
         min-height: 44px;
     }
 
     .dropdown-toggle {
-        font-size: 16px; /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Prevent zoom on iOS */
         padding: var(--spacing-sm) var(--spacing-md);
         min-height: 44px;
     }

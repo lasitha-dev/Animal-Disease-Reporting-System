@@ -194,11 +194,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .map(label -> countsByPeriod.getOrDefault(label, 0L))
                     .collect(Collectors.toList());
 
+            // Calculate statistical metrics for control charts
+            int windowSize = getMovingAverageWindow(groupBy);
+            List<Double> movingAverage = calculateMovingAverage(data, windowSize);
+            Double baselineMean = calculateMean(data);
+            Double standardDeviation = calculateStandardDeviation(data, baselineMean);
+
             DatasetDTO dataset = new DatasetDTO();
             dataset.setDiseaseId(diseaseId);
             dataset.setDiseaseName(disease.getDiseaseName());
             dataset.setDiseaseCode(disease.getDiseaseCode());
             dataset.setData(data);
+            dataset.setMovingAverage(movingAverage);
+            dataset.setBaselineMean(baselineMean);
+            dataset.setStandardDeviation(standardDeviation);
 
             datasets.add(dataset);
         }
@@ -267,5 +276,91 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             default:
                 return date.toString();
         }
+    }
+
+    /**
+     * Get the moving average window size based on groupBy setting.
+     * Larger window for finer granularity (weekly), smaller for coarser (monthly/annually).
+     */
+    private int getMovingAverageWindow(GroupBy groupBy) {
+        switch (groupBy) {
+            case WEEKLY:
+                return 7;  // 7-week moving average for weekly data
+            case MONTHLY:
+                return 3;  // 3-month moving average for monthly data
+            case ANNUALLY:
+                return 2;  // 2-year moving average for annual data
+            default:
+                return 3;
+        }
+    }
+
+    /**
+     * Calculate moving average with given window size.
+     * Uses centered moving average for better alignment with data points.
+     */
+    private List<Double> calculateMovingAverage(List<Long> data, int windowSize) {
+        List<Double> movingAverage = new ArrayList<>();
+        int n = data.size();
+        
+        if (n == 0) {
+            return movingAverage;
+        }
+
+        // For small datasets, use simple average
+        if (n < windowSize) {
+            double avg = calculateMean(data);
+            for (int i = 0; i < n; i++) {
+                movingAverage.add(avg);
+            }
+            return movingAverage;
+        }
+
+        int halfWindow = windowSize / 2;
+        
+        for (int i = 0; i < n; i++) {
+            int start = Math.max(0, i - halfWindow);
+            int end = Math.min(n, i + halfWindow + 1);
+            
+            double sum = 0;
+            for (int j = start; j < end; j++) {
+                sum += data.get(j);
+            }
+            movingAverage.add(sum / (end - start));
+        }
+        
+        return movingAverage;
+    }
+
+    /**
+     * Calculate arithmetic mean of data points.
+     */
+    private Double calculateMean(List<Long> data) {
+        if (data == null || data.isEmpty()) {
+            return 0.0;
+        }
+        
+        double sum = 0;
+        for (Long value : data) {
+            sum += value;
+        }
+        return sum / data.size();
+    }
+
+    /**
+     * Calculate population standard deviation.
+     */
+    private Double calculateStandardDeviation(List<Long> data, Double mean) {
+        if (data == null || data.size() < 2) {
+            return 0.0;
+        }
+        
+        double sumSquaredDiff = 0;
+        for (Long value : data) {
+            double diff = value - mean;
+            sumSquaredDiff += diff * diff;
+        }
+        
+        return Math.sqrt(sumSquaredDiff / data.size());
     }
 }
