@@ -258,7 +258,7 @@
 
     /* Adjust grid gaps */
     .dashboard-grid {
-        gap: var(--spacing-md);
+        gap: var(--space-3);
     }
 }
 
@@ -377,7 +377,7 @@
     /* Stack grid items */
     .dashboard-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
+        gap: var(--space-3);
         width: 100%;
         max-width: 100%;
     }
@@ -421,14 +421,14 @@
 
     /* Dashboard grid - consistent spacing */
     .dashboard-grid {
-        gap: var(--space-4);
+        gap: var(--space-3);
     }
 
     /* Stats grid - ensure proper wrapping */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-3);
+        gap: var(--space-2);
         width: 100%;
         max-width: 100%;
     }
@@ -533,14 +533,15 @@
         font-size: var(--font-size-lg);
     }
 
-    /* Ensure touch-friendly buttons */
     .btn {
-        min-height: var(--touch-target-min);
-        padding: var(--spacing-sm) var(--spacing-md);
+        height: 40px;
+        min-height: auto;
+        padding: var(--space-2) var(--space-4);
     }
 
     .btn-sm {
-        min-height: 36px;
+        height: 32px;
+        min-height: auto;
     }
 
     /* Full width buttons on mobile */
@@ -585,7 +586,7 @@
     .stats-row {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: var(--space-3);
+        gap: var(--space-2);
     }
 
     .stat-card-new {
@@ -601,47 +602,47 @@
     .chart-row {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: var(--space-3);
     }
 
     .chart-card-new {
-        padding: 16px;
+        padding: var(--space-4);
     }
 
     /* Configuration tabs - scrollable on mobile */
     .config-tabs {
         display: flex;
-        gap: 8px;
+        gap: var(--space-2);
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 8px;
-        margin-bottom: 16px;
+        padding-bottom: var(--space-2);
+        margin-bottom: var(--space-4);
     }
 
     .config-tab {
         flex-shrink: 0;
-        padding: 10px 16px;
-        font-size: 13px;
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-size-sm);
     }
 
     /* Configuration cards grid - 1 column on mobile */
     .config-cards-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: var(--space-3);
     }
 
     .config-item-card {
-        padding: 16px;
+        padding: var(--space-4);
     }
 
     /* User management responsive */
     .user-management-content {
-        padding: 16px;
+        padding: var(--space-4);
     }
 
     .user-management-content .search-box {
         width: 100%;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-4);
     }
 
     .user-management-content .search-box input {
@@ -660,15 +661,15 @@
     .user-management-content tbody {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: var(--space-3);
     }
 
     .user-management-content tr {
         display: flex;
         flex-wrap: wrap;
         background: white;
-        border-radius: 12px;
-        padding: 16px;
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         border: 1px solid #e5e7eb;
     }
@@ -698,7 +699,7 @@
 
     /* Topbar actions */
     .topbar-actions {
-        gap: 8px;
+        gap: var(--space-2);
     }
 
     .notification-btn,
@@ -779,13 +780,13 @@
 
     /* Configuration tabs - smaller */
     .config-tab {
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-size-xs);
     }
 
     /* Config cards - more compact */
     .config-item-card {
-        padding: 12px;
+        padding: var(--space-3);
     }
 
     .config-item-name {

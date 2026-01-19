@@ -637,7 +637,8 @@ button:disabled {
 /* Tablet and below (max-width: 768px) */
 @media (max-width: 768px) {
   html {
-    font-size: 15px;
+    font-size: 16px;
+    /* Maintain base for readability */
   }
 
   .container {
@@ -680,24 +681,25 @@ button:disabled {
     width: 100% !important;
   }
 
-  /* Responsive typography */
+  /* Responsive typography - use mobile tokens */
   h1 {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-mobile-h1);
   }
 
   h2 {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-mobile-h2);
   }
 
   h3 {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-mobile-h3);
   }
 }
 
 /* Small phones (max-width: 480px) */
 @media (max-width: 480px) {
   html {
-    font-size: 14px;
+    font-size: 16px;
+    /* Keep consistent for readability */
   }
 
   .container {
@@ -705,15 +707,18 @@ button:disabled {
   }
 
   h1 {
-    font-size: var(--font-size-2xl);
+    font-size: 1.375rem;
+    /* 22px */
   }
 
   h2 {
-    font-size: var(--font-size-xl);
+    font-size: 1.125rem;
+    /* 18px */
   }
 
   h3 {
-    font-size: var(--font-size-lg);
+    font-size: 1rem;
+    /* 16px */
   }
 }
 
