@@ -28,6 +28,10 @@
   cursor: not-allowed;
 }
 
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 /* Button Sizes */
 .btn-sm {
   padding: var(--spacing-xs) var(--spacing-md);
