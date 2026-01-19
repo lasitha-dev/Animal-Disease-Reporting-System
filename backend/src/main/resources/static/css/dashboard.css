@@ -25,7 +25,7 @@
 
 .dashboard-header {
   padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--sidebar-border);
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -87,7 +87,7 @@
 .dashboard-nav a {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--space-3);
   padding: var(--spacing-md);
   color: var(--sidebar-text);
   text-decoration: none;
@@ -109,9 +109,17 @@
 }
 
 .dashboard-nav a .nav-icon {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 24px;
-  text-align: center;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.dashboard-nav a .nav-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .dashboard-user {
@@ -160,16 +168,35 @@
 }
 
 .sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
   background: transparent;
   border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-md);
   color: var(--sidebar-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .sidebar-logout-btn:hover {
-  background: var(--sidebar-hover-bg);
+  background: rgba(255, 255, 255, 0.05);
   border-color: var(--sidebar-text);
   color: var(--color-white);
+}
+
+.sidebar-logout-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+}
+
+.sidebar-logout-btn svg {
+  flex-shrink: 0;
 }
 
 .dashboard-main {
@@ -183,12 +210,11 @@
 .dashboard-topbar {
   height: var(--header-height);
   background-color: var(--color-white);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e2e8f0;
   padding: 0 var(--spacing-xl);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: var(--shadow-sm);
 }
 
 .dashboard-topbar h1 {
@@ -273,7 +299,7 @@
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
+  gap: var(--space-6);
 }
 
 /* ========================================
@@ -288,29 +314,35 @@
 }
 
 .stat-card-new {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-3);
   background: var(--color-white);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--space-5);
   border: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
   position: relative;
   overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.stat-card-new:hover {
+  border-color: var(--color-gray-300);
 }
 
 .stat-card-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: flex-start;
+  gap: var(--space-3);
 }
 
 .stat-card-label {
-  font-size: var(--font-size-xs);
+  font-size: 0.75rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .stat-card-icon {
@@ -517,6 +549,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -568,7 +601,7 @@
     flex: 0 0 calc(50% - var(--spacing-sm) / 2);
     max-width: calc(50% - var(--spacing-sm) / 2);
   }
-  
+
   .row {
     gap: var(--spacing-sm);
   }
@@ -621,11 +654,13 @@
 .diseases-content-grid .chart-container {
   height: auto;
   min-height: 280px;
-  min-width: 0; /* Prevent grid blowout */
+  min-width: 0;
+  /* Prevent grid blowout */
 }
 
 .diseases-content-grid .data-table {
-  min-width: 0; /* Prevent grid blowout */
+  min-width: 0;
+  /* Prevent grid blowout */
   /* No max-height - show all content without scroll */
 }
 
@@ -642,13 +677,13 @@
     gap: var(--spacing-md);
     width: 100%;
   }
-  
+
   .diseases-content-grid .chart-container {
     height: auto;
     min-height: 250px;
     width: 100%;
   }
-  
+
   .diseases-content-grid .data-table {
     width: 100%;
   }
@@ -660,14 +695,14 @@
     width: 100%;
     max-width: 100%;
   }
-  
+
   .diseases-content-grid .chart-container {
     height: auto;
     min-height: 220px;
     width: 100%;
     max-width: 100%;
   }
-  
+
   .diseases-content-grid .data-table {
     width: 100%;
     max-width: 100%;
@@ -685,12 +720,14 @@
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-xs);
   }
-  
+
   .diseases-content-grid .chart-container {
     min-height: 180px;
   }
-  
+
   .diseases-content-grid .data-table {
-    /* Show all content without scroll */
+    /* Allow full content display without scroll */
+    overflow-y: visible;
+    max-height: none;
   }
 }
