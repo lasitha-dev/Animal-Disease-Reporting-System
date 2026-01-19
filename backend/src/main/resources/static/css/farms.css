@@ -335,6 +335,8 @@
 
 .farm-card-info {
     margin-bottom: var(--spacing-md);
+    min-height: 72px;
+    /* 3 rows * ~24px each to maintain consistent height */
 }
 
 .farm-card-info-row {
