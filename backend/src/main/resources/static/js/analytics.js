@@ -840,7 +840,7 @@
                     position: 'top',
                     labels: {
                         usePointStyle: true,
-                        padding: 15,
+                        padding: 25, // Increased for better spacing on mobile
                         boxWidth: 10,
                         boxHeight: 10,
                         font: {

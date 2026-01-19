@@ -95,6 +95,70 @@ p {
 }
 
 /* ========================================
+   Page Header Components (Dashboard Pages)
+   ======================================== */
+.page-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.page-header-info h2 {
+  margin: 0 0 var(--space-2);
+  /* 8px spacing between title and subtitle */
+  font-size: var(--font-size-2xl);
+  /* 24px - consistent across pages */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  /* 14px - consistent */
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+/* Page header responsive - tablet */
+@media (max-width: 768px) {
+  .page-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .page-header-info h2 {
+    font-size: var(--font-size-xl);
+    /* 20px on tablet */
+    margin-bottom: var(--space-2);
+  }
+
+  .page-subtitle {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Page header responsive - mobile */
+@media (max-width: 480px) {
+  .page-header-info h2 {
+    font-size: var(--font-size-lg);
+    /* 18px on small mobile */
+    margin-bottom: var(--space-1);
+    /* Tighter but still visible */
+  }
+
+  .page-subtitle {
+    font-size: var(--font-size-xs);
+    /* 12px on small mobile */
+  }
+}
+
+/* ========================================
    Links
    ======================================== */
 a {

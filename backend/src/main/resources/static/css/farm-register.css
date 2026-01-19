@@ -1,18 +1,9 @@
 /* Farm Registration Form Styles */
 
+/* Page header styles inherited from global.css */
+/* Using .page-header-info h2 and .page-subtitle for consistency */
 .page-header {
     margin-bottom: var(--spacing-xl);
-}
-
-.page-header h2 {
-    margin: 0 0 var(--spacing-xs);
-    color: var(--color-text-primary);
-}
-
-.page-subtitle {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 0.95rem;
 }
 
 .form-container {

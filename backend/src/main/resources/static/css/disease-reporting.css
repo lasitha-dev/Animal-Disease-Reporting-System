@@ -3,28 +3,11 @@
  * Follows the existing modal and form patterns
  */
 
-/* Page Header */
-.page-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-}
+/* Page Header - base styles now in global.css */
+/* .page-header-row base definition inherited from global.css */
 
-.page-header-info h2 {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-primary);
-    margin: 0 0 var(--spacing-xs) 0;
-}
-
-.page-subtitle {
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-sm);
-    margin: 0;
-}
+/* Page header styles now inherited from global.css */
+/* .page-header-info h2, .page-subtitle defined globally for consistency */
 
 /* ========================================
    Reports Tabs

@@ -2,27 +2,11 @@
    Analytics Page Styles
    ======================================== */
 
-/* Page Header */
-.page-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-lg);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-}
+/* Page Header - base styles now in global.css */
+/* .page-header-row base definition inherited from global.css */
 
-.page-header-info h2 {
-    margin: 0 0 var(--spacing-xs);
-    font-size: 1.75rem;
-    color: var(--color-text-primary);
-}
-
-.page-subtitle {
-    margin: 0;
-    color: var(--color-text-secondary);
-    font-size: 0.95rem;
-}
+/* Page Header - styles inherited from global.css */
+/* .page-header-info h2, .page-subtitle defined globally for consistency */
 
 /* ========================================
    Filters Bar
@@ -631,14 +615,7 @@
 
 /* Mobile */
 @media (max-width: 768px) {
-    .page-header-info h2 {
-        font-size: 1.5rem;
-    }
-
-    .page-header-row {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+    /* Page header styles inherited from global.css */
 
     .analytics-filters-bar {
         flex-direction: column;
@@ -763,7 +740,7 @@
     }
 
     .chart-container {
-        min-height: 300px;
+        min-height: 350px;
     }
 
     .analytics-summary {
@@ -773,13 +750,7 @@
 
 /* Small Mobile */
 @media (max-width: 480px) {
-    .page-header-info h2 {
-        font-size: 1.25rem;
-    }
-
-    .page-subtitle {
-        font-size: 0.85rem;
-    }
+    /* Page header styles inherited from global.css */
 
     .analytics-filters-bar {
         padding: var(--spacing-sm);
@@ -838,8 +809,8 @@
     }
 
     .chart-container {
-        min-height: 220px;
-        max-height: 300px;
+        min-height: 320px;
+        max-height: 400px;
     }
 
     .empty-icon,
@@ -880,13 +851,7 @@
 
 /* Extra Small Mobile */
 @media (max-width: 360px) {
-    .page-header-info h2 {
-        font-size: 1.1rem;
-    }
-
-    .page-subtitle {
-        font-size: 0.8rem;
-    }
+    /* Page header styles inherited from global.css */
 
     .period-btn {
         font-size: 0.65rem;
