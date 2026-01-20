@@ -393,6 +393,10 @@
             option.textContent = at.typeName;
             elements.animalTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('animalTypeSelect');
+        }
     }
 
     /**

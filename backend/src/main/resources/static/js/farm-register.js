@@ -89,6 +89,10 @@
             option.dataset.description = type.description || '';
             farmTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmTypeId');
+        }
     }
 
     /**
@@ -130,6 +134,10 @@
             option.textContent = province.label;
             provinceSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('province');
+        }
     }
 
     /**
@@ -141,6 +149,10 @@
         if (!provinceName) {
             districtSelect.innerHTML = '<option value="">Select province first...</option>';
             districtSelect.disabled = true;
+            // Refresh CustomSelect to reflect disabled state
+            if (window.CustomSelect) {
+                CustomSelect.refresh('district');
+            }
             return;
         }
 
@@ -174,6 +186,10 @@
             districtSelect.appendChild(option);
         });
         districtSelect.disabled = false;
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('district');
+        }
     }
 
     /**
@@ -209,6 +225,10 @@
             option.textContent = type.typeName;
             animalTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('animalTypeSelect');
+        }
     }
 
     /**

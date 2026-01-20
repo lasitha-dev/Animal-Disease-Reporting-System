@@ -687,6 +687,12 @@
         document.querySelector('#submitBtn .btn-text').textContent = 'Register Farm';
         // Reset map
         resetMapMarker();
+        // Refresh CustomSelect dropdowns to reflect reset state
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmTypeId');
+            CustomSelect.refresh('province');
+            CustomSelect.refresh('district');
+        }
     }
 
     /**
@@ -713,6 +719,10 @@
             option.dataset.description = type.description || '';
             farmTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmTypeId');
+        }
     }
 
     function handleFarmTypeChange(e) {
@@ -736,6 +746,10 @@
                 option.textContent = p.label;
                 provinceSelect.appendChild(option);
             });
+            // Refresh CustomSelect to reflect new options
+            if (window.CustomSelect) {
+                CustomSelect.refresh('province');
+            }
         } catch (error) {
             console.error('Error loading provinces:', error);
         }
@@ -747,6 +761,10 @@
         if (!provinceName) {
             districtSelect.innerHTML = '<option value="">Select province first...</option>';
             districtSelect.disabled = true;
+            // Refresh CustomSelect to reflect disabled state
+            if (window.CustomSelect) {
+                CustomSelect.refresh('district');
+            }
             return;
         }
 
@@ -766,6 +784,10 @@
                 districtSelect.appendChild(option);
             });
             districtSelect.disabled = false;
+            // Refresh CustomSelect to reflect new options
+            if (window.CustomSelect) {
+                CustomSelect.refresh('district');
+            }
         } catch (error) {
             console.error('Error loading districts:', error);
             districtSelect.innerHTML = '<option value="">Failed to load</option>';
@@ -796,6 +818,10 @@
             option.textContent = type.typeName;
             animalTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('animalTypeSelect');
+        }
     }
 
     function handleAddAnimalTag() {

@@ -515,6 +515,14 @@
         hideFormMessage();
         currentDiseaseData = null;
         clearExistingImage = false;
+        // Refresh CustomSelect dropdowns to reflect reset state
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmId');
+            CustomSelect.refresh('animalTypeId');
+            CustomSelect.refresh('diseaseId');
+            CustomSelect.refresh('outcome');
+            CustomSelect.refresh('editSeverity');
+        }
     }
 
     async function populateEditForm(report) {
@@ -847,6 +855,10 @@
             option.dataset.animals = JSON.stringify(farm.animalTags || []);
             elements.farmSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmId');
+        }
     }
 
     async function onFarmChange() {
@@ -860,6 +872,11 @@
 
         if (!farmId) {
             elements.animalTypeSelect.disabled = true;
+            // Refresh CustomSelect for dependent dropdowns
+            if (window.CustomSelect) {
+                CustomSelect.refresh('animalTypeId');
+                CustomSelect.refresh('diseaseId');
+            }
             return;
         }
 
@@ -882,6 +899,10 @@
             option.dataset.count = animal.count; // Store count for validation
             elements.animalTypeSelect.appendChild(option);
         });
+        // Refresh CustomSelect to reflect new options
+        if (window.CustomSelect) {
+            CustomSelect.refresh('animalTypeId');
+        }
     }
 
     async function onAnimalTypeChange() {
@@ -896,6 +917,10 @@
             elements.diseaseSelect.disabled = true;
             currentAnimalCount = null;
             updateAffectedCountMax();
+            // Refresh CustomSelect for disease dropdown
+            if (window.CustomSelect) {
+                CustomSelect.refresh('diseaseId');
+            }
             return;
         }
 
@@ -924,6 +949,10 @@
                 option.dataset.disease = JSON.stringify(disease);
                 elements.diseaseSelect.appendChild(option);
             });
+            // Refresh CustomSelect to reflect new options
+            if (window.CustomSelect) {
+                CustomSelect.refresh('diseaseId');
+            }
         } catch (error) {
             console.error('Error loading diseases:', error);
             elements.diseaseSelect.innerHTML = '<option value="">Error loading diseases</option>';

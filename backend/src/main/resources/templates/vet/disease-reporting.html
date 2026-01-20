@@ -173,7 +173,8 @@
                             <div class="form-row form-row-2">
                                 <div class="form-group">
                                     <label for="farmId" class="form-label required">Farm</label>
-                                    <select id="farmId" name="farmId" class="form-select" required>
+                                    <select id="farmId" name="farmId" class="form-select" required
+                                        data-custom-select data-placeholder="Select farm..." data-title="Select Farm">
                                         <option value="">Select farm...</option>
                                     </select>
                                     <span class="form-error" id="farmId-error"></span>
@@ -181,7 +182,8 @@
 
                                 <div class="form-group">
                                     <label for="animalTypeId" class="form-label required">Animal Type</label>
-                                    <select id="animalTypeId" name="animalTypeId" class="form-select" required disabled>
+                                    <select id="animalTypeId" name="animalTypeId" class="form-select" required disabled
+                                        data-custom-select data-placeholder="Select animal type..." data-title="Select Animal Type">
                                         <option value="">Select farm first...</option>
                                     </select>
                                     <span class="form-error" id="animalTypeId-error"></span>
@@ -191,7 +193,8 @@
                             <div class="form-row form-row-2">
                                 <div class="form-group">
                                     <label for="diseaseId" class="form-label required">Disease</label>
-                                    <select id="diseaseId" name="diseaseId" class="form-select" required disabled>
+                                    <select id="diseaseId" name="diseaseId" class="form-select" required disabled
+                                        data-custom-select data-placeholder="Select disease..." data-title="Select Disease">
                                         <option value="">Select animal type first...</option>
                                     </select>
                                     <span class="form-error" id="diseaseId-error"></span>
@@ -252,7 +255,8 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="editSeverity" class="form-label">Severity (Override)</label>
-                                        <select id="editSeverity" class="form-select">
+                                        <select id="editSeverity" class="form-select"
+                                            data-custom-select data-placeholder="Use default" data-title="Select Severity">
                                             <option value="">Use default</option>
                                             <option value="LOW">Low</option>
                                             <option value="MEDIUM">Medium</option>
@@ -283,7 +287,8 @@
 
                                 <div class="form-group">
                                     <label for="outcome" class="form-label">Current Outcome</label>
-                                    <select id="outcome" name="outcome" class="form-select">
+                                    <select id="outcome" name="outcome" class="form-select"
+                                        data-custom-select data-placeholder="Select outcome..." data-title="Select Outcome">
                                         <option value="ONGOING">Ongoing</option>
                                         <option value="RECOVERED">Recovered</option>
                                         <option value="DIED">Died</option>
@@ -499,6 +504,7 @@
         <script th:inline="javascript">
             window.currentUsername = /*[[${#authentication.name}]]*/ '';
         </script>
+        <script th:src="@{/js/custom-select.js}"></script>
         <script th:src="@{/js/disease-reporting.js}"></script>
     </div>
 

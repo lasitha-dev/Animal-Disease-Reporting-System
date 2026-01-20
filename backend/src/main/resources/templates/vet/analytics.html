@@ -35,7 +35,8 @@
                     <span class="label-icon">📈</span>
                     Metric
                 </label>
-                <select id="metricTypeSelect" class="filter-select">
+                <select id="metricTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="Select Metric" data-title="Select Metric">
                     <option value="REPORT_COUNT">Report Count</option>
                     <option value="ANIMAL_COUNT">Animal Count</option>
                 </select>
@@ -57,7 +58,8 @@
                     <span class="label-icon">🐄</span>
                     Animal Type
                 </label>
-                <select id="animalTypeSelect" class="filter-select">
+                <select id="animalTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Animal Types" data-title="Select Animal Type">
                     <option value="">All Animal Types</option>
                     <!-- Dynamically populated -->
                 </select>
@@ -175,6 +177,7 @@
     <div layout:fragment="scripts">
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script th:src="@{/js/custom-select.js}"></script>
         <script th:src="@{/js/analytics.js(v=7)}"></script>
         <!-- Fallback initialization in case the automatic one fails -->
         <script>

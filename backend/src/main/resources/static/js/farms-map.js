@@ -106,6 +106,10 @@ function populateProvinceDropdown() {
         option.textContent = p.displayName;
         select.appendChild(option);
     });
+    // Refresh CustomSelect to reflect new options
+    if (window.CustomSelect) {
+        CustomSelect.refresh('provinceSelect');
+    }
 }
 
 /**
@@ -275,6 +279,10 @@ function populateAnimalTypeDropdown() {
     });
 
     selectedAnimalTypeIds = [];
+    // Refresh CustomSelect to reflect new options
+    if (window.CustomSelect) {
+        CustomSelect.refresh('animalTypeSelect');
+    }
 }
 
 /**
@@ -294,6 +302,10 @@ function populateDiseaseDropdown() {
     });
 
     selectedDiseaseIds = [];
+    // Refresh CustomSelect to reflect new options
+    if (window.CustomSelect) {
+        CustomSelect.refresh('diseaseSelect');
+    }
 }
 
 

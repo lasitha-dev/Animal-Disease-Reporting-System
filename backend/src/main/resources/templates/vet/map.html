@@ -46,7 +46,8 @@
                     <span class="label-icon">📍</span>
                     Province
                 </label>
-                <select id="provinceSelect" class="filter-select">
+                <select id="provinceSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Provinces" data-title="Select Province">
                     <option value="">All Provinces</option>
                     <!-- Dynamically populated -->
                 </select>
@@ -58,7 +59,8 @@
                     <span class="label-icon">🐄</span>
                     Animal Type
                 </label>
-                <select id="animalTypeSelect" class="filter-select">
+                <select id="animalTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Animal Types" data-title="Select Animal Type">
                     <!-- Dynamically populated -->
                 </select>
             </div>
@@ -68,7 +70,8 @@
                     <span class="label-icon">🦠</span>
                     Disease
                 </label>
-                <select id="diseaseSelect" class="filter-select">
+                <select id="diseaseSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Diseases" data-title="Select Disease">
                     <!-- Dynamically populated -->
                 </select>
             </div>
@@ -121,6 +124,7 @@
         <script
             th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initFarmMap&loading=async'}"
             async defer></script>
+        <script th:src="@{/js/custom-select.js}"></script>
         <script th:src="@{/js/farms-map.js}"></script>
     </div>
 

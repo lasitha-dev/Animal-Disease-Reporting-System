@@ -34,7 +34,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="farmTypeId" class="form-label required">Farm Type</label>
-                        <select id="farmTypeId" name="farmTypeId" class="form-select" required>
+                        <select id="farmTypeId" name="farmTypeId" class="form-select" required
+                            data-custom-select data-placeholder="Select farm type..." data-title="Select Farm Type">
                             <option value="">Select farm type...</option>
                         </select>
                         <span class="form-error" id="farmTypeId-error"></span>
@@ -85,7 +86,8 @@
                 <div class="form-row form-row-2">
                     <div class="form-group">
                         <label for="province" class="form-label required">Province</label>
-                        <select id="province" name="province" class="form-select" required>
+                        <select id="province" name="province" class="form-select" required
+                            data-custom-select data-placeholder="Select province..." data-title="Select Province">
                             <option value="">Select province...</option>
                         </select>
                         <span class="form-error" id="province-error"></span>
@@ -93,7 +95,8 @@
 
                     <div class="form-group">
                         <label for="district" class="form-label required">District</label>
-                        <select id="district" name="district" class="form-select" required disabled>
+                        <select id="district" name="district" class="form-select" required disabled
+                            data-custom-select data-placeholder="Select district..." data-title="Select District">
                             <option value="">Select province first...</option>
                         </select>
                         <span class="form-error" id="district-error"></span>
@@ -138,7 +141,8 @@
                     </div>
 
                     <div class="add-animal-tag">
-                        <select id="animalTypeSelect" class="form-select">
+                        <select id="animalTypeSelect" class="form-select"
+                            data-custom-select data-placeholder="Select animal type..." data-title="Select Animal Type">
                             <option value="">Select animal type to add...</option>
                         </select>
                         <input type="number" id="animalCountInput" class="form-input count-input" placeholder="Count"
@@ -162,6 +166,7 @@
     </div>
 
     <div layout:fragment="scripts">
+        <script th:src="@{/js/custom-select.js}"></script>
         <script th:src="@{/js/farm-register.js}"></script>
     </div>
 </body>
