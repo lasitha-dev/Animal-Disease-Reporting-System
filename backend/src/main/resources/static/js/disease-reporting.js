@@ -21,6 +21,8 @@
     let otherReportsLoaded = false; // Track if other reports have been loaded
     let currentViewMode = 'grid'; // View mode: 'grid' or 'table'
     const VIEW_MODE_STORAGE_KEY = 'disease-reports-view-mode'; // localStorage key
+    let isOtherDiseaseSelected = false; // Track if "Other" disease is selected
+    const OTHER_DISEASE_VALUE = '__OTHER__'; // Special value for "Other" option
 
     // DOM Elements
     const elements = {
@@ -57,6 +59,14 @@
         editSeverity: document.getElementById('editSeverity'),
         editNotifiable: document.getElementById('editNotifiable'),
         editDiseaseDescription: document.getElementById('editDiseaseDescription'),
+
+        // Other Disease form elements (for "Other" disease selection)
+        otherDiseaseSection: document.getElementById('otherDiseaseSection'),
+        newDiseaseName: document.getElementById('newDiseaseName'),
+        newDiseaseCode: document.getElementById('newDiseaseCode'),
+        newDiseaseSeverity: document.getElementById('newDiseaseSeverity'),
+        newDiseaseNotifiable: document.getElementById('newDiseaseNotifiable'),
+        newDiseaseDescription: document.getElementById('newDiseaseDescription'),
 
         // Form fields
         reportDate: document.getElementById('reportDate'),
@@ -523,6 +533,7 @@
         elements.diseaseSelect.innerHTML = '<option value="">Select animal type first...</option>';
         elements.diseaseInfoSection.style.display = 'none';
         resetDiseaseInfoEditMode();
+        hideOtherDiseaseSection(); // Reset "Other" disease section
         removeImage();
         hideFormMessage();
         currentDiseaseData = null;
@@ -722,6 +733,96 @@
         if (elements.editSeverity) elements.editSeverity.value = '';
         if (elements.editNotifiable) elements.editNotifiable.value = '';
         if (elements.editDiseaseDescription) elements.editDiseaseDescription.value = '';
+    }
+
+    // ========================================
+    // Other Disease Functions
+    // ========================================
+
+    /**
+     * Show the "Other Disease" form section and initialize CustomSelect for its dropdowns
+     */
+    function showOtherDiseaseSection() {
+        if (elements.otherDiseaseSection) {
+            elements.otherDiseaseSection.style.display = 'block';
+            
+            // Initialize CustomSelect for the new disease form dropdowns
+            if (window.CustomSelect) {
+                CustomSelect.refresh('newDiseaseSeverity');
+                CustomSelect.refresh('newDiseaseNotifiable');
+            }
+        }
+    }
+
+    /**
+     * Hide the "Other Disease" form section and reset its fields
+     */
+    function hideOtherDiseaseSection() {
+        isOtherDiseaseSelected = false;
+        if (elements.otherDiseaseSection) {
+            elements.otherDiseaseSection.style.display = 'none';
+        }
+        // Reset the fields
+        if (elements.newDiseaseName) elements.newDiseaseName.value = '';
+        if (elements.newDiseaseCode) elements.newDiseaseCode.value = '';
+        if (elements.newDiseaseSeverity) {
+            elements.newDiseaseSeverity.value = '';
+            if (window.CustomSelect) {
+                CustomSelect.refresh('newDiseaseSeverity');
+            }
+        }
+        if (elements.newDiseaseNotifiable) {
+            elements.newDiseaseNotifiable.value = '';
+            if (window.CustomSelect) {
+                CustomSelect.refresh('newDiseaseNotifiable');
+            }
+        }
+        if (elements.newDiseaseDescription) elements.newDiseaseDescription.value = '';
+    }
+
+    /**
+     * Validate the "Other Disease" form fields
+     * @returns {boolean} True if valid, false otherwise
+     */
+    function validateOtherDiseaseForm() {
+        let isValid = true;
+
+        // Clear previous errors
+        const errorFields = ['newDiseaseName', 'newDiseaseSeverity', 'newDiseaseNotifiable'];
+        errorFields.forEach(field => {
+            const errorEl = document.getElementById(`${field}-error`);
+            if (errorEl) errorEl.textContent = '';
+        });
+
+        // Validate disease name
+        const diseaseName = elements.newDiseaseName?.value?.trim();
+        if (!diseaseName) {
+            const errorEl = document.getElementById('newDiseaseName-error');
+            if (errorEl) errorEl.textContent = 'Disease name is required';
+            isValid = false;
+        } else if (diseaseName.length < 2) {
+            const errorEl = document.getElementById('newDiseaseName-error');
+            if (errorEl) errorEl.textContent = 'Disease name must be at least 2 characters';
+            isValid = false;
+        }
+
+        // Validate severity
+        const severity = elements.newDiseaseSeverity?.value;
+        if (!severity) {
+            const errorEl = document.getElementById('newDiseaseSeverity-error');
+            if (errorEl) errorEl.textContent = 'Severity is required';
+            isValid = false;
+        }
+
+        // Validate notifiable status
+        const notifiable = elements.newDiseaseNotifiable?.value;
+        if (notifiable === '' || notifiable === null || notifiable === undefined) {
+            const errorEl = document.getElementById('newDiseaseNotifiable-error');
+            if (errorEl) errorEl.textContent = 'Notifiable status is required';
+            isValid = false;
+        }
+
+        return isValid;
     }
 
     // ========================================
@@ -1031,9 +1132,10 @@
     async function onAnimalTypeChange() {
         const animalTypeId = elements.animalTypeSelect.value;
 
-        // Reset disease dropdown
+        // Reset disease dropdown and Other Disease section
         elements.diseaseSelect.innerHTML = '<option value="">Loading diseases...</option>';
         elements.diseaseInfoSection.style.display = 'none';
+        hideOtherDiseaseSection();
 
         if (!animalTypeId) {
             elements.diseaseSelect.innerHTML = '<option value="">Select animal type first...</option>';
@@ -1057,12 +1159,6 @@
 
             elements.diseaseSelect.innerHTML = '<option value="">Select disease...</option>';
 
-            if (diseases.length === 0) {
-                elements.diseaseSelect.innerHTML = '<option value="">No diseases registered for this animal type</option>';
-                elements.diseaseSelect.disabled = true;
-                return;
-            }
-
             elements.diseaseSelect.disabled = false;
 
             diseases.forEach(disease => {
@@ -1072,6 +1168,14 @@
                 option.dataset.disease = JSON.stringify(disease);
                 elements.diseaseSelect.appendChild(option);
             });
+
+            // Add "Other" option at the end
+            const otherOption = document.createElement('option');
+            otherOption.value = OTHER_DISEASE_VALUE;
+            otherOption.textContent = '➕ Other (Add new disease)';
+            otherOption.className = 'other-disease-option';
+            elements.diseaseSelect.appendChild(otherOption);
+
             // Refresh CustomSelect to reflect new options
             if (window.CustomSelect) {
                 CustomSelect.refresh('diseaseId');
@@ -1085,6 +1189,19 @@
 
     function onDiseaseChange() {
         const diseaseId = elements.diseaseSelect.value;
+
+        // Check if "Other" is selected
+        if (diseaseId === OTHER_DISEASE_VALUE) {
+            isOtherDiseaseSelected = true;
+            elements.diseaseInfoSection.style.display = 'none';
+            currentDiseaseData = null;
+            showOtherDiseaseSection();
+            return;
+        }
+
+        // Hide Other Disease section if a regular disease is selected
+        isOtherDiseaseSelected = false;
+        hideOtherDiseaseSection();
 
         if (!diseaseId) {
             elements.diseaseInfoSection.style.display = 'none';
@@ -1220,6 +1337,14 @@
             return;
         }
 
+        // If "Other" disease is selected, validate the new disease form
+        if (isOtherDiseaseSelected) {
+            if (!validateOtherDiseaseForm()) {
+                showFormMessage('Please fill in all required fields for the new disease.', 'error');
+                return;
+            }
+        }
+
         // Validate affected count does not exceed registered animal count
         const affectedCountInput = document.getElementById('affectedCount');
         const affectedCount = affectedCountInput.value ? parseInt(affectedCountInput.value) : null;
@@ -1239,7 +1364,6 @@
         const reportData = {
             farmId: elements.farmSelect.value,
             animalTypeId: elements.animalTypeSelect.value,
-            diseaseId: elements.diseaseSelect.value,
             reportDate: elements.reportDate.value,
             affectedCount: document.getElementById('affectedCount').value ? parseInt(document.getElementById('affectedCount').value) : null,
             symptoms: elements.symptoms.value,
@@ -1247,13 +1371,29 @@
             treatment: elements.treatment.value,
             outcome: document.getElementById('outcome').value,
             notes: document.getElementById('notes').value,
-            clearImage: editMode && clearExistingImage, // Include flag to clear existing image
-            // Disease info overrides (vet-specific, does not affect admin data)
-            overrideDiseaseName: elements.editDiseaseName?.value || null,
-            overrideSeverity: elements.editSeverity?.value || null,
-            overrideNotifiable: elements.editNotifiable?.value ? (elements.editNotifiable.value === 'true') : null,
-            overrideDescription: elements.editDiseaseDescription?.value || null
+            clearImage: editMode && clearExistingImage // Include flag to clear existing image
         };
+
+        // Handle disease ID or "Other" disease data
+        if (isOtherDiseaseSelected) {
+            // "Other" disease - include new disease fields
+            reportData.isOtherDisease = true;
+            reportData.diseaseId = null;
+            reportData.newDiseaseName = elements.newDiseaseName?.value?.trim() || null;
+            reportData.newDiseaseCode = elements.newDiseaseCode?.value?.trim() || null;
+            reportData.newDiseaseSeverity = elements.newDiseaseSeverity?.value || null;
+            reportData.newDiseaseIsNotifiable = elements.newDiseaseNotifiable?.value === 'true';
+            reportData.newDiseaseDescription = elements.newDiseaseDescription?.value?.trim() || null;
+        } else {
+            // Existing disease
+            reportData.isOtherDisease = false;
+            reportData.diseaseId = elements.diseaseSelect.value;
+            // Disease info overrides (vet-specific, does not affect admin data)
+            reportData.overrideDiseaseName = elements.editDiseaseName?.value || null;
+            reportData.overrideSeverity = elements.editSeverity?.value || null;
+            reportData.overrideNotifiable = elements.editNotifiable?.value ? (elements.editNotifiable.value === 'true') : null;
+            reportData.overrideDescription = elements.editDiseaseDescription?.value || null;
+        }
 
         // Create FormData for multipart request
         const formData = new FormData();

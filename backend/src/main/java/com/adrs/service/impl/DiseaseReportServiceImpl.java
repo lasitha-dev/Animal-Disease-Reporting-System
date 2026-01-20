@@ -60,8 +60,17 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         AnimalType animalType = animalTypeRepository.findById(request.getAnimalTypeId())
                 .orElseThrow(() -> new ConfigurationNotFoundException("AnimalType", request.getAnimalTypeId()));
 
-        Disease disease = diseaseRepository.findById(request.getDiseaseId())
-                .orElseThrow(() -> new ConfigurationNotFoundException("Disease", request.getDiseaseId()));
+        // Handle disease - either existing or create new "Other" disease
+        Disease disease;
+        if (Boolean.TRUE.equals(request.getIsOtherDisease())) {
+            disease = createOtherDisease(request, animalType, reporter);
+        } else {
+            if (request.getDiseaseId() == null) {
+                throw new IllegalArgumentException("Disease ID is required when not reporting an 'Other' disease");
+            }
+            disease = diseaseRepository.findById(request.getDiseaseId())
+                    .orElseThrow(() -> new ConfigurationNotFoundException("Disease", request.getDiseaseId()));
+        }
 
         // Validate affected count does not exceed registered animal count
         if (request.getAffectedCount() != null) {
@@ -397,6 +406,7 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
                     dto.setSeverity(d.getSeverity());
                     dto.setIsNotifiable(d.getIsNotifiable());
                     dto.setIsActive(d.getIsActive());
+                    dto.setCreatedByVet(d.getCreatedByVet());
                     if (d.getAnimalType() != null) {
                         dto.setAnimalTypeId(d.getAnimalType().getId());
                         dto.setAnimalTypeName(d.getAnimalType().getTypeName());
@@ -415,6 +425,66 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         return reports.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Create a new disease from "Other" disease report data.
+     * This is called when a vet reports a disease that doesn't exist in the system.
+     *
+     * @param request the disease report request containing new disease data
+     * @param animalType the animal type for the disease
+     * @param reporter the vet creating the disease
+     * @return the newly created Disease entity
+     */
+    private Disease createOtherDisease(DiseaseReportRequestDTO request, AnimalType animalType, User reporter) {
+        logger.info("Creating new disease from 'Other' selection by vet: {}", reporter.getUsername());
+
+        // Validate required fields for new disease
+        if (request.getNewDiseaseName() == null || request.getNewDiseaseName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Disease name is required when reporting an 'Other' disease");
+        }
+        if (request.getNewDiseaseSeverity() == null || request.getNewDiseaseSeverity().trim().isEmpty()) {
+            throw new IllegalArgumentException("Severity is required when reporting an 'Other' disease");
+        }
+        if (request.getNewDiseaseIsNotifiable() == null) {
+            throw new IllegalArgumentException("Notifiable status is required when reporting an 'Other' disease");
+        }
+
+        String diseaseName = request.getNewDiseaseName().trim();
+        String diseaseCode = request.getNewDiseaseCode() != null ? request.getNewDiseaseCode().trim() : null;
+
+        // Check if disease with same name already exists (case-insensitive)
+        if (diseaseRepository.existsByDiseaseNameIgnoreCase(diseaseName)) {
+            throw new IllegalArgumentException(
+                    String.format("A disease with the name '%s' already exists. Please select it from the dropdown instead.", diseaseName));
+        }
+
+        // Check if disease code already exists (if provided)
+        if (diseaseCode != null && !diseaseCode.isEmpty() && diseaseRepository.existsByDiseaseCodeIgnoreCase(diseaseCode)) {
+            throw new IllegalArgumentException(
+                    String.format("A disease with the code '%s' already exists. Please use a different code.", diseaseCode));
+        }
+
+        // Create new disease
+        Disease disease = new Disease();
+        disease.setDiseaseName(diseaseName);
+        disease.setDiseaseCode(diseaseCode != null && !diseaseCode.isEmpty() ? diseaseCode : null);
+        disease.setDescription(request.getNewDiseaseDescription());
+        disease.setSeverity(Disease.Severity.valueOf(request.getNewDiseaseSeverity()));
+        disease.setIsNotifiable(request.getNewDiseaseIsNotifiable());
+        disease.setAnimalType(animalType);
+        disease.setIsActive(true);
+        disease.setCreatedByVet(true);
+        disease.setCreatedBy(reporter);
+
+        // Set symptoms from the report if provided
+        disease.setSymptoms(request.getSymptoms());
+        disease.setTreatment(request.getTreatment());
+
+        Disease savedDisease = diseaseRepository.save(disease);
+        logger.info("New disease '{}' created by vet with ID: {}", savedDisease.getDiseaseName(), savedDisease.getId());
+
+        return savedDisease;
     }
 
     /**

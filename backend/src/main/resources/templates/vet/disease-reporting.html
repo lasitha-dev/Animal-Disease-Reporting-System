@@ -287,6 +287,58 @@
                             </div>
                         </div>
 
+                        <!-- Other Disease Form (Hidden by default - shown when "Other" is selected) -->
+                        <div class="form-section" id="otherDiseaseSection" style="display: none;">
+                            <h4 class="form-section-title">🆕 New Disease Details</h4>
+                            <p class="form-section-subtitle">This disease will be added to the system for all vets to use.</p>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="newDiseaseName" class="form-label required">Disease Name</label>
+                                    <input type="text" id="newDiseaseName" class="form-input"
+                                        placeholder="Enter disease name" maxlength="100">
+                                    <span class="form-error" id="newDiseaseName-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newDiseaseCode" class="form-label">Disease Code</label>
+                                    <input type="text" id="newDiseaseCode" class="form-input"
+                                        placeholder="e.g., FMD-001 (optional)" maxlength="20">
+                                    <span class="form-helper">Optional unique identifier</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row form-row-2">
+                                <div class="form-group">
+                                    <label for="newDiseaseSeverity" class="form-label required">Severity</label>
+                                    <select id="newDiseaseSeverity" class="form-select"
+                                        data-custom-select data-placeholder="Select severity..." data-title="Select Severity">
+                                        <option value="">Select severity...</option>
+                                        <option value="LOW">Low</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="CRITICAL">Critical</option>
+                                    </select>
+                                    <span class="form-error" id="newDiseaseSeverity-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newDiseaseNotifiable" class="form-label required">Notifiable</label>
+                                    <select id="newDiseaseNotifiable" class="form-select"
+                                        data-custom-select data-placeholder="Is this notifiable?" data-title="Notifiable Status">
+                                        <option value="">Select...</option>
+                                        <option value="true">Yes - Must be reported to authorities</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                    <span class="form-error" id="newDiseaseNotifiable-error"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="newDiseaseDescription" class="form-label">Description</label>
+                                <textarea id="newDiseaseDescription" class="form-textarea" rows="2"
+                                    placeholder="Brief description of the disease" maxlength="1000"></textarea>
+                            </div>
+                        </div>
+
                         <!-- Report Details -->
                         <div class="form-section">
                             <h4 class="form-section-title">Report Details</h4>

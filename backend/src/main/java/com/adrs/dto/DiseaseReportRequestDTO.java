@@ -1,6 +1,7 @@
 package com.adrs.dto;
 
 import com.adrs.model.DiseaseReport;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -24,8 +25,43 @@ public class DiseaseReportRequestDTO {
     @NotNull(message = "Animal type ID is required")
     private UUID animalTypeId;
 
-    @NotNull(message = "Disease ID is required")
+    /**
+     * Disease ID - required unless isOtherDisease is true
+     */
     private UUID diseaseId;
+
+    /**
+     * Flag indicating this is an "Other" disease that needs to be created
+     */
+    private Boolean isOtherDisease = false;
+
+    /**
+     * Name for the new disease (required when isOtherDisease is true)
+     */
+    @Size(min = 2, max = 100, message = "Disease name must be between 2 and 100 characters")
+    private String newDiseaseName;
+
+    /**
+     * Code for the new disease (optional when isOtherDisease is true)
+     */
+    @Size(max = 20, message = "Disease code must not exceed 20 characters")
+    private String newDiseaseCode;
+
+    /**
+     * Severity for the new disease (required when isOtherDisease is true)
+     */
+    private String newDiseaseSeverity;
+
+    /**
+     * Description for the new disease (optional when isOtherDisease is true)
+     */
+    @Size(max = 1000, message = "Disease description must not exceed 1000 characters")
+    private String newDiseaseDescription;
+
+    /**
+     * Notifiable status for the new disease (required when isOtherDisease is true)
+     */
+    private Boolean newDiseaseIsNotifiable;
 
     @NotNull(message = "Report date is required")
     private LocalDate reportDate;

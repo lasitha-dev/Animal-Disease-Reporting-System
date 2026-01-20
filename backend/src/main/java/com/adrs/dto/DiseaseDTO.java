@@ -56,6 +56,11 @@ public class DiseaseDTO {
 
     private Boolean isActive;
 
+    /**
+     * Indicates if this disease was created by a vet via the "Other" option.
+     */
+    private Boolean createdByVet;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

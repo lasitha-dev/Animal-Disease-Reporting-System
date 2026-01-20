@@ -85,6 +85,13 @@ public class Disease {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    /**
+     * Indicates if this disease was created by a vet via the "Other" option
+     * during disease reporting, rather than by an admin.
+     */
+    @Column(name = "created_by_vet", nullable = false)
+    private Boolean createdByVet = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

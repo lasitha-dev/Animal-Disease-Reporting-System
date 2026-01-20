@@ -292,6 +292,7 @@ public class DiseaseServiceImpl implements DiseaseService {
         dto.setSeverity(disease.getSeverity());
         dto.setIsNotifiable(disease.getIsNotifiable());
         dto.setIsActive(disease.getIsActive());
+        dto.setCreatedByVet(disease.getCreatedByVet());
         dto.setCreatedAt(disease.getCreatedAt());
         dto.setUpdatedAt(disease.getUpdatedAt());
         
