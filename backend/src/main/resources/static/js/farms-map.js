@@ -460,7 +460,12 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
     `;
 
     const diseaseListHtml = diseaseInfo.diseases.map(d => {
-        const severityClass = `severity-${(d.severity || 'UNKNOWN').toLowerCase()}`;
+        // Use effective values (which account for vet overrides) if available, fallback to original
+        const displayName = d.effectiveDiseaseName || d.diseaseName;
+        const displaySeverity = d.effectiveSeverity || d.severity || 'UNKNOWN';
+        const displayNotifiable = d.effectiveNotifiable !== undefined ? d.effectiveNotifiable : d.isNotifiable;
+        
+        const severityClass = `severity-${displaySeverity.toLowerCase()}`;
         const outcomeText = d.outcome ? d.outcome.replace('_', ' ') : '-';
         const currentUsername = window.currentUsername || '';
         const isOtherVetsReport = d.reportedByUsername && d.reportedByUsername !== currentUsername;
@@ -471,15 +476,15 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
         return `
             <div class="disease-card">
                 <div class="disease-card-header">
-                    <span class="disease-name">${escapeHtml(d.diseaseName)}</span>
-                    <span class="severity-badge ${severityClass}">${d.severity || '-'}</span>
+                    <span class="disease-name">${escapeHtml(displayName)}</span>
+                    <span class="severity-badge ${severityClass}">${displaySeverity || '-'}</span>
                 </div>
                 <div class="disease-card-body">
                     <div class="disease-detail"><span class="detail-label">Animal:</span><span class="detail-value">${escapeHtml(d.animalTypeName)}</span></div>
                     <div class="disease-detail"><span class="detail-label">Affected:</span><span class="detail-value">${d.affectedCount || '-'}</span></div>
                     <div class="disease-detail"><span class="detail-label">Date:</span><span class="detail-value">${d.reportDate || '-'}</span></div>
                     <div class="disease-detail"><span class="detail-label">Outcome:</span><span class="detail-value outcome-${(d.outcome || 'unknown').toLowerCase()}">${outcomeText}</span></div>
-                    ${d.isNotifiable ? '<span class="notifiable-badge">⚡ Notifiable</span>' : ''}
+                    ${displayNotifiable ? '<span class="notifiable-badge">⚡ Notifiable</span>' : ''}
                 </div>
                 <div class="disease-card-footer">
                     <a href="${reportUrl}" class="view-details-link" target="_blank">View Full Report →</a>

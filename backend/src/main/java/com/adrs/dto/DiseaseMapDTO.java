@@ -52,5 +52,10 @@ public class DiseaseMapDTO {
         private LocalDate reportDate;
         private DiseaseReport.Outcome outcome;
         private String reportedByUsername;
+        
+        // Effective values (overrides applied)
+        private String effectiveDiseaseName;
+        private Disease.Severity effectiveSeverity;
+        private Boolean effectiveNotifiable;
     }
 }

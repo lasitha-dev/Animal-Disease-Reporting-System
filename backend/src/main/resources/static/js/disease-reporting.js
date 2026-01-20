@@ -376,8 +376,9 @@
             const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
             const effectiveSeverity = report.effectiveSeverity || report.severity;
             const severityClass = effectiveSeverity?.toLowerCase() || '';
-            const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
-            const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
 
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
@@ -388,7 +389,6 @@
                     ${imageHtml}
                     <div class="report-card-badges">
                         <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
-                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
                 </div>
                 <div class="report-card-body">
@@ -404,6 +404,7 @@
                     <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
                         👁️ View Details
                     </button>
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
                 </div>
             `;
 
@@ -447,8 +448,9 @@
         const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
         const effectiveSeverity = report.effectiveSeverity || report.severity;
         const severityClass = effectiveSeverity?.toLowerCase() || '';
-        const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
-        const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+        const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+            ? report.effectiveNotifiable
+            : report.isNotifiable;
 
         return `
             <tr data-report-id="${report.id}">
@@ -457,7 +459,7 @@
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
                 <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>
                     <div class="table-vet-name">
@@ -484,6 +486,9 @@
     function openModal(isEdit = false, reportData = null) {
         editMode = isEdit;
         currentReportId = reportData?.id || null;
+
+        // Always hide any previous form messages when opening modal
+        hideFormMessage();
 
         if (isEdit && reportData) {
             elements.reportModalTitle.textContent = 'Edit Disease Report';
@@ -787,13 +792,6 @@
         document.getElementById('view-reportDate').textContent = report.reportDate
             ? new Date(report.reportDate).toLocaleDateString()
             : '-';
-
-        const statusEl = document.getElementById('view-status');
-        if (report.isConfirmed) {
-            statusEl.innerHTML = '<span class="status-badge confirmed">Confirmed</span>';
-        } else {
-            statusEl.innerHTML = '<span class="status-badge pending">Pending</span>';
-        }
 
         const outcomeEl = document.getElementById('view-outcome');
         if (report.outcome) {
@@ -1367,10 +1365,9 @@
             const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
             const effectiveSeverity = report.effectiveSeverity || report.severity;
             const severityClass = effectiveSeverity?.toLowerCase() || '';
-
-            // Status badge
-            const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
-            const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
 
             // Image HTML - show actual image or placeholder
             const imageHtml = report.imageUrl
@@ -1401,10 +1398,10 @@
                         </div>
                     </div>
                     <div class="report-card-footer">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
                         <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
                             👁️ View Details
                         </button>
+                        ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
                     </div>
                 </div>
             `;
@@ -1444,8 +1441,9 @@
         const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
         const effectiveSeverity = report.effectiveSeverity || report.severity;
         const severityClass = effectiveSeverity?.toLowerCase() || '';
-        const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
-        const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
+        const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+            ? report.effectiveNotifiable
+            : report.isNotifiable;
 
         return `
             <tr data-report-id="${report.id}">
@@ -1454,7 +1452,7 @@
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
                 <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>
                     <div class="table-actions">

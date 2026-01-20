@@ -313,6 +313,19 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
                         info.setDiseaseCode(r.getDisease().getDiseaseCode());
                         info.setSeverity(r.getDisease().getSeverity());
                         info.setIsNotifiable(r.getDisease().getIsNotifiable());
+                        
+                        // Set effective values (use override if present, otherwise use original)
+                        String effectiveName = (r.getOverrideDiseaseName() != null && !r.getOverrideDiseaseName().isEmpty())
+                                ? r.getOverrideDiseaseName() : r.getDisease().getDiseaseName();
+                        Disease.Severity effectiveSeverity = (r.getOverrideSeverity() != null)
+                                ? r.getOverrideSeverity() : r.getDisease().getSeverity();
+                        Boolean effectiveNotifiable = (r.getOverrideNotifiable() != null)
+                                ? r.getOverrideNotifiable() : r.getDisease().getIsNotifiable();
+                        
+                        info.setEffectiveDiseaseName(effectiveName);
+                        info.setEffectiveSeverity(effectiveSeverity);
+                        info.setEffectiveNotifiable(effectiveNotifiable);
+                        
                         info.setAnimalTypeId(r.getAnimalType().getId());
                         info.setAnimalTypeName(r.getAnimalType().getTypeName());
                         info.setAffectedCount(r.getAffectedCount());
