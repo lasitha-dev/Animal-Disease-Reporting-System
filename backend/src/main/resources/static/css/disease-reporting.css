@@ -521,6 +521,7 @@
 
 .form-row-2 {
     grid-template-columns: repeat(2, 1fr);
+    padding-bottom: 20px;
 }
 
 /* Empty State */
