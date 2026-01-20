@@ -318,6 +318,22 @@
     font-weight: var(--font-weight-medium);
 }
 
+/* Visual indicator for overridden values */
+.info-value.overridden,
+.info-text.overridden {
+    position: relative;
+    color: var(--color-primary);
+}
+
+.info-value.overridden::after,
+.info-text.overridden::after {
+    content: ' (modified)';
+    font-size: var(--font-size-xs);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-normal);
+    font-style: italic;
+}
+
 .info-text {
     padding: var(--spacing-sm);
     background: var(--color-gray-50);

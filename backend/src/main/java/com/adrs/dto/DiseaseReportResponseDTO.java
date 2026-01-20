@@ -36,6 +36,19 @@ public class DiseaseReportResponseDTO {
     private String diseaseCode;
     private Disease.Severity severity;
     private Boolean isNotifiable;
+    private String diseaseDescription;
+
+    // Override fields (vet-specific, if set these are used instead of admin values)
+    private String overrideDiseaseName;
+    private Disease.Severity overrideSeverity;
+    private String overrideDescription;
+    private Boolean overrideNotifiable;
+
+    // Effective values (overrides applied)
+    private String effectiveDiseaseName;
+    private Disease.Severity effectiveSeverity;
+    private String effectiveDescription;
+    private Boolean effectiveNotifiable;
 
     // Report details
     private LocalDate reportDate;

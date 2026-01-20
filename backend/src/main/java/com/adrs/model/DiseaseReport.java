@@ -93,6 +93,32 @@ public class DiseaseReport {
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
+    /**
+     * Override for disease name (vet-specific, does not affect admin data).
+     */
+    @Size(max = 255, message = "Override disease name must not exceed 255 characters")
+    @Column(name = "override_disease_name", length = 255)
+    private String overrideDiseaseName;
+
+    /**
+     * Override for severity (vet-specific, does not affect admin data).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "override_severity", length = 20)
+    private Disease.Severity overrideSeverity;
+
+    /**
+     * Override for description (vet-specific, does not affect admin data).
+     */
+    @Column(name = "override_description", columnDefinition = "TEXT")
+    private String overrideDescription;
+
+    /**
+     * Override for notifiable status (vet-specific, does not affect admin data).
+     */
+    @Column(name = "override_notifiable")
+    private Boolean overrideNotifiable;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

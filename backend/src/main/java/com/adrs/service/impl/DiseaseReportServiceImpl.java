@@ -93,6 +93,14 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         report.setNotes(request.getNotes());
         report.setIsConfirmed(false); // Start as unconfirmed
 
+        // Handle override fields (vet-specific, does not affect admin data)
+        report.setOverrideDiseaseName(request.getOverrideDiseaseName());
+        if (request.getOverrideSeverity() != null && !request.getOverrideSeverity().isEmpty()) {
+            report.setOverrideSeverity(Disease.Severity.valueOf(request.getOverrideSeverity()));
+        }
+        report.setOverrideDescription(request.getOverrideDescription());
+        report.setOverrideNotifiable(request.getOverrideNotifiable());
+
         // Handle image upload
         if (image != null && !image.isEmpty()) {
             String imagePath = fileStorageService.storeFile(image, DISEASE_IMAGES_DIR);
@@ -192,6 +200,16 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         report.setTreatment(request.getTreatment());
         report.setOutcome(request.getOutcome());
         report.setNotes(request.getNotes());
+
+        // Handle override fields (vet-specific, does not affect admin data)
+        report.setOverrideDiseaseName(request.getOverrideDiseaseName());
+        if (request.getOverrideSeverity() != null && !request.getOverrideSeverity().isEmpty()) {
+            report.setOverrideSeverity(Disease.Severity.valueOf(request.getOverrideSeverity()));
+        } else {
+            report.setOverrideSeverity(null);
+        }
+        report.setOverrideDescription(request.getOverrideDescription());
+        report.setOverrideNotifiable(request.getOverrideNotifiable());
 
         // Handle image clear request
         if (Boolean.TRUE.equals(request.getClearImage())) {
@@ -408,13 +426,40 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         }
         dto.setAffectedCount(report.getAffectedCount());
 
-        // Disease info
+        // Disease info (admin values)
         if (report.getDisease() != null) {
             dto.setDiseaseId(report.getDisease().getId());
             dto.setDiseaseName(report.getDisease().getDiseaseName());
             dto.setDiseaseCode(report.getDisease().getDiseaseCode());
             dto.setSeverity(report.getDisease().getSeverity());
             dto.setIsNotifiable(report.getDisease().getIsNotifiable());
+            dto.setDiseaseDescription(report.getDisease().getDescription());
+        }
+
+        // Override fields (vet-specific)
+        dto.setOverrideDiseaseName(report.getOverrideDiseaseName());
+        dto.setOverrideSeverity(report.getOverrideSeverity());
+        dto.setOverrideDescription(report.getOverrideDescription());
+        dto.setOverrideNotifiable(report.getOverrideNotifiable());
+
+        // Effective values (use override if set, otherwise use admin value)
+        if (report.getDisease() != null) {
+            dto.setEffectiveDiseaseName(
+                report.getOverrideDiseaseName() != null && !report.getOverrideDiseaseName().isEmpty()
+                    ? report.getOverrideDiseaseName()
+                    : report.getDisease().getDiseaseName());
+            dto.setEffectiveSeverity(
+                report.getOverrideSeverity() != null
+                    ? report.getOverrideSeverity()
+                    : report.getDisease().getSeverity());
+            dto.setEffectiveDescription(
+                report.getOverrideDescription() != null && !report.getOverrideDescription().isEmpty()
+                    ? report.getOverrideDescription()
+                    : report.getDisease().getDescription());
+            dto.setEffectiveNotifiable(
+                report.getOverrideNotifiable() != null
+                    ? report.getOverrideNotifiable()
+                    : report.getDisease().getIsNotifiable());
         }
 
         // Report details

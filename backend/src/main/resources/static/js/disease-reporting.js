@@ -55,6 +55,7 @@
         displayDescription: document.getElementById('display-description'),
         editDiseaseName: document.getElementById('editDiseaseName'),
         editSeverity: document.getElementById('editSeverity'),
+        editNotifiable: document.getElementById('editNotifiable'),
         editDiseaseDescription: document.getElementById('editDiseaseDescription'),
 
         // Form fields
@@ -371,7 +372,10 @@
             card.className = 'report-card other-vet-card';
 
             const date = new Date(report.reportDate).toLocaleDateString();
-            const severityClass = report.severity?.toLowerCase() || '';
+            // Use effective values (overrides applied)
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
             const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
             const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
 
@@ -383,12 +387,12 @@
                 <div class="report-card-header">
                     ${imageHtml}
                     <div class="report-card-badges">
-                        <span class="severity-badge ${severityClass}">${report.severity || '-'}</span>
+                        <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
                 </div>
                 <div class="report-card-body">
-                    <h4 class="report-card-title">${escapeHtml(report.diseaseName)}</h4>
+                    <h4 class="report-card-title">${escapeHtml(effectiveDiseaseName)}</h4>
                     <p class="report-card-subtitle">${escapeHtml(report.animalTypeName)} at ${escapeHtml(report.farmName)}</p>
                     <div class="report-card-meta">
                         <span class="meta-item">📅 ${date}</span>
@@ -439,17 +443,20 @@
      */
     function createOtherReportTableRow(report) {
         const date = new Date(report.reportDate).toLocaleDateString();
-        const severityClass = report.severity?.toLowerCase() || '';
+        // Use effective values (overrides applied)
+        const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+        const effectiveSeverity = report.effectiveSeverity || report.severity;
+        const severityClass = effectiveSeverity?.toLowerCase() || '';
         const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
         const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
 
         return `
             <tr data-report-id="${report.id}">
-                <td><span class="table-disease-name">${escapeHtml(report.diseaseName || 'Unknown')}</span></td>
+                <td><span class="table-disease-name">${escapeHtml(effectiveDiseaseName || 'Unknown')}</span></td>
                 <td>${escapeHtml(report.farmName || '-')}</td>
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
-                <td><span class="severity-badge ${severityClass}">${report.severity || '-'}</span></td>
+                <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>
@@ -554,6 +561,42 @@
         document.getElementById('diagnosis').value = report.diagnosis || '';
         document.getElementById('notes').value = report.notes || '';
 
+        // Populate override fields if they exist
+        if (report.overrideDiseaseName || report.overrideSeverity || report.overrideNotifiable !== null || report.overrideDescription) {
+            // Show disease info section and enter edit mode
+            if (elements.diseaseInfoSection) {
+                elements.diseaseInfoSection.style.display = 'block';
+            }
+            // Populate override fields
+            if (elements.editDiseaseName) {
+                elements.editDiseaseName.value = report.overrideDiseaseName || '';
+            }
+            if (elements.editSeverity) {
+                elements.editSeverity.value = report.overrideSeverity || '';
+                if (window.CustomSelect) {
+                    CustomSelect.refresh('editSeverity');
+                }
+            }
+            if (elements.editNotifiable) {
+                elements.editNotifiable.value = report.overrideNotifiable !== null ? String(report.overrideNotifiable) : '';
+                if (window.CustomSelect) {
+                    CustomSelect.refresh('editNotifiable');
+                }
+            }
+            if (elements.editDiseaseDescription) {
+                elements.editDiseaseDescription.value = report.overrideDescription || '';
+            }
+            
+            // Update the display with effective values (show overridden values in display mode)
+            updateDiseaseInfoDisplay();
+            
+            // Keep in display mode but show that overrides are applied
+            isDiseaseInfoEditMode = false;
+            if (elements.diseaseInfoDisplay) elements.diseaseInfoDisplay.style.display = 'block';
+            if (elements.diseaseInfoEdit) elements.diseaseInfoEdit.style.display = 'none';
+            if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+        }
+
         // Handle existing image
         clearExistingImage = false; // Reset the clear flag
         selectedImageFile = null; // Reset any selected file
@@ -576,16 +619,92 @@
             elements.diseaseInfoEdit.style.display = 'block';
             elements.editDiseaseInfoLabel.textContent = '✓ Done Editing';
 
-            // Pre-fill with current values
+            // Pre-fill with current override values or original values
             if (currentDiseaseData) {
-                elements.editDiseaseName.value = currentDiseaseData.diseaseName || '';
-                elements.editSeverity.value = '';
-                elements.editDiseaseDescription.value = '';
+                // If override fields already have values, keep them; otherwise use original
+                if (!elements.editDiseaseName.value) {
+                    elements.editDiseaseName.value = currentDiseaseData.diseaseName || '';
+                }
+                // Keep existing severity selection if set
+                if (!elements.editSeverity.value) {
+                    elements.editSeverity.value = '';
+                }
+                // Keep existing description if set
+                if (!elements.editDiseaseDescription.value) {
+                    elements.editDiseaseDescription.value = '';
+                }
             }
         } else {
+            // Switching back to display mode - update display with effective values
+            updateDiseaseInfoDisplay();
             elements.diseaseInfoDisplay.style.display = 'block';
             elements.diseaseInfoEdit.style.display = 'none';
             elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+        }
+    }
+
+    /**
+     * Update the disease info display with effective values (overrides applied)
+     */
+    function updateDiseaseInfoDisplay() {
+        if (!currentDiseaseData) return;
+
+        // Get override values from edit fields
+        const overrideName = elements.editDiseaseName?.value?.trim() || '';
+        const overrideSeverity = elements.editSeverity?.value || '';
+        const overrideNotifiable = elements.editNotifiable?.value || '';
+        const overrideDescription = elements.editDiseaseDescription?.value?.trim() || '';
+
+        // Calculate effective values (use override if set, otherwise use original)
+        const effectiveName = overrideName || currentDiseaseData.diseaseName || '-';
+        const effectiveSeverity = overrideSeverity || currentDiseaseData.severity || '-';
+        const effectiveNotifiable = overrideNotifiable !== '' 
+            ? (overrideNotifiable === 'true') 
+            : currentDiseaseData.isNotifiable;
+        const effectiveDescription = overrideDescription || currentDiseaseData.description || '-';
+
+        // Update display elements
+        if (elements.displayDiseaseName) {
+            elements.displayDiseaseName.textContent = effectiveName;
+            // Add visual indicator if overridden
+            if (overrideName && overrideName !== currentDiseaseData.diseaseName) {
+                elements.displayDiseaseName.classList.add('overridden');
+            } else {
+                elements.displayDiseaseName.classList.remove('overridden');
+            }
+        }
+
+        if (elements.displaySeverity) {
+            elements.displaySeverity.textContent = effectiveSeverity;
+            // Update severity badge class
+            elements.displaySeverity.className = 'info-value severity-badge';
+            if (effectiveSeverity && effectiveSeverity !== '-') {
+                elements.displaySeverity.classList.add(effectiveSeverity.toLowerCase());
+            }
+            // Add visual indicator if overridden
+            if (overrideSeverity && overrideSeverity !== currentDiseaseData.severity) {
+                elements.displaySeverity.classList.add('overridden');
+            }
+        }
+
+        if (elements.displayNotifiable) {
+            elements.displayNotifiable.textContent = effectiveNotifiable ? 'Yes ⚠️' : 'No';
+            // Add visual indicator if overridden
+            if (overrideNotifiable !== '' && (overrideNotifiable === 'true') !== currentDiseaseData.isNotifiable) {
+                elements.displayNotifiable.classList.add('overridden');
+            } else {
+                elements.displayNotifiable.classList.remove('overridden');
+            }
+        }
+
+        if (elements.displayDescription) {
+            elements.displayDescription.textContent = effectiveDescription;
+            // Add visual indicator if overridden
+            if (overrideDescription && overrideDescription !== currentDiseaseData.description) {
+                elements.displayDescription.classList.add('overridden');
+            } else {
+                elements.displayDescription.classList.remove('overridden');
+            }
         }
     }
 
@@ -596,6 +715,7 @@
         if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
         if (elements.editDiseaseName) elements.editDiseaseName.value = '';
         if (elements.editSeverity) elements.editSeverity.value = '';
+        if (elements.editNotifiable) elements.editNotifiable.value = '';
         if (elements.editDiseaseDescription) elements.editDiseaseDescription.value = '';
     }
 
@@ -645,18 +765,23 @@
         document.getElementById('view-animalType').textContent = report.animalTypeName || '-';
         document.getElementById('view-affectedCount').textContent = report.affectedCount || '-';
 
-        // Disease Information
-        document.getElementById('view-diseaseName').textContent = report.diseaseName || '-';
+        // Disease Information - use effective values (overrides applied)
+        document.getElementById('view-diseaseName').textContent = report.effectiveDiseaseName || report.diseaseName || '-';
         document.getElementById('view-diseaseCode').textContent = report.diseaseCode || '-';
 
         const severityEl = document.getElementById('view-severity');
-        if (report.severity) {
-            severityEl.innerHTML = `<span class="severity-badge ${report.severity.toLowerCase()}">${report.severity}</span>`;
+        const effectiveSeverity = report.effectiveSeverity || report.severity;
+        if (effectiveSeverity) {
+            severityEl.innerHTML = `<span class="severity-badge ${effectiveSeverity.toLowerCase()}">${effectiveSeverity}</span>`;
         } else {
             severityEl.textContent = '-';
         }
 
-        document.getElementById('view-notifiable').textContent = report.isNotifiable ? 'Yes ⚠️' : 'No';
+        // Use effective notifiable value (override applied)
+        const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+            ? report.effectiveNotifiable 
+            : report.isNotifiable;
+        document.getElementById('view-notifiable').textContent = effectiveNotifiable ? 'Yes ⚠️' : 'No';
 
         // Report Details
         document.getElementById('view-reportDate').textContent = report.reportDate
@@ -973,6 +1098,22 @@
         const disease = JSON.parse(selectedOption.dataset.disease || '{}');
         currentDiseaseData = disease;
 
+        // Reset override fields when disease changes (for new disease selection)
+        if (elements.editDiseaseName) elements.editDiseaseName.value = '';
+        if (elements.editSeverity) elements.editSeverity.value = '';
+        if (elements.editNotifiable) elements.editNotifiable.value = '';
+        if (elements.editDiseaseDescription) elements.editDiseaseDescription.value = '';
+        if (window.CustomSelect) {
+            CustomSelect.refresh('editSeverity');
+            CustomSelect.refresh('editNotifiable');
+        }
+
+        // Remove override indicators
+        elements.displayDiseaseName.classList.remove('overridden');
+        elements.displaySeverity.classList.remove('overridden');
+        elements.displayNotifiable.classList.remove('overridden');
+        elements.displayDescription.classList.remove('overridden');
+
         // Populate disease info display
         elements.displayDiseaseName.textContent = disease.diseaseName || '-';
         elements.displayDiseaseCode.textContent = disease.diseaseCode || '-';
@@ -1108,7 +1249,12 @@
             treatment: elements.treatment.value,
             outcome: document.getElementById('outcome').value,
             notes: document.getElementById('notes').value,
-            clearImage: editMode && clearExistingImage // Include flag to clear existing image
+            clearImage: editMode && clearExistingImage, // Include flag to clear existing image
+            // Disease info overrides (vet-specific, does not affect admin data)
+            overrideDiseaseName: elements.editDiseaseName?.value || null,
+            overrideSeverity: elements.editSeverity?.value || null,
+            overrideNotifiable: elements.editNotifiable?.value ? (elements.editNotifiable.value === 'true') : null,
+            overrideDescription: elements.editDiseaseDescription?.value || null
         };
 
         // Create FormData for multipart request
@@ -1217,8 +1363,10 @@
             // Format date
             const date = new Date(report.reportDate).toLocaleDateString();
 
-            // Severity badge
-            const severityClass = report.severity?.toLowerCase() || '';
+            // Use effective values (overrides applied)
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
 
             // Status badge
             const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
@@ -1235,8 +1383,8 @@
                 </div>
                 <div class="report-card-content">
                     <div class="report-card-header">
-                        <h4 class="report-card-title">${report.diseaseName || 'Unknown Disease'}</h4>
-                        <span class="severity-badge ${severityClass}">${report.severity || '-'}</span>
+                        <h4 class="report-card-title">${effectiveDiseaseName || 'Unknown Disease'}</h4>
+                        <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
                     </div>
                     <div class="report-card-meta">
                         <div class="report-card-info">
@@ -1292,17 +1440,20 @@
      */
     function createReportTableRow(report) {
         const date = new Date(report.reportDate).toLocaleDateString();
-        const severityClass = report.severity?.toLowerCase() || '';
+        // Use effective values (overrides applied)
+        const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+        const effectiveSeverity = report.effectiveSeverity || report.severity;
+        const severityClass = effectiveSeverity?.toLowerCase() || '';
         const statusClass = report.isConfirmed ? 'confirmed' : 'pending';
         const statusText = report.isConfirmed ? 'Confirmed' : 'Pending';
 
         return `
             <tr data-report-id="${report.id}">
-                <td><span class="table-disease-name">${escapeHtml(report.diseaseName || 'Unknown')}</span></td>
+                <td><span class="table-disease-name">${escapeHtml(effectiveDiseaseName || 'Unknown')}</span></td>
                 <td>${escapeHtml(report.farmName || '-')}</td>
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
-                <td><span class="severity-badge ${severityClass}">${report.severity || '-'}</span></td>
+                <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>

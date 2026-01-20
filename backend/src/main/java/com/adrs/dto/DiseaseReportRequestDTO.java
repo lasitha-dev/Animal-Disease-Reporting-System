@@ -53,4 +53,25 @@ public class DiseaseReportRequestDTO {
      * Flag to indicate that the existing image should be removed
      */
     private Boolean clearImage = false;
+
+    /**
+     * Override for disease name (vet-specific, does not affect admin data)
+     */
+    @Size(max = 255, message = "Override disease name must not exceed 255 characters")
+    private String overrideDiseaseName;
+
+    /**
+     * Override for severity (vet-specific, does not affect admin data)
+     */
+    private String overrideSeverity;
+
+    /**
+     * Override for description (vet-specific, does not affect admin data)
+     */
+    private String overrideDescription;
+
+    /**
+     * Override for notifiable status (vet-specific, does not affect admin data)
+     */
+    private Boolean overrideNotifiable;
 }
