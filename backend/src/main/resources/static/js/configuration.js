@@ -33,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('farm-type-form').addEventListener('submit', handleFarmTypeSubmit);
     document.getElementById('animal-type-form').addEventListener('submit', handleAnimalTypeSubmit);
     document.getElementById('disease-form').addEventListener('submit', handleDiseaseSubmit);
-    
+
     // Set up add buttons
     document.getElementById('add-farm-type-btn').addEventListener('click', () => openFarmTypeModal());
     document.getElementById('add-animal-type-btn').addEventListener('click', () => openAnimalTypeModal());
     document.getElementById('add-disease-btn').addEventListener('click', () => openDiseaseModal());
-    
+
     // Set up delete confirmation
     document.getElementById('confirm-delete-btn').addEventListener('click', handleDelete);
 });
@@ -82,7 +82,7 @@ function switchTab(tabName) {
     if (activeButton) {
         activeButton.classList.add('active');
     }
-    
+
     for (const content of tabContents) {
         content.classList.remove('active');
     }
@@ -90,7 +90,7 @@ function switchTab(tabName) {
     if (targetContent) {
         targetContent.classList.add('active');
     }
-    
+
     // Load data for the tab
     currentTab = validTab;
     switch (validTab) {
@@ -120,7 +120,7 @@ function initializeModals() {
             }
         });
     });
-    
+
     // Click outside to close (click on overlay)
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
@@ -147,7 +147,7 @@ async function loadFarmTypes() {
     try {
         const response = await fetch(FARM_TYPES_API);
         if (!response.ok) throw new Error('Failed to load farm types');
-        
+
         const farmTypes = await response.json();
         renderFarmTypesCards(farmTypes);
     } catch (error) {
@@ -158,7 +158,7 @@ async function loadFarmTypes() {
 
 function renderFarmTypesCards(farmTypes) {
     const container = document.getElementById('farm-types-cards');
-    
+
     if (!farmTypes || farmTypes.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
@@ -168,7 +168,7 @@ function renderFarmTypesCards(farmTypes) {
         `;
         return;
     }
-    
+
     container.innerHTML = farmTypes.map(ft => `
         <div class="config-item-card" onclick="editFarmType('${ft.id}')" data-id="${ft.id}">
             <div class="config-item-icon">🏡</div>
@@ -188,7 +188,7 @@ function openFarmTypeModal(farmType = null) {
     currentEditId = farmType ? farmType.id : null;
     const form = document.getElementById('farm-type-form');
     const title = document.getElementById('farm-type-modal-title');
-    
+
     if (farmType) {
         title.textContent = 'Edit Farm Type';
         document.getElementById('farm-type-id').value = farmType.id;
@@ -199,27 +199,27 @@ function openFarmTypeModal(farmType = null) {
         title.textContent = 'Add Farm Type';
         form.reset();
     }
-    
+
     // Clear errors
     form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
     form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-    
+
     openModal('farm-type-modal');
 }
 
 async function handleFarmTypeSubmit(e) {
     e.preventDefault();
-    
+
     const formData = {
         typeName: document.getElementById('farm-type-name').value.trim(),
         description: document.getElementById('farm-type-description').value.trim(),
         isActive: document.getElementById('farm-type-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${FARM_TYPES_API}/${currentEditId}` : FARM_TYPES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -228,12 +228,12 @@ async function handleFarmTypeSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save farm type');
         }
-        
+
         showSuccess(`Farm type ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('farm-type-modal');
         loadFarmTypes();
@@ -247,7 +247,7 @@ async function editFarmType(id) {
     try {
         const response = await fetch(`${FARM_TYPES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load farm type');
-        
+
         const farmType = await response.json();
         openFarmTypeModal(farmType);
     } catch (error) {
@@ -266,9 +266,9 @@ async function toggleFarmType(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Farm type ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadFarmTypes();
     } catch (error) {
@@ -280,7 +280,7 @@ async function toggleFarmType(id, isActive) {
 function deleteFarmType(id) {
     currentDeleteId = id;
     currentDeleteType = 'farm-type';
-    
+
     // Check usage before showing delete modal
     fetch(`${FARM_TYPES_API}/${id}/usage`)
         .then(response => response.json())
@@ -288,8 +288,12 @@ function deleteFarmType(id) {
             const usageCount = data.usageCount || 0;
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset disease list (only used for animal types)
+            diseaseListContainer.style.display = 'none';
+
             if (usageCount > 0) {
                 message.textContent = `This farm type is currently used by ${usageCount} farm(s).`;
                 warning.style.display = 'block';
@@ -299,7 +303,7 @@ function deleteFarmType(id) {
                 warning.style.display = 'none';
                 deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -316,7 +320,7 @@ async function loadAnimalTypes() {
     try {
         const response = await fetch(ANIMAL_TYPES_API);
         if (!response.ok) throw new Error('Failed to load animal types');
-        
+
         const animalTypes = await response.json();
         renderAnimalTypesCards(animalTypes);
     } catch (error) {
@@ -327,7 +331,7 @@ async function loadAnimalTypes() {
 
 function renderAnimalTypesCards(animalTypes) {
     const container = document.getElementById('animal-types-cards');
-    
+
     if (!animalTypes || animalTypes.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
@@ -337,7 +341,7 @@ function renderAnimalTypesCards(animalTypes) {
         `;
         return;
     }
-    
+
     container.innerHTML = animalTypes.map(at => `
         <div class="config-item-card" onclick="editAnimalType('${at.id}')" data-id="${at.id}">
             <div class="config-item-icon">🐾</div>
@@ -357,7 +361,7 @@ function openAnimalTypeModal(animalType = null) {
     currentEditId = animalType ? animalType.id : null;
     const form = document.getElementById('animal-type-form');
     const title = document.getElementById('animal-type-modal-title');
-    
+
     if (animalType) {
         title.textContent = 'Edit Animal Type';
         document.getElementById('animal-type-id').value = animalType.id;
@@ -368,27 +372,27 @@ function openAnimalTypeModal(animalType = null) {
         title.textContent = 'Add Animal Type';
         form.reset();
     }
-    
+
     // Clear errors
     form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
     form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-    
+
     openModal('animal-type-modal');
 }
 
 async function handleAnimalTypeSubmit(e) {
     e.preventDefault();
-    
+
     const formData = {
         typeName: document.getElementById('animal-type-name').value.trim(),
         description: document.getElementById('animal-type-description').value.trim(),
         isActive: document.getElementById('animal-type-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${ANIMAL_TYPES_API}/${currentEditId}` : ANIMAL_TYPES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -397,12 +401,12 @@ async function handleAnimalTypeSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save animal type');
         }
-        
+
         showSuccess(`Animal type ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('animal-type-modal');
         loadAnimalTypes();
@@ -418,7 +422,7 @@ async function editAnimalType(id) {
     try {
         const response = await fetch(`${ANIMAL_TYPES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load animal type');
-        
+
         const animalType = await response.json();
         openAnimalTypeModal(animalType);
     } catch (error) {
@@ -437,9 +441,9 @@ async function toggleAnimalType(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Animal type ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadAnimalTypes();
         // Clear cache so disease dropdown refreshes with updated animal types
@@ -453,25 +457,48 @@ async function toggleAnimalType(id, isActive) {
 function deleteAnimalType(id) {
     currentDeleteId = id;
     currentDeleteType = 'animal-type';
-    
+
     fetch(`${ANIMAL_TYPES_API}/${id}/usage`)
         .then(response => response.json())
         .then(data => {
             const usageCount = data.usageCount || 0;
+            const diseaseCount = data.diseaseCount || 0;
+            const diseaseNames = data.diseaseNames || [];
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
+            const diseaseNamesList = document.getElementById('disease-names-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset all elements first
+            warning.style.display = 'none';
+            diseaseListContainer.style.display = 'none';
+            diseaseNamesList.innerHTML = '';
+            deleteBtn.disabled = false;
+
             if (usageCount > 0) {
+                // Animals are using this type - block deletion
                 message.textContent = `This animal type is currently used by ${usageCount} animal(s).`;
                 warning.style.display = 'block';
                 deleteBtn.disabled = true;
+            } else if (diseaseCount > 0) {
+                // Diseases are linked to this type - show disease names and block deletion
+                message.textContent = 'This animal type cannot be deleted.';
+
+                // Populate disease names list
+                diseaseNames.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    diseaseNamesList.appendChild(li);
+                });
+
+                diseaseListContainer.style.display = 'block';
+                deleteBtn.disabled = true;
             } else {
+                // No usage - allow deletion
                 message.textContent = 'Are you sure you want to delete this animal type?';
-                warning.style.display = 'none';
-                deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -488,7 +515,7 @@ async function loadDiseases() {
     try {
         const response = await fetch(DISEASES_API);
         if (!response.ok) throw new Error('Failed to load diseases');
-        
+
         const diseases = await response.json();
         renderDiseasesCards(diseases);
     } catch (error) {
@@ -499,7 +526,7 @@ async function loadDiseases() {
 
 function renderDiseasesCards(diseases) {
     const container = document.getElementById('diseases-cards');
-    
+
     if (!diseases || diseases.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
@@ -509,7 +536,7 @@ function renderDiseasesCards(diseases) {
         `;
         return;
     }
-    
+
     container.innerHTML = diseases.map(d => `
         <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
             <div class="config-item-icon">🦠</div>
@@ -529,7 +556,7 @@ function openDiseaseModal(disease = null) {
     currentEditId = disease ? disease.id : null;
     const form = document.getElementById('disease-form');
     const title = document.getElementById('disease-modal-title');
-    
+
     // Load animal types for dropdown
     loadAnimalTypesForDropdown().then(() => {
         if (disease) {
@@ -549,13 +576,13 @@ function openDiseaseModal(disease = null) {
             form.reset();
             document.getElementById('disease-animal-type').value = '';
         }
-        
+
         // Clear errors
         form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
         form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-        
+
         openModal('disease-modal');
-        
+
         // Initialize custom selects after modal is open (for proper dimensions)
         initializeDiseaseCustomSelects(disease);
     });
@@ -572,12 +599,12 @@ function initializeDiseaseCustomSelects(disease) {
             placeholder: 'Select animal type...',
             title: 'Select Animal Type'
         });
-        
+
         CustomSelect.init('disease-severity', {
             placeholder: 'Select severity...',
             title: 'Select Severity'
         });
-        
+
         // Set values after initialization
         if (disease) {
             if (disease.animalTypeId) {
@@ -606,10 +633,10 @@ async function loadAnimalTypesForDropdown() {
             populateAnimalTypeDropdown(animalTypesCache);
             return;
         }
-        
+
         const response = await fetch(`${ANIMAL_TYPES_API}/active`);
         if (!response.ok) throw new Error('Failed to load animal types');
-        
+
         animalTypesCache = await response.json();
         populateAnimalTypeDropdown(animalTypesCache);
     } catch (error) {
@@ -624,10 +651,10 @@ async function loadAnimalTypesForDropdown() {
 function populateAnimalTypeDropdown(animalTypes) {
     const select = document.getElementById('disease-animal-type');
     const currentValue = select.value;
-    
+
     // Clear existing options except the first placeholder
     select.innerHTML = '<option value="">Select animal type...</option>';
-    
+
     // Add animal type options
     animalTypes.forEach(at => {
         const option = document.createElement('option');
@@ -635,12 +662,12 @@ function populateAnimalTypeDropdown(animalTypes) {
         option.textContent = at.typeName;
         select.appendChild(option);
     });
-    
+
     // Restore selected value if it was set
     if (currentValue) {
         select.value = currentValue;
     }
-    
+
     // Refresh custom select if initialized (using static method)
     if (typeof CustomSelect !== 'undefined') {
         CustomSelect.refresh('disease-animal-type');
@@ -649,9 +676,9 @@ function populateAnimalTypeDropdown(animalTypes) {
 
 async function handleDiseaseSubmit(e) {
     e.preventDefault();
-    
+
     const animalTypeId = document.getElementById('disease-animal-type').value;
-    
+
     const formData = {
         diseaseName: document.getElementById('disease-name').value.trim(),
         diseaseCode: document.getElementById('disease-code').value.trim(),
@@ -663,11 +690,11 @@ async function handleDiseaseSubmit(e) {
         treatment: document.getElementById('disease-treatment').value.trim(),
         isActive: document.getElementById('disease-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${DISEASES_API}/${currentEditId}` : DISEASES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -676,12 +703,12 @@ async function handleDiseaseSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save disease');
         }
-        
+
         showSuccess(`Disease ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('disease-modal');
         loadDiseases();
@@ -695,7 +722,7 @@ async function editDisease(id) {
     try {
         const response = await fetch(`${DISEASES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load disease');
-        
+
         const disease = await response.json();
         openDiseaseModal(disease);
     } catch (error) {
@@ -714,9 +741,9 @@ async function toggleDisease(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Disease ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadDiseases();
     } catch (error) {
@@ -728,15 +755,19 @@ async function toggleDisease(id, isActive) {
 function deleteDisease(id) {
     currentDeleteId = id;
     currentDeleteType = 'disease';
-    
+
     fetch(`${DISEASES_API}/${id}/usage`)
         .then(response => response.json())
         .then(data => {
             const usageCount = data.usageCount || 0;
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset disease list (only used for animal types)
+            diseaseListContainer.style.display = 'none';
+
             if (usageCount > 0) {
                 message.textContent = `This disease is currently used in ${usageCount} report(s).`;
                 warning.style.display = 'block';
@@ -746,7 +777,7 @@ function deleteDisease(id) {
                 warning.style.display = 'none';
                 deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -761,7 +792,7 @@ function deleteDisease(id) {
 
 async function handleDelete() {
     if (!currentDeleteId || !currentDeleteType) return;
-    
+
     try {
         let url;
         switch (currentDeleteType) {
@@ -777,22 +808,22 @@ async function handleDelete() {
             default:
                 throw new Error('Unknown delete type');
         }
-        
+
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
                 [csrfHeader]: csrfToken
             }
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to delete item');
         }
-        
+
         showSuccess('Item deleted successfully');
         closeModal('delete-modal');
-        
+
         // Reload appropriate data
         switch (currentDeleteType) {
             case 'farm-type':
@@ -807,7 +838,7 @@ async function handleDelete() {
                 loadDiseases();
                 break;
         }
-        
+
         currentDeleteId = null;
         currentDeleteType = null;
     } catch (error) {

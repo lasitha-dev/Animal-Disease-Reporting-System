@@ -263,5 +263,78 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
     @Query("SELECT DISTINCT dr.disease.id FROM DiseaseReport dr " +
            "WHERE dr.animalType.id = :animalTypeId")
     List<UUID> findDistinctDiseaseIdsByAnimalTypeId(UUID animalTypeId);
+
+    // ========================================
+    // KPI QUERIES FOR VET DASHBOARD
+    // ========================================
+
+    /**
+     * Count active outbreaks (reports with ONGOING outcome).
+     *
+     * @return count of ongoing reports
+     */
+    @Query("SELECT COUNT(dr) FROM DiseaseReport dr WHERE dr.outcome = 'ONGOING'")
+    Long countByOutcomeOngoing();
+
+    /**
+     * Count farms with 2 or more disease reports in the last N days.
+     *
+     * @param startDate the start date for the period
+     * @return count of high-risk farms
+     */
+    @Query("SELECT COUNT(DISTINCT f.id) FROM DiseaseReport dr " +
+           "JOIN dr.farm f " +
+           "WHERE dr.reportDate >= :startDate " +
+           "GROUP BY f.id " +
+           "HAVING COUNT(dr) >= 2")
+    Long countHighRiskFarms(LocalDate startDate);
+
+    /**
+     * Count distinct farms with at least one report in a month.
+     *
+     * @param startDate start of month
+     * @param endDate end of month
+     * @return count of farms with reports
+     */
+    @Query("SELECT COUNT(DISTINCT dr.farm.id) FROM DiseaseReport dr " +
+           "WHERE dr.reportDate >= :startDate AND dr.reportDate <= :endDate")
+    Long countDistinctFarmsWithReportsInPeriod(LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Count pending follow-ups (ONGOING reports older than a specific date).
+     *
+     * @param beforeDate reports before this date need follow-up
+     * @return count of pending follow-ups
+     */
+    @Query("SELECT COUNT(dr) FROM DiseaseReport dr " +
+           "WHERE dr.outcome = 'ONGOING' AND dr.reportDate < :beforeDate")
+    Long countPendingFollowups(LocalDate beforeDate);
+
+    /**
+     * Get daily report counts for health trend chart.
+     *
+     * @param startDate start date for trend
+     * @return list of [date, report count, resolved count]
+     */
+    @Query("SELECT dr.reportDate, " +
+           "COUNT(dr), " +
+           "SUM(CASE WHEN dr.outcome IN ('RECOVERED', 'DIED', 'EUTHANIZED') THEN 1 ELSE 0 END) " +
+           "FROM DiseaseReport dr " +
+           "WHERE dr.reportDate >= :startDate " +
+           "GROUP BY dr.reportDate " +
+           "ORDER BY dr.reportDate")
+    List<Object[]> getDailyHealthTrend(LocalDate startDate);
+
+    /**
+     * Get farms with multiple reports in period (for high-risk calculation).
+     *
+     * @param startDate the start date for the period
+     * @return list of farm IDs with their report counts
+     */
+    @Query("SELECT dr.farm.id, COUNT(dr) as reportCount FROM DiseaseReport dr " +
+           "WHERE dr.reportDate >= :startDate " +
+           "GROUP BY dr.farm.id " +
+           "HAVING COUNT(dr) >= 2")
+    List<Object[]> findHighRiskFarmData(LocalDate startDate);
 }
 

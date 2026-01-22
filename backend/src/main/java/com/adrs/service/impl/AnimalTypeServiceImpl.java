@@ -4,14 +4,18 @@ import com.adrs.dto.AnimalTypeDTO;
 import com.adrs.exception.ConfigurationInUseException;
 import com.adrs.exception.ConfigurationNotFoundException;
 import com.adrs.model.AnimalType;
+import com.adrs.model.Disease;
 import com.adrs.repository.AnimalTypeRepository;
+import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.AnimalTypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,9 +33,12 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     private static final String NOT_FOUND_MSG = "Animal type not found with ID: {}";
     
     private final AnimalTypeRepository animalTypeRepository;
+    private final DiseaseRepository diseaseRepository;
 
-    public AnimalTypeServiceImpl(AnimalTypeRepository animalTypeRepository) {
+    public AnimalTypeServiceImpl(AnimalTypeRepository animalTypeRepository, 
+                                  DiseaseRepository diseaseRepository) {
         this.animalTypeRepository = animalTypeRepository;
+        this.diseaseRepository = diseaseRepository;
     }
 
     @Override
@@ -179,6 +186,31 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     public boolean animalTypeExists(String typeName) {
         logger.debug("Checking if animal type exists: {}", typeName);
         return animalTypeRepository.existsByTypeNameIgnoreCase(typeName);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> getDetailedUsageInfo(UUID id) {
+        logger.debug("Getting detailed usage info for animal type ID: {}", id);
+        
+        Map<String, Object> usageInfo = new HashMap<>();
+        
+        // Count animals using this type
+        Long animalCount = animalTypeRepository.countAnimalsUsingAnimalType(id);
+        usageInfo.put("usageCount", animalCount);
+        
+        // Get diseases linked to this animal type
+        List<Disease> diseases = diseaseRepository.findByAnimalTypeId(id);
+        Long diseaseCount = (long) diseases.size();
+        usageInfo.put("diseaseCount", diseaseCount);
+        
+        // Extract disease names
+        List<String> diseaseNames = diseases.stream()
+                .map(Disease::getDiseaseName)
+                .collect(Collectors.toList());
+        usageInfo.put("diseaseNames", diseaseNames);
+        
+        return usageInfo;
     }
 
     /**

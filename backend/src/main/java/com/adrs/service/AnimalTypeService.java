@@ -91,4 +91,13 @@ public interface AnimalTypeService {
      * @return true if exists, false otherwise
      */
     boolean animalTypeExists(String typeName);
+
+    /**
+     * Get detailed usage information for an animal type.
+     * Includes count of animals using this type and list of linked disease names.
+     *
+     * @param id the animal type ID
+     * @return map containing usageCount (animals), diseaseCount, and diseaseNames
+     */
+    java.util.Map<String, Object> getDetailedUsageInfo(UUID id);
 }

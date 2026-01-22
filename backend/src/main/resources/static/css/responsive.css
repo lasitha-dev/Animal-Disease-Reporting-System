@@ -366,9 +366,9 @@
         font-size: var(--font-size-lg);
     }
 
-    /* Adjust content area */
+    /* Adjust content area - reduced padding for mobile */
     .dashboard-content {
-        padding: var(--spacing-md);
+        padding: var(--space-3);
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -520,28 +520,42 @@
         overflow: hidden;
     }
 
-    /* Typography adjustments */
+    /* Typography adjustments - Mobile-first responsive sizing */
     h1 {
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-mobile-h1);
+        /* 1.5rem / 24px */
     }
 
     h2 {
-        font-size: var(--font-size-xl);
+        font-size: var(--font-size-mobile-h2);
+        /* 1.25rem / 20px */
     }
 
     h3 {
-        font-size: var(--font-size-lg);
+        font-size: var(--font-size-mobile-h3);
+        /* 1.125rem / 18px */
+    }
+
+    /* Ensure body text remains 16px to prevent iOS auto-zoom */
+    body {
+        font-size: var(--font-size-base);
+        /* 1rem / 16px */
     }
 
     .btn {
         height: 40px;
+        max-height: 40px;
         min-height: auto;
+        min-width: var(--touch-target-min);
+        /* Accessibility: 44px minimum */
         padding: var(--space-2) var(--space-4);
     }
 
     .btn-sm {
         height: 32px;
+        max-height: 32px;
         min-height: auto;
+        min-width: var(--touch-target-min);
     }
 
     /* Full width buttons on mobile */

@@ -682,7 +682,7 @@
 
         <!-- Delete Confirmation Modal -->
         <div id="delete-modal" class="modal-overlay hidden">
-            <div class="modal" style="max-width: 400px;">
+            <div class="modal" style="max-width: 450px;">
                 <div class="modal-header">
                     <h3 class="modal-title">Confirm Delete</h3>
                     <button class="modal-close" data-modal="delete-modal">&times;</button>
@@ -692,6 +692,13 @@
                     <p id="delete-warning" class="warning-text" style="display: none;">
                         ⚠️ This item is currently in use and cannot be deleted.
                     </p>
+                    <!-- Disease List Section for Animal Types -->
+                    <div id="delete-disease-list" class="delete-disease-list" style="display: none;">
+                        <p class="disease-list-title">⚠️ The following diseases are linked to this animal type:</p>
+                        <ul id="disease-names-list" class="disease-names-list"></ul>
+                        <p class="disease-list-note">Please delete or reassign these diseases before deleting this
+                            animal type.</p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-modal="delete-modal">Cancel</button>
@@ -699,6 +706,79 @@
                 </div>
             </div>
         </div>
+
+        <style>
+            /* Disease List Styles for Delete Modal */
+            .delete-disease-list {
+                margin-top: var(--spacing-md);
+                padding: var(--spacing-md);
+                background: var(--color-warning-light, #fff8e1);
+                border: 1px solid var(--color-warning, #ffc107);
+                border-radius: var(--radius-md);
+            }
+
+            .disease-list-title {
+                font-weight: var(--font-weight-semibold);
+                color: var(--color-warning-dark, #856404);
+                margin-bottom: var(--spacing-sm);
+                font-size: var(--font-size-sm);
+            }
+
+            .disease-names-list {
+                list-style: disc;
+                margin: 0 0 var(--spacing-sm) var(--spacing-lg);
+                padding: 0;
+                max-height: 150px;
+                overflow-y: auto;
+            }
+
+            .disease-names-list li {
+                font-size: var(--font-size-sm);
+                color: var(--color-text-primary);
+                padding: 2px 0;
+            }
+
+            .disease-list-note {
+                font-size: var(--font-size-xs);
+                color: var(--color-text-secondary);
+                font-style: italic;
+                margin: 0;
+            }
+
+            /* Mobile Responsive Styles */
+            @media (max-width: 768px) {
+                .delete-disease-list {
+                    padding: var(--spacing-sm);
+                }
+
+                .disease-list-title {
+                    font-size: var(--font-size-xs);
+                }
+
+                .disease-names-list {
+                    max-height: 120px;
+                    margin-left: var(--spacing-md);
+                }
+
+                .disease-names-list li {
+                    font-size: var(--font-size-xs);
+                }
+
+                .disease-list-note {
+                    font-size: 0.625rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .delete-disease-list {
+                    padding: var(--spacing-xs);
+                }
+
+                .disease-names-list {
+                    max-height: 100px;
+                }
+            }
+        </style>
     </div>
 </body>
 

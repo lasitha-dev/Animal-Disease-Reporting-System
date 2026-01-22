@@ -273,17 +273,80 @@ public class VetController {
     public ResponseEntity<VetStatsDTO> getVetStats(@AuthenticationPrincipal UserDetails userDetails) {
         logger.info("GET /api/vet/stats - Fetching stats for user: {}", userDetails.getUsername());
         
-        // Use system-wide counts for dashboard display
+        // Basic counts
         Long farmCount = farmRepository.count();
         Long animalsCount = farmAnimalRepository.sumTotalAnimals();
         Long reportCount = diseaseReportRepository.count();
         
+        // New KPI calculations
+        // 1. Active Outbreaks: Reports with ONGOING outcome
+        Long activeOutbreaks = diseaseReportRepository.countByOutcomeOngoing();
+        
+        // 2. High-Risk Farms: Farms with >=2 reports in last 30 days
+        LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
+        List<Object[]> highRiskData = diseaseReportRepository.findHighRiskFarmData(thirtyDaysAgo);
+        Long highRiskFarms = (long) highRiskData.size();
+        
+        // 3. Monthly Coverage: Farms with reports this month / total farms
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate endOfMonth = LocalDate.now();
+        Long farmsInspectedThisMonth = diseaseReportRepository.countDistinctFarmsWithReportsInPeriod(startOfMonth, endOfMonth);
+        
+        // 4. Pending Follow-ups: ONGOING reports older than 7 days
+        LocalDate sevenDaysAgo = LocalDate.now().minusDays(7);
+        Long pendingFollowups = diseaseReportRepository.countPendingFollowups(sevenDaysAgo);
+        
         VetStatsDTO stats = new VetStatsDTO();
         stats.setFarmsCount(farmCount);
-        stats.setAnimalsCount(animalsCount);
+        stats.setAnimalsCount(animalsCount != null ? animalsCount : 0L);
         stats.setReportsCount(reportCount);
+        stats.setActiveOutbreaks(activeOutbreaks != null ? activeOutbreaks : 0L);
+        stats.setHighRiskFarms(highRiskFarms);
+        stats.setFarmsInspectedThisMonth(farmsInspectedThisMonth != null ? farmsInspectedThisMonth : 0L);
+        stats.setPendingFollowups(pendingFollowups != null ? pendingFollowups : 0L);
         
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Get health trend data for the dashboard chart.
+     *
+     * @param days number of days to include (default 7)
+     * @return health trend data with dates, report counts, and resolved counts
+     */
+    @Operation(summary = "Get health trend data", description = "Retrieves daily report counts for the health trend chart")
+    @GetMapping("/health-trend")
+    public ResponseEntity<HealthTrendDTO> getHealthTrend(
+            @RequestParam(defaultValue = "7") int days) {
+        logger.info("GET /api/vet/health-trend?days={} - Fetching health trend data", days);
+        
+        LocalDate startDate = LocalDate.now().minusDays(days - 1);
+        List<Object[]> trendData = diseaseReportRepository.getDailyHealthTrend(startDate);
+        
+        HealthTrendDTO result = new HealthTrendDTO();
+        
+        // Initialize with zeros for all days
+        for (int i = 0; i < days; i++) {
+            LocalDate date = startDate.plusDays(i);
+            result.getLabels().add(date.getDayOfWeek().toString().substring(0, 3));
+            result.getReports().add(0L);
+            result.getResolved().add(0L);
+        }
+        
+        // Fill in actual data
+        for (Object[] row : trendData) {
+            LocalDate reportDate = (LocalDate) row[0];
+            Long reportCount = (Long) row[1];
+            Long resolvedCount = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+            
+            int dayIndex = (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, reportDate);
+            if (dayIndex >= 0 && dayIndex < days) {
+                result.getReports().set(dayIndex, reportCount);
+                result.getResolved().set(dayIndex, resolvedCount);
+            }
+        }
+        
+        return ResponseEntity.ok(result);
     }
 
     // ========================================
@@ -562,6 +625,11 @@ public class VetController {
         private Long farmsCount;
         private Long animalsCount;
         private Long reportsCount;
+        // New KPI fields
+        private Long activeOutbreaks;
+        private Long highRiskFarms;
+        private Long farmsInspectedThisMonth;
+        private Long pendingFollowups;
 
         public Long getFarmsCount() { return farmsCount; }
         public void setFarmsCount(Long farmsCount) { this.farmsCount = farmsCount; }
@@ -569,6 +637,30 @@ public class VetController {
         public void setAnimalsCount(Long animalsCount) { this.animalsCount = animalsCount; }
         public Long getReportsCount() { return reportsCount; }
         public void setReportsCount(Long reportsCount) { this.reportsCount = reportsCount; }
+        public Long getActiveOutbreaks() { return activeOutbreaks; }
+        public void setActiveOutbreaks(Long activeOutbreaks) { this.activeOutbreaks = activeOutbreaks; }
+        public Long getHighRiskFarms() { return highRiskFarms; }
+        public void setHighRiskFarms(Long highRiskFarms) { this.highRiskFarms = highRiskFarms; }
+        public Long getFarmsInspectedThisMonth() { return farmsInspectedThisMonth; }
+        public void setFarmsInspectedThisMonth(Long farmsInspectedThisMonth) { this.farmsInspectedThisMonth = farmsInspectedThisMonth; }
+        public Long getPendingFollowups() { return pendingFollowups; }
+        public void setPendingFollowups(Long pendingFollowups) { this.pendingFollowups = pendingFollowups; }
+    }
+
+    /**
+     * DTO for health trend chart data.
+     */
+    public static class HealthTrendDTO {
+        private java.util.List<String> labels = new java.util.ArrayList<>();
+        private java.util.List<Long> reports = new java.util.ArrayList<>();
+        private java.util.List<Long> resolved = new java.util.ArrayList<>();
+
+        public java.util.List<String> getLabels() { return labels; }
+        public void setLabels(java.util.List<String> labels) { this.labels = labels; }
+        public java.util.List<Long> getReports() { return reports; }
+        public void setReports(java.util.List<Long> reports) { this.reports = reports; }
+        public java.util.List<Long> getResolved() { return resolved; }
+        public void setResolved(java.util.List<Long> resolved) { this.resolved = resolved; }
     }
 }
 

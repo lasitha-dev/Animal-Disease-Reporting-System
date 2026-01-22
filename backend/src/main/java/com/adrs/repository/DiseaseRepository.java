@@ -129,4 +129,22 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
      */
     @Query("SELECT COUNT(dr) FROM DiseaseReport dr WHERE dr.disease.id = :diseaseId")
     Long countDiseaseReportsUsingDisease(UUID diseaseId);
+
+    /**
+     * Find all diseases by animal type ID.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of diseases for the animal type
+     */
+    @Query("SELECT d FROM Disease d WHERE d.animalType.id = :animalTypeId")
+    List<Disease> findByAnimalTypeId(UUID animalTypeId);
+
+    /**
+     * Count diseases by animal type ID.
+     *
+     * @param animalTypeId the animal type ID
+     * @return count of diseases for the animal type
+     */
+    @Query("SELECT COUNT(d) FROM Disease d WHERE d.animalType.id = :animalTypeId")
+    Long countByAnimalTypeId(UUID animalTypeId);
 }

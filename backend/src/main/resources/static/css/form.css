@@ -309,6 +309,11 @@
     font-size: 16px;
     min-height: 40px;
   }
+
+  /* Reduce dropdown trigger visual bulk on mobile */
+  .custom-select-trigger {
+    padding: var(--space-2);
+  }
 }
 
 /* Hide header on desktop */

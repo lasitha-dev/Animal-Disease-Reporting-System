@@ -4,209 +4,140 @@
 
 <head>
     <title>Vet Dashboard - ADRS</title>
-    <style>
-        .vet-welcome-card {
-            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-            color: #fff;
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .vet-welcome-card h2 {
-            margin: 0 0 var(--spacing-sm);
-            font-size: 1.75rem;
-        }
-
-        .vet-welcome-card p {
-            margin: 0;
-            opacity: 0.9;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .action-card {
-            background: var(--color-bg-primary);
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-md);
-            padding: var(--spacing-lg);
-            text-align: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .action-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .action-card-icon {
-            font-size: 2.5rem;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .action-card h3 {
-            margin: 0 0 var(--spacing-sm);
-            color: var(--color-text-primary);
-        }
-
-        .action-card p {
-            margin: 0 0 var(--spacing-md);
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .action-card .btn {
-            width: 100%;
-        }
-
-        .action-card .btn-primary {
-            color: var(--color-white);
-        }
-
-        .action-card .btn-primary:hover {
-            color: var(--color-white);
-            background-color: var(--color-primary-dark);
-        }
-
-        .stats-overview {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .stat-box {
-            background: var(--color-bg-primary);
-            border: 1px solid var(--color-border);
-            border-radius: var(--border-radius-md);
-            padding: var(--spacing-lg);
-            text-align: center;
-        }
-
-        .stat-box-icon {
-            font-size: 1.5rem;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .stat-box-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .stat-box-label {
-            color: var(--color-text-secondary);
-            font-size: 0.875rem;
-        }
-
-        @media (max-width: 768px) {
-            .vet-welcome-card {
-                padding: var(--spacing-lg);
-            }
-
-            .vet-welcome-card h2 {
-                font-size: 1.5rem;
-            }
-
-            .quick-actions {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/vet-dashboard.css}">
 </head>
 
 <body>
     <div layout:fragment="content">
-        <!-- Welcome Card -->
-        <div class="vet-welcome-card">
-            <h2 th:text="'Welcome, ' + ${#authentication.name} + '!'">
-                Welcome, Veterinary Officer!
-            </h2>
-            <p>Animal Disease Reporting System - Veterinary Dashboard</p>
+        <!-- Quick Action Bar -->
+        <div class="quick-action-bar">
+            <a th:href="@{/vet/disease-reporting}" class="quick-action-btn quick-action-btn--alert">
+                <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>Report Case</span>
+            </a>
+            <a th:href="@{/vet/farms}" class="quick-action-btn quick-action-btn--primary">
+                <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Register Farm</span>
+            </a>
         </div>
 
-        <!-- Stats Overview -->
-        <div class="stats-overview">
-            <div class="stat-box">
-                <div class="stat-box-icon">🏠</div>
-                <div class="stat-box-value" id="farms-count">0</div>
-                <div class="stat-box-label">Registered Farms</div>
+        <!-- KPI Cards Section -->
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-card--danger">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Active Outbreaks</span>
+                    <div class="kpi-card-icon kpi-card-icon--danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-outbreaks">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-outbreaks-trend">Current active cases</span>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-box-icon">🐮</div>
-                <div class="stat-box-value" id="animals-count">0</div>
-                <div class="stat-box-label">Total Animals</div>
+
+            <div class="kpi-card kpi-card--warning">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">High-Risk Farms</span>
+                    <div class="kpi-card-icon kpi-card-icon--warning">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-high-risk">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-high-risk-trend">Farms requiring attention</span>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-box-icon">📋</div>
-                <div class="stat-box-value" id="reports-count">0</div>
-                <div class="stat-box-label">Disease Reports</div>
+
+            <div class="kpi-card kpi-card--success">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Monthly Coverage</span>
+                    <div class="kpi-card-icon kpi-card-icon--success">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-coverage">0%</div>
+                <div class="kpi-card-trend kpi-card-trend--positive">
+                    <span id="kpi-coverage-trend">Farms inspected this month</span>
+                </div>
+            </div>
+
+            <div class="kpi-card kpi-card--info">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Pending Follow-ups</span>
+                    <div class="kpi-card-icon kpi-card-icon--info">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-followups">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-followups-trend">Actions required</span>
+                </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <h3 style="margin-bottom: var(--spacing-md);">Quick Actions</h3>
-        <div class="quick-actions">
-            <div class="action-card">
-                <div class="action-card-icon">🏠</div>
-                <h3>Register New Farm</h3>
-                <p>Add a new farm to the system with animal types and location details.</p>
-                <a th:href="@{/vet/farms}" class="btn btn-primary">
-                    Register Farm
-                </a>
+        <!-- Main Content Grid -->
+        <div class="main-content-grid">
+            <!-- District Health Trend Chart -->
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">District Health Trend</h2>
+                    <div class="chart-legend">
+                        <span class="legend-item legend-item--primary">
+                            <span class="legend-dot"></span> Reports
+                        </span>
+                        <span class="legend-item legend-item--secondary">
+                            <span class="legend-dot"></span> Resolved
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="health-trend-chart"></canvas>
+                </div>
             </div>
 
-            <div class="action-card">
-                <div class="action-card-icon">📋</div>
-                <h3>View My Farms</h3>
-                <p>View and manage all farms you have registered in the system.</p>
-                <a th:href="@{/vet/farms}" class="btn btn-outline">
-                    View Farms
-                </a>
-            </div>
-
-            <div class="action-card">
-                <div class="action-card-icon">🦠</div>
-                <h3>Report Disease</h3>
-                <p>Submit a new disease report for an animal at one of your farms.</p>
-                <a th:href="@{/vet/disease-reporting}" class="btn btn-outline">
-                    Report Disease
-                </a>
+            <!-- Recent Activity Feed -->
+            <div class="activity-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Recent Activity</h2>
+                    <a th:href="@{/vet/disease-reporting}" class="panel-link">View All</a>
+                </div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-loading">
+                        <div class="loading-spinner"></div>
+                        <span>Loading activity...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <div layout:fragment="scripts">
-        <script>
-            // Load vet-specific stats from API
-            document.addEventListener('DOMContentLoaded', async function () {
-                const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
-
-                const headers = {};
-                if (csrfToken && csrfHeader) {
-                    headers[csrfHeader] = csrfToken;
-                }
-
-                try {
-                    const response = await fetch('/api/vet/stats', { headers });
-                    if (response.ok) {
-                        const stats = await response.json();
-                        document.getElementById('farms-count').textContent = stats.farmsCount || 0;
-                        document.getElementById('animals-count').textContent = stats.animalsCount || 0;
-                        document.getElementById('reports-count').textContent = stats.reportsCount || 0;
-                    }
-                } catch (error) {
-                    console.error('Error loading stats:', error);
-                }
-            });
-        </script>
+        <script th:src="@{/js/vet-dashboard.js}"></script>
     </div>
 </body>
 
