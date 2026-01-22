@@ -69,11 +69,12 @@ public interface FarmTypeRepository extends JpaRepository<FarmType, UUID> {
     boolean existsByTypeNameIgnoreCase(String typeName);
 
     /**
-     * Count farms using this farm type.
+     * Count active farms using this farm type.
+     * Only counts farms that are not soft-deleted (isActive = true).
      *
      * @param farmTypeId the farm type ID
-     * @return count of farms using this type
+     * @return count of active farms using this type
      */
-    @Query("SELECT COUNT(f) FROM Farm f WHERE f.farmType.id = :farmTypeId")
+    @Query("SELECT COUNT(f) FROM Farm f WHERE f.farmType.id = :farmTypeId AND f.isActive = true")
     Long countFarmsUsingFarmType(UUID farmTypeId);
 }

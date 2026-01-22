@@ -140,11 +140,12 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
     List<Disease> findByAnimalTypeId(UUID animalTypeId);
 
     /**
-     * Count diseases by animal type ID.
+     * Count active diseases by animal type ID.
+     * Only counts diseases that are not soft-deleted (isActive = true).
      *
      * @param animalTypeId the animal type ID
-     * @return count of diseases for the animal type
+     * @return count of active diseases for the animal type
      */
-    @Query("SELECT COUNT(d) FROM Disease d WHERE d.animalType.id = :animalTypeId")
+    @Query("SELECT COUNT(d) FROM Disease d WHERE d.animalType.id = :animalTypeId AND d.isActive = true")
     Long countByAnimalTypeId(UUID animalTypeId);
 }
