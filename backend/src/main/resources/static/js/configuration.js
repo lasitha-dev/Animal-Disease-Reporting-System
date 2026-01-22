@@ -537,19 +537,29 @@ function renderDiseasesCards(diseases) {
         return;
     }
 
-    container.innerHTML = diseases.map(d => `
-        <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
-            <div class="config-item-icon">🦠</div>
-            <div class="config-item-content">
-                <div class="config-item-name">${escapeHtml(d.diseaseName)}</div>
-                <div class="config-item-description">${escapeHtml(d.animalTypeName || 'All animals')} • ${d.severity}</div>
+    container.innerHTML = diseases.map(d => {
+        // Format animal types display (use animalTypeNames array if available, else fallback)
+        let animalTypesDisplay = 'All animals';
+        if (d.animalTypeNames && d.animalTypeNames.length > 0) {
+            animalTypesDisplay = d.animalTypeNames.join(', ');
+        } else if (d.animalTypeName) {
+            animalTypesDisplay = d.animalTypeName;
+        }
+        
+        return `
+            <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
+                <div class="config-item-icon">🦠</div>
+                <div class="config-item-content">
+                    <div class="config-item-name">${escapeHtml(d.diseaseName)}</div>
+                    <div class="config-item-description">${escapeHtml(animalTypesDisplay)} • ${d.severity}</div>
+                </div>
+                <div class="config-item-actions" onclick="event.stopPropagation()">
+                    <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
+                    <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
+                </div>
             </div>
-            <div class="config-item-actions" onclick="event.stopPropagation()">
-                <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
-                <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function openDiseaseModal(disease = null) {
@@ -564,7 +574,17 @@ function openDiseaseModal(disease = null) {
             document.getElementById('disease-id').value = disease.id;
             document.getElementById('disease-name').value = disease.diseaseName;
             document.getElementById('disease-code').value = disease.diseaseCode || '';
-            document.getElementById('disease-animal-type').value = disease.animalTypeId || '';
+            
+            // Handle multiple animal types selection in checkbox dropdown
+            if (disease.animalTypeIds && disease.animalTypeIds.length > 0) {
+                setAnimalTypeCheckboxes(disease.animalTypeIds);
+            } else if (disease.animalTypeId) {
+                // Legacy single animal type support
+                setAnimalTypeCheckboxes([disease.animalTypeId]);
+            } else {
+                clearAnimalTypeCheckboxes();
+            }
+            
             document.getElementById('disease-severity').value = disease.severity;
             document.getElementById('disease-notifiable').checked = disease.isNotifiable;
             document.getElementById('disease-description').value = disease.description || '';
@@ -574,7 +594,8 @@ function openDiseaseModal(disease = null) {
         } else {
             title.textContent = 'Add Disease';
             form.reset();
-            document.getElementById('disease-animal-type').value = '';
+            // Clear checkbox dropdown
+            clearAnimalTypeCheckboxes();
         }
 
         // Clear errors
@@ -593,31 +614,19 @@ function openDiseaseModal(disease = null) {
  * @param {Object|null} disease - Disease object for editing, or null for new disease
  */
 function initializeDiseaseCustomSelects(disease) {
-    // Initialize animal type custom select using static method
+    // Note: For multi-select, we use native HTML multi-select instead of CustomSelect
+    // Only initialize severity as custom select
     if (typeof CustomSelect !== 'undefined') {
-        CustomSelect.init('disease-animal-type', {
-            placeholder: 'Select animal type...',
-            title: 'Select Animal Type'
-        });
-
         CustomSelect.init('disease-severity', {
             placeholder: 'Select severity...',
             title: 'Select Severity'
         });
 
-        // Set values after initialization
-        if (disease) {
-            if (disease.animalTypeId) {
-                const animalTypeInstance = CustomSelect.getInstance('disease-animal-type');
-                if (animalTypeInstance) {
-                    animalTypeInstance.setValue(disease.animalTypeId);
-                }
-            }
-            if (disease.severity) {
-                const severityInstance = CustomSelect.getInstance('disease-severity');
-                if (severityInstance) {
-                    severityInstance.setValue(disease.severity);
-                }
+        // Set severity value after initialization
+        if (disease && disease.severity) {
+            const severityInstance = CustomSelect.getInstance('disease-severity');
+            if (severityInstance) {
+                severityInstance.setValue(disease.severity);
             }
         }
     }
@@ -646,43 +655,190 @@ async function loadAnimalTypesForDropdown() {
 }
 
 /**
- * Populate the animal type dropdown with options.
+ * Populate the animal type checkbox dropdown with options.
  */
 function populateAnimalTypeDropdown(animalTypes) {
-    const select = document.getElementById('disease-animal-type');
-    const currentValue = select.value;
+    const optionsContainer = document.getElementById('animalTypeOptions');
+    if (!optionsContainer) return;
 
-    // Clear existing options except the first placeholder
-    select.innerHTML = '<option value="">Select animal type...</option>';
+    // Clear existing options
+    optionsContainer.innerHTML = '';
 
-    // Add animal type options
+    // Add animal type options as checkboxes
     animalTypes.forEach(at => {
-        const option = document.createElement('option');
-        option.value = at.id;
-        option.textContent = at.typeName;
-        select.appendChild(option);
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'dropdown-option';
+        optionDiv.innerHTML = `
+            <input type="checkbox" id="animal-type-${at.id}" value="${at.id}">
+            <label for="animal-type-${at.id}">${at.typeName}</label>
+        `;
+        optionsContainer.appendChild(optionDiv);
     });
 
-    // Restore selected value if it was set
-    if (currentValue) {
-        select.value = currentValue;
-    }
+    // Initialize checkbox dropdown event listeners
+    initializeAnimalTypeDropdown();
+}
 
-    // Refresh custom select if initialized (using static method)
-    if (typeof CustomSelect !== 'undefined') {
-        CustomSelect.refresh('disease-animal-type');
+/**
+ * Initialize the animal type checkbox dropdown event listeners.
+ * Uses event delegation and flags to prevent duplicate listeners.
+ */
+let animalTypeDropdownInitialized = false;
+
+function initializeAnimalTypeDropdown() {
+    const dropdown = document.getElementById('animalTypeDropdown');
+    const toggle = document.getElementById('animalTypeDropdownToggle');
+    const search = document.getElementById('animalTypeSearch');
+    const selectAllBtn = document.getElementById('selectAllAnimalTypes');
+    const clearAllBtn = document.getElementById('clearAllAnimalTypes');
+
+    if (!dropdown || !toggle) return;
+
+    // Only add global listeners once
+    if (!animalTypeDropdownInitialized) {
+        animalTypeDropdownInitialized = true;
+
+        // Toggle dropdown open/close
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+            if (dropdown.classList.contains('open') && search) {
+                search.value = ''; // Clear search
+                // Show all options
+                const options = document.querySelectorAll('#animalTypeOptions .dropdown-option');
+                options.forEach(option => option.classList.remove('hidden'));
+                search.focus();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // Search functionality
+        if (search) {
+            search.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const options = document.querySelectorAll('#animalTypeOptions .dropdown-option');
+                options.forEach(option => {
+                    const label = option.querySelector('label').textContent.toLowerCase();
+                    option.classList.toggle('hidden', !label.includes(searchTerm));
+                });
+            });
+        }
+
+        // Select all
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (!cb.closest('.dropdown-option').classList.contains('hidden')) {
+                        cb.checked = true;
+                    }
+                });
+                updateAnimalTypeDropdownText();
+            });
+        }
+
+        // Clear all
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+                updateAnimalTypeDropdownText();
+            });
+        }
+
+        // Event delegation for checkbox changes on the options container
+        const optionsContainer = document.getElementById('animalTypeOptions');
+        if (optionsContainer) {
+            optionsContainer.addEventListener('change', () => {
+                updateAnimalTypeDropdownText();
+            });
+        }
     }
+}
+
+/**
+ * Update the dropdown toggle text based on selected checkboxes.
+ */
+function updateAnimalTypeDropdownText() {
+    const dropdownText = document.querySelector('#animalTypeDropdown .dropdown-text');
+    const selectedHint = document.getElementById('animalTypeSelectedCount');
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]:checked');
+    
+    if (!dropdownText) return;
+
+    if (checkboxes.length === 0) {
+        dropdownText.textContent = 'Select animal types...';
+        dropdownText.classList.remove('has-selection');
+        if (selectedHint) selectedHint.textContent = '';
+    } else if (checkboxes.length === 1) {
+        const label = checkboxes[0].nextElementSibling.textContent;
+        dropdownText.textContent = label;
+        dropdownText.classList.add('has-selection');
+        if (selectedHint) selectedHint.textContent = '1 animal type selected';
+    } else {
+        dropdownText.textContent = `${checkboxes.length} animal types selected`;
+        dropdownText.classList.add('has-selection');
+        if (selectedHint) selectedHint.textContent = `${checkboxes.length} animal types selected`;
+    }
+}
+
+/**
+ * Set checkbox selections based on animal type IDs.
+ */
+function setAnimalTypeCheckboxes(animalTypeIds) {
+    // First clear all
+    clearAnimalTypeCheckboxes();
+    
+    // Then check the specified ones
+    animalTypeIds.forEach(id => {
+        const checkbox = document.querySelector(`#animalTypeOptions input[value="${id}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+    
+    updateAnimalTypeDropdownText();
+}
+
+/**
+ * Clear all animal type checkbox selections.
+ */
+function clearAnimalTypeCheckboxes() {
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    updateAnimalTypeDropdownText();
+}
+
+/**
+ * Get selected animal type IDs from checkbox dropdown.
+ */
+function getSelectedAnimalTypeIds() {
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
 }
 
 async function handleDiseaseSubmit(e) {
     e.preventDefault();
 
-    const animalTypeId = document.getElementById('disease-animal-type').value;
+    // Get selected animal type IDs from checkbox dropdown
+    const animalTypeIds = getSelectedAnimalTypeIds();
+    
+    // Validate at least one animal type is selected
+    if (animalTypeIds.length === 0) {
+        showError('Please select at least one animal type');
+        return;
+    }
 
     const formData = {
         diseaseName: document.getElementById('disease-name').value.trim(),
         diseaseCode: document.getElementById('disease-code').value.trim(),
-        animalTypeId: animalTypeId || null,
+        animalTypeIds: animalTypeIds,
         severity: document.getElementById('disease-severity').value,
         isNotifiable: document.getElementById('disease-notifiable').checked,
         description: document.getElementById('disease-description').value.trim(),

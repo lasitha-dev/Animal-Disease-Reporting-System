@@ -10,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -101,12 +103,16 @@ public class Disease {
     private LocalDateTime updatedAt;
 
     /**
-     * The animal type that can contract this disease.
-     * Each disease is associated with a specific animal type.
+     * The animal types that can contract this disease.
+     * A disease can be associated with multiple animal types.
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "animal_type_id")
-    private AnimalType animalType;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "disease_animal_types",
+        joinColumns = @JoinColumn(name = "disease_id"),
+        inverseJoinColumns = @JoinColumn(name = "animal_type_id")
+    )
+    private Set<AnimalType> animalTypes = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")

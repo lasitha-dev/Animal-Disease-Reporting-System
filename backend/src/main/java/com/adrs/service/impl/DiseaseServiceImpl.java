@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -66,14 +68,26 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setIsNotifiable(Boolean.TRUE.equals(diseaseDTO.getIsNotifiable()));
         disease.setIsActive(true);
         
-        // Set animal type if provided
-        if (diseaseDTO.getAnimalTypeId() != null) {
+        // Set animal types if provided (new multi-select approach)
+        if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
+            Set<AnimalType> animalTypes = new HashSet<>();
+            for (UUID animalTypeId : diseaseDTO.getAnimalTypeIds()) {
+                AnimalType animalType = animalTypeRepository.findById(animalTypeId)
+                        .orElseThrow(() -> {
+                            logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, animalTypeId);
+                            return new ConfigurationNotFoundException("AnimalType", animalTypeId);
+                        });
+                animalTypes.add(animalType);
+            }
+            disease.setAnimalTypes(animalTypes);
+        } else if (diseaseDTO.getAnimalTypeId() != null) {
+            // Legacy single animal type support for backward compatibility
             AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
                     .orElseThrow(() -> {
                         logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
                         return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
                     });
-            disease.setAnimalType(animalType);
+            disease.getAnimalTypes().add(animalType);
         }
         
         Disease savedDisease = diseaseRepository.save(disease);
@@ -114,16 +128,29 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setSeverity(diseaseDTO.getSeverity());
         disease.setIsNotifiable(diseaseDTO.getIsNotifiable());
         
-        // Update animal type if provided
-        if (diseaseDTO.getAnimalTypeId() != null) {
+        // Update animal types if provided (new multi-select approach)
+        if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
+            Set<AnimalType> animalTypes = new HashSet<>();
+            for (UUID animalTypeId : diseaseDTO.getAnimalTypeIds()) {
+                AnimalType animalType = animalTypeRepository.findById(animalTypeId)
+                        .orElseThrow(() -> {
+                            logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, animalTypeId);
+                            return new ConfigurationNotFoundException("AnimalType", animalTypeId);
+                        });
+                animalTypes.add(animalType);
+            }
+            disease.setAnimalTypes(animalTypes);
+        } else if (diseaseDTO.getAnimalTypeId() != null) {
+            // Legacy single animal type support for backward compatibility
             AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
                     .orElseThrow(() -> {
                         logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
                         return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
                     });
-            disease.setAnimalType(animalType);
+            disease.getAnimalTypes().clear();
+            disease.getAnimalTypes().add(animalType);
         } else {
-            disease.setAnimalType(null);
+            disease.getAnimalTypes().clear();
         }
         
         Disease updatedDisease = diseaseRepository.save(disease);
@@ -296,10 +323,22 @@ public class DiseaseServiceImpl implements DiseaseService {
         dto.setCreatedAt(disease.getCreatedAt());
         dto.setUpdatedAt(disease.getUpdatedAt());
         
-        // Set animal type information
-        if (disease.getAnimalType() != null) {
-            dto.setAnimalTypeId(disease.getAnimalType().getId());
-            dto.setAnimalTypeName(disease.getAnimalType().getTypeName());
+        // Set animal type information (multiple animal types)
+        if (disease.getAnimalTypes() != null && !disease.getAnimalTypes().isEmpty()) {
+            List<UUID> animalTypeIds = disease.getAnimalTypes().stream()
+                    .map(AnimalType::getId)
+                    .collect(Collectors.toList());
+            List<String> animalTypeNames = disease.getAnimalTypes().stream()
+                    .map(AnimalType::getTypeName)
+                    .collect(Collectors.toList());
+            
+            dto.setAnimalTypeIds(animalTypeIds);
+            dto.setAnimalTypeNames(animalTypeNames);
+            
+            // For backward compatibility, set the first animal type as the single one
+            AnimalType firstType = disease.getAnimalTypes().iterator().next();
+            dto.setAnimalTypeId(firstType.getId());
+            dto.setAnimalTypeName(String.join(", ", animalTypeNames));
         }
         
         if (disease.getCreatedBy() != null) {

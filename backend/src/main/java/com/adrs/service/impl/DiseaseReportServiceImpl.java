@@ -407,9 +407,18 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
                     dto.setIsNotifiable(d.getIsNotifiable());
                     dto.setIsActive(d.getIsActive());
                     dto.setCreatedByVet(d.getCreatedByVet());
-                    if (d.getAnimalType() != null) {
-                        dto.setAnimalTypeId(d.getAnimalType().getId());
-                        dto.setAnimalTypeName(d.getAnimalType().getTypeName());
+                    // Set animal type information (use first animal type for backward compatibility)
+                    if (d.getAnimalTypes() != null && !d.getAnimalTypes().isEmpty()) {
+                        AnimalType firstType = d.getAnimalTypes().iterator().next();
+                        dto.setAnimalTypeId(firstType.getId());
+                        dto.setAnimalTypeName(firstType.getTypeName());
+                        // Also populate the new lists
+                        dto.setAnimalTypeIds(d.getAnimalTypes().stream()
+                                .map(AnimalType::getId)
+                                .collect(Collectors.toList()));
+                        dto.setAnimalTypeNames(d.getAnimalTypes().stream()
+                                .map(AnimalType::getTypeName)
+                                .collect(Collectors.toList()));
                     }
                     return dto;
                 })
@@ -472,7 +481,7 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         disease.setDescription(request.getNewDiseaseDescription());
         disease.setSeverity(Disease.Severity.valueOf(request.getNewDiseaseSeverity()));
         disease.setIsNotifiable(request.getNewDiseaseIsNotifiable());
-        disease.setAnimalType(animalType);
+        disease.getAnimalTypes().add(animalType);
         disease.setIsActive(true);
         disease.setCreatedByVet(true);
         disease.setCreatedBy(reporter);

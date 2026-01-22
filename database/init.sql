@@ -116,14 +116,25 @@ CREATE TABLE IF NOT EXISTS diseases (
     disease_name VARCHAR(100) UNIQUE NOT NULL,
     disease_code VARCHAR(20) UNIQUE,
     description TEXT,
-    affected_animal_types TEXT[], -- Array of animal type IDs
+    symptoms TEXT,
+    treatment TEXT,
+    affected_animal_types TEXT[], -- Array of animal type IDs (legacy, use disease_animal_types table)
     severity VARCHAR(20) CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
     is_notifiable BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
+    created_by_vet BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
     updated_by UUID REFERENCES users(id)
+);
+
+-- Disease-Animal Types junction table (many-to-many relationship)
+-- A disease can affect multiple animal types
+CREATE TABLE IF NOT EXISTS disease_animal_types (
+    disease_id UUID NOT NULL REFERENCES diseases(id) ON DELETE CASCADE,
+    animal_type_id UUID NOT NULL REFERENCES animal_types(id) ON DELETE CASCADE,
+    PRIMARY KEY (disease_id, animal_type_id)
 );
 
 -- Disease Reports table
@@ -175,6 +186,10 @@ CREATE INDEX IF NOT EXISTS idx_animals_is_active ON animals(is_active);
 -- Diseases indexes
 CREATE INDEX IF NOT EXISTS idx_diseases_is_active ON diseases(is_active);
 CREATE INDEX IF NOT EXISTS idx_diseases_severity ON diseases(severity);
+
+-- Disease-Animal Types indexes
+CREATE INDEX IF NOT EXISTS idx_disease_animal_types_disease_id ON disease_animal_types(disease_id);
+CREATE INDEX IF NOT EXISTS idx_disease_animal_types_animal_type_id ON disease_animal_types(animal_type_id);
 
 -- Disease Reports indexes
 CREATE INDEX IF NOT EXISTS idx_disease_reports_animal_id ON disease_reports(animal_id);

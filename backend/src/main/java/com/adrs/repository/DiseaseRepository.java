@@ -78,10 +78,12 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
 
     /**
      * Find active diseases for a specific animal type.
+     * Uses the many-to-many relationship via disease_animal_types join table.
      *
      * @param animalTypeId the animal type ID
      * @return list of active diseases for the animal type
      */
+    @Query("SELECT DISTINCT d FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId AND d.isActive = true ORDER BY d.diseaseName")
     List<Disease> findByAnimalTypeIdAndIsActiveTrue(UUID animalTypeId);
 
     /**
@@ -132,20 +134,22 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
 
     /**
      * Find all diseases by animal type ID.
+     * Uses the many-to-many relationship via disease_animal_types join table.
      *
      * @param animalTypeId the animal type ID
      * @return list of diseases for the animal type
      */
-    @Query("SELECT d FROM Disease d WHERE d.animalType.id = :animalTypeId")
+    @Query("SELECT DISTINCT d FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId")
     List<Disease> findByAnimalTypeId(UUID animalTypeId);
 
     /**
      * Count active diseases by animal type ID.
      * Only counts diseases that are not soft-deleted (isActive = true).
+     * Uses the many-to-many relationship via disease_animal_types join table.
      *
      * @param animalTypeId the animal type ID
      * @return count of active diseases for the animal type
      */
-    @Query("SELECT COUNT(d) FROM Disease d WHERE d.animalType.id = :animalTypeId AND d.isActive = true")
+    @Query("SELECT COUNT(DISTINCT d) FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId AND d.isActive = true")
     Long countByAnimalTypeId(UUID animalTypeId);
 }

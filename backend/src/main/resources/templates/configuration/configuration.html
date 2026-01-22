@@ -617,12 +617,27 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="disease-animal-type" class="form-label required">Animal Type</label>
-                            <select id="disease-animal-type" name="animalTypeId" class="form-select" required>
-                                <option value="">Select animal type...</option>
-                                <!-- Options will be loaded via AJAX -->
-                            </select>
-                            <span class="error-message" id="disease-animal-type-error"></span>
+                            <label class="form-label required">Animal Types</label>
+                            <div class="checkbox-dropdown" id="animalTypeDropdown">
+                                <button type="button" class="dropdown-toggle" id="animalTypeDropdownToggle">
+                                    <span class="dropdown-text">Select animal types...</span>
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="animalTypeDropdownMenu">
+                                    <div class="dropdown-search">
+                                        <input type="text" placeholder="Search animal types..." id="animalTypeSearch">
+                                    </div>
+                                    <div class="dropdown-options" id="animalTypeOptions">
+                                        <!-- Dynamically populated with checkboxes -->
+                                    </div>
+                                    <div class="dropdown-actions">
+                                        <button type="button" class="dropdown-action-btn" id="selectAllAnimalTypes">Select All</button>
+                                        <button type="button" class="dropdown-action-btn" id="clearAllAnimalTypes">Clear All</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="form-hint" id="animalTypeSelectedCount">0 animal types selected</span>
+                            <span class="error-message" id="disease-animal-types-error"></span>
                         </div>
 
                         <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">

@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -42,13 +44,27 @@ public class DiseaseDTO {
 
     /**
      * The ID of the animal type that can contract this disease.
+     * @deprecated Use animalTypeIds for multiple animal types support.
      */
+    @Deprecated
     private UUID animalTypeId;
 
     /**
      * The name of the animal type (for display purposes).
+     * @deprecated Use animalTypeNames for multiple animal types support.
      */
+    @Deprecated
     private String animalTypeName;
+
+    /**
+     * List of animal type IDs that can contract this disease.
+     */
+    private List<UUID> animalTypeIds = new ArrayList<>();
+
+    /**
+     * List of animal type names (for display purposes).
+     */
+    private List<String> animalTypeNames = new ArrayList<>();
 
     private Disease.Severity severity;
 

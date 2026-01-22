@@ -876,3 +876,217 @@ select.form-control option {
     }
 }
 
+/* ========================================
+   Multi-Select Styles
+   ======================================== */
+
+/* Multi-select dropdown */
+.form-select[multiple] {
+    min-height: 120px;
+    padding: var(--spacing-sm);
+}
+
+.form-select[multiple] option {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    cursor: pointer;
+}
+
+.form-select[multiple] option:checked {
+    background: linear-gradient(0deg, var(--color-primary-light) 0%, var(--color-primary-light) 100%);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.form-select[multiple] option:hover {
+    background: var(--color-gray-100);
+}
+
+/* Help text below form fields */
+.form-help-text {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* Form hint (for selected count) */
+.form-hint {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* ========================================
+   Checkbox Dropdown Component (for modals)
+   ======================================== */
+.checkbox-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.checkbox-dropdown .dropdown-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    min-height: 42px;
+}
+
+.checkbox-dropdown .dropdown-toggle:hover {
+    border-color: var(--color-primary);
+}
+
+.checkbox-dropdown .dropdown-toggle:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-lighter);
+}
+
+.checkbox-dropdown .dropdown-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+}
+
+.checkbox-dropdown .dropdown-text.has-selection {
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: var(--spacing-sm);
+    transition: transform var(--transition-fast);
+    color: var(--color-text-secondary);
+}
+
+.checkbox-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.checkbox-dropdown .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    max-height: 280px;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.checkbox-dropdown.open .dropdown-menu {
+    display: flex;
+}
+
+.checkbox-dropdown .dropdown-search {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checkbox-dropdown .dropdown-search input {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-gray-50);
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-search input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-white);
+}
+
+.checkbox-dropdown .dropdown-options {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 180px;
+    padding: var(--spacing-xs) 0;
+}
+
+.checkbox-dropdown .dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.checkbox-dropdown .dropdown-option:hover {
+    background: var(--color-gray-50);
+}
+
+.checkbox-dropdown .dropdown-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.checkbox-dropdown .dropdown-option label {
+    flex: 1;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    user-select: none;
+}
+
+.checkbox-dropdown .dropdown-option.hidden {
+    display: none;
+}
+
+.checkbox-dropdown .dropdown-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-gray-50);
+}
+
+.checkbox-dropdown .dropdown-action-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-sm);
+}
+
+.checkbox-dropdown .dropdown-action-btn:hover {
+    background: var(--color-primary-lighter);
+}
+
+.checkbox-dropdown .dropdown-no-results {
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
