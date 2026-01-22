@@ -336,5 +336,13 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
            "GROUP BY dr.farm.id " +
            "HAVING COUNT(dr) >= 2")
     List<Object[]> findHighRiskFarmData(LocalDate startDate);
+
+    /**
+     * Delete all disease reports for a specific farm.
+     * Used when hard-deleting a farm.
+     *
+     * @param farmId the farm ID
+     */
+    void deleteByFarmId(UUID farmId);
 }
 

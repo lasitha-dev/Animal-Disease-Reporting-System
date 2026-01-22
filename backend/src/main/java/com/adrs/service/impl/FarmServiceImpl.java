@@ -4,7 +4,9 @@ import com.adrs.dto.FarmRequestDTO;
 import com.adrs.dto.FarmResponseDTO;
 import com.adrs.exception.ResourceNotFoundException;
 import com.adrs.model.*;
+import com.adrs.repository.AnimalRepository;
 import com.adrs.repository.AnimalTypeRepository;
+import com.adrs.repository.DiseaseReportRepository;
 import com.adrs.repository.FarmAnimalRepository;
 import com.adrs.repository.FarmRepository;
 import com.adrs.repository.FarmTypeRepository;
@@ -34,17 +36,23 @@ public class FarmServiceImpl implements FarmService {
     private final FarmTypeRepository farmTypeRepository;
     private final AnimalTypeRepository animalTypeRepository;
     private final FarmAnimalRepository farmAnimalRepository;
+    private final AnimalRepository animalRepository;
+    private final DiseaseReportRepository diseaseReportRepository;
     private final EntityManager entityManager;
 
     public FarmServiceImpl(FarmRepository farmRepository,
                           FarmTypeRepository farmTypeRepository,
                           AnimalTypeRepository animalTypeRepository,
                           FarmAnimalRepository farmAnimalRepository,
+                          AnimalRepository animalRepository,
+                          DiseaseReportRepository diseaseReportRepository,
                           EntityManager entityManager) {
         this.farmRepository = farmRepository;
         this.farmTypeRepository = farmTypeRepository;
         this.animalTypeRepository = animalTypeRepository;
         this.farmAnimalRepository = farmAnimalRepository;
+        this.animalRepository = animalRepository;
+        this.diseaseReportRepository = diseaseReportRepository;
         this.entityManager = entityManager;
     }
 
@@ -240,11 +248,13 @@ public class FarmServiceImpl implements FarmService {
             throw new AccessDeniedException("You can only delete farms that you registered");
         }
 
-        // Soft delete - set isActive to false
-        farm.setIsActive(false);
-        farm.setUpdatedBy(deletedBy);
-        farmRepository.save(farm);
+        // Hard delete - remove the farm and all related records
+        // Note: FarmAnimals are cascade-deleted via orphanRemoval=true
+        // Disease reports and animals need to be deleted first due to FK constraints
+        diseaseReportRepository.deleteByFarmId(id);
+        animalRepository.deleteByFarmId(id);
+        farmRepository.delete(farm);
 
-        logger.info("Farm soft deleted successfully: {}", id);
+        logger.info("Farm hard deleted successfully: {}", id);
     }
 }

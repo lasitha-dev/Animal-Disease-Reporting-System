@@ -18,4 +18,12 @@ public interface AnimalRepository extends JpaRepository<Animal, UUID> {
      * @return count of all animals
      */
     long count();
+
+    /**
+     * Delete all animals for a specific farm.
+     * Used when hard-deleting a farm.
+     *
+     * @param farmId the farm ID
+     */
+    void deleteByFarmId(UUID farmId);
 }
