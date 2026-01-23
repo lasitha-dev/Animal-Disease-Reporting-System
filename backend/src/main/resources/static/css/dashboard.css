@@ -256,7 +256,7 @@
   right: 6px;
   width: 8px;
   height: 8px;
-  background-color: #ef4444;
+  background-color: var(--color-error);
   border-radius: var(--radius-full);
   border: 2px solid var(--color-white);
 }
@@ -361,18 +361,18 @@
 }
 
 .stat-card-icon.red {
-  background-color: #fef2f2;
-  color: #ef4444;
+  background-color: var(--color-error-light);
+  color: var(--color-error);
 }
 
 .stat-card-icon.green {
-  background-color: #d1fae5;
-  color: #059669;
+  background-color: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .stat-card-icon.emerald {
-  background-color: #d1fae5;
-  color: #10b981;
+  background-color: var(--color-secondary-lighter);
+  color: var(--color-secondary);
 }
 
 .stat-card-value {
@@ -390,11 +390,11 @@
 }
 
 .stat-card-trend.positive {
-  color: #059669;
+  color: var(--color-success);
 }
 
 .stat-card-trend.negative {
-  color: #ef4444;
+  color: var(--color-error);
 }
 
 .stat-card-trend.neutral {

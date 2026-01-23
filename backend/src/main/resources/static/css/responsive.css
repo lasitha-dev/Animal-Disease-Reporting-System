@@ -240,6 +240,16 @@
         width: 200px;
     }
 
+    /* Stats row - 2 columns on tablet */
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Charts row - stack on tablet */
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+
     /* Configuration cards grid - 2 columns on tablet */
     .config-cards-grid {
         grid-template-columns: repeat(2, 1fr);

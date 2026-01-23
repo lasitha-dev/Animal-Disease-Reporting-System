@@ -67,21 +67,21 @@
 /* Native select option styling (limited browser support) */
 .form-select option {
   padding: 12px 16px;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--color-white);
+  color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.5;
 }
 
 .form-select option:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-gray-100);
 }
 
 .form-select option:checked,
 .form-select option:focus {
-  background: linear-gradient(0deg, #2563eb 0%, #2563eb 100%);
-  background-color: #2563eb !important;
-  color: #ffffff !important;
+  background: linear-gradient(0deg, var(--color-primary) 0%, var(--color-primary) 100%);
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
 }
 
 .form-input:focus,

@@ -34,20 +34,20 @@
    /* 48px */
 
    /* ========================================
-     Primary Colors - Deep Indigo (Trust/Authority)
+     Primary Colors - Healthcare Cyan (Trust/Calm/Clinical)
      ======================================== */
-   --color-primary: #4f46e5;
-   /* Deep Indigo - Primary */
-   --color-primary-dark: #4338ca;
-   /* Indigo 700 */
-   --color-primary-darker: #3730a3;
-   /* Indigo 800 */
-   --color-primary-light: #6366f1;
-   /* Indigo 500 */
-   --color-primary-lighter: #e0e7ff;
-   /* Indigo 100 */
-   --color-primary-50: #eef2ff;
-   /* Indigo 50 */
+   --color-primary: #0891b2;
+   /* Cyan 600 - Primary */
+   --color-primary-dark: #0e7490;
+   /* Cyan 700 */
+   --color-primary-darker: #155e75;
+   /* Cyan 800 */
+   --color-primary-light: #22d3ee;
+   /* Cyan 400 */
+   --color-primary-lighter: #cffafe;
+   /* Cyan 100 */
+   --color-primary-50: #ecfeff;
+   /* Cyan 50 */
 
    /* ========================================
      Secondary Colors - Health Green (Wellness/Nature)
@@ -72,13 +72,13 @@
    /* Slate 800 */
    --sidebar-bg-dark: #0f172a;
    /* Slate 900 */
-   --sidebar-text: #94a3b8;
-   /* Slate 400 */
+   --sidebar-text: #cbd5e1;
+   /* Slate 300 - WCAG AA compliant (5.2:1 contrast) */
    --sidebar-text-active: #ffffff;
    --sidebar-hover-bg: #334155;
    /* Slate 700 */
-   --sidebar-active-bg: rgba(79, 70, 229, 0.15);
-   /* Deep Indigo with opacity */
+   --sidebar-active-bg: rgba(8, 145, 178, 0.15);
+   /* Healthcare Cyan with opacity */
    --sidebar-border: #334155;
    /* Slate 700 */
 

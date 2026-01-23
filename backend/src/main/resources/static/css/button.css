@@ -89,9 +89,8 @@
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #b91c1c;
-  /* Red 700 */
-  border-color: #b91c1c;
+  background-color: var(--color-error-dark);
+  border-color: var(--color-error-dark);
 }
 
 .btn-link {
