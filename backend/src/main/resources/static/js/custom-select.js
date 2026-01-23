@@ -9,9 +9,11 @@ class CustomSelect {
         this.options = {
             placeholder: options.placeholder || 'Select an option...',
             title: options.title || 'Select Option',
+            searchable: options.searchable || selectElement.hasAttribute('data-searchable'),
             ...options
         };
         this.isOpen = false;
+        this.searchTerm = '';
         this.init();
     }
 
@@ -34,14 +36,22 @@ class CustomSelect {
             </svg>
         `;
 
-        // Create options container
+        // Create options container with optional search
         this.optionsContainer = document.createElement('div');
         this.optionsContainer.className = 'custom-select-options';
+
+        const searchInputHtml = this.options.searchable
+            ? `<div class="custom-select-search-wrapper">
+                   <input type="text" class="custom-select-search" placeholder="Search..." autocomplete="off">
+               </div>`
+            : '';
+
         this.optionsContainer.innerHTML = `
             <div class="custom-select-options-header">
                 <span>${this.options.title}</span>
                 <button type="button" class="close-btn" aria-label="Close">×</button>
             </div>
+            ${searchInputHtml}
             <div class="custom-select-options-list"></div>
         `;
 
@@ -102,6 +112,27 @@ class CustomSelect {
             });
         }
 
+        // Search input (if searchable)
+        if (this.options.searchable) {
+            const searchInput = this.optionsContainer.querySelector('.custom-select-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    this.filterOptions(e.target.value);
+                });
+                // Prevent click from closing dropdown
+                searchInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                // Clear search on close
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        e.stopPropagation();
+                        this.close();
+                    }
+                });
+            }
+        }
+
         // Option selection
         this.optionsContainer.addEventListener('click', (e) => {
             const option = e.target.closest('.custom-select-option');
@@ -141,6 +172,53 @@ class CustomSelect {
         });
     }
 
+    // Filter options based on search term
+    filterOptions(searchTerm) {
+        this.searchTerm = searchTerm.toLowerCase();
+        const options = this.optionsContainer.querySelectorAll('.custom-select-option');
+        let hasVisibleOptions = false;
+
+        options.forEach(option => {
+            const text = option.textContent.toLowerCase();
+            const matches = text.includes(this.searchTerm);
+            option.style.display = matches ? '' : 'none';
+            if (matches) hasVisibleOptions = true;
+        });
+
+        // Show "no results" message if no options match
+        let noResultsEl = this.optionsContainer.querySelector('.custom-select-no-results');
+        if (!hasVisibleOptions) {
+            if (!noResultsEl) {
+                noResultsEl = document.createElement('div');
+                noResultsEl.className = 'custom-select-no-results';
+                noResultsEl.textContent = 'No options found';
+                this.optionsContainer.querySelector('.custom-select-options-list').appendChild(noResultsEl);
+            }
+            noResultsEl.style.display = '';
+        } else if (noResultsEl) {
+            noResultsEl.style.display = 'none';
+        }
+    }
+
+    // Clear search and reset filter
+    clearSearch() {
+        this.searchTerm = '';
+        const searchInput = this.optionsContainer.querySelector('.custom-select-search');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        // Show all options
+        const options = this.optionsContainer.querySelectorAll('.custom-select-option');
+        options.forEach(option => {
+            option.style.display = '';
+        });
+        // Hide no results message
+        const noResultsEl = this.optionsContainer.querySelector('.custom-select-no-results');
+        if (noResultsEl) {
+            noResultsEl.style.display = 'none';
+        }
+    }
+
     toggle() {
         if (this.isOpen) {
             this.close();
@@ -159,10 +237,20 @@ class CustomSelect {
                 }
             }
         });
-        
+
         this.isOpen = true;
         this.wrapper.classList.add('open');
-        
+
+        // Focus search input if searchable
+        if (this.options.searchable) {
+            setTimeout(() => {
+                const searchInput = this.optionsContainer.querySelector('.custom-select-search');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }, 100);
+        }
+
         // Create backdrop for mobile
         if (window.innerWidth <= 768) {
             this.createBackdrop();
@@ -173,11 +261,16 @@ class CustomSelect {
         this.isOpen = false;
         this.wrapper.classList.remove('open');
         this.removeBackdrop();
+
+        // Clear search when closing
+        if (this.options.searchable) {
+            this.clearSearch();
+        }
     }
 
     createBackdrop() {
         if (this.backdrop) return;
-        
+
         this.backdrop = document.createElement('div');
         this.backdrop.className = 'custom-select-backdrop';
         this.backdrop.style.cssText = `
@@ -189,7 +282,7 @@ class CustomSelect {
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 9998;
         `;
-        
+
         this.backdrop.addEventListener('click', () => this.close());
         document.body.appendChild(this.backdrop);
     }
@@ -204,7 +297,7 @@ class CustomSelect {
     selectOption(value) {
         // Update native select
         this.selectElement.value = value;
-        
+
         // Trigger change event on native select
         const event = new Event('change', { bubbles: true });
         this.selectElement.dispatchEvent(event);
@@ -256,7 +349,7 @@ class CustomSelect {
         this.selectElement.style.display = '';
         this.wrapper.parentNode.insertBefore(this.selectElement, this.wrapper);
         this.wrapper.remove();
-        
+
         // Remove from registry
         if (this.selectElement.id && CustomSelect.instances[this.selectElement.id]) {
             delete CustomSelect.instances[this.selectElement.id];
@@ -272,7 +365,7 @@ CustomSelect.instances = {};
  * @param {string} selectId - The ID of the original select element
  * @returns {CustomSelect|null} The CustomSelect instance or null
  */
-CustomSelect.getInstance = function(selectId) {
+CustomSelect.getInstance = function (selectId) {
     return CustomSelect.instances[selectId] || null;
 };
 
@@ -281,7 +374,7 @@ CustomSelect.getInstance = function(selectId) {
  * Useful when options are dynamically loaded
  * @param {string} selectId - The ID of the original select element
  */
-CustomSelect.refresh = function(selectId) {
+CustomSelect.refresh = function (selectId) {
     const instance = CustomSelect.getInstance(selectId);
     if (instance) {
         instance.refresh();
@@ -294,27 +387,27 @@ CustomSelect.refresh = function(selectId) {
  * @param {Object} options - CustomSelect options
  * @returns {CustomSelect} The created instance
  */
-CustomSelect.init = function(selectOrId, options = {}) {
-    const select = typeof selectOrId === 'string' 
-        ? document.getElementById(selectOrId) 
+CustomSelect.init = function (selectOrId, options = {}) {
+    const select = typeof selectOrId === 'string'
+        ? document.getElementById(selectOrId)
         : selectOrId;
-    
+
     if (!select) return null;
-    
+
     // Destroy existing instance if any
     const existingInstance = CustomSelect.getInstance(select.id);
     if (existingInstance) {
         existingInstance.destroy();
     }
-    
+
     // Create new instance
     const instance = new CustomSelect(select, options);
-    
+
     // Register in registry
     if (select.id) {
         CustomSelect.instances[select.id] = instance;
     }
-    
+
     return instance;
 };
 

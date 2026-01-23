@@ -39,7 +39,11 @@
         form: document.getElementById('disease-report-form'),
         formMessage: document.getElementById('form-message'),
 
-        // Dropdowns
+        // Location Filter Dropdowns
+        filterProvinceSelect: document.getElementById('filterProvince'),
+        filterDistrictSelect: document.getElementById('filterDistrict'),
+
+        // Form Dropdowns
         farmSelect: document.getElementById('farmId'),
         animalTypeSelect: document.getElementById('animalTypeId'),
         diseaseSelect: document.getElementById('diseaseId'),
@@ -136,6 +140,7 @@
         loadViewPreference(); // Load saved view preference first
         setupEventListeners();
         setDefaultDate();
+        loadProvinces(); // Load provinces for filter
         loadFarms();
         loadReports();
         handleUrlParams();
@@ -156,7 +161,11 @@
         // Form submission
         elements.form?.addEventListener('submit', handleSubmit);
 
-        // Cascading dropdowns
+        // Cascading dropdowns - Location filters
+        elements.filterProvinceSelect?.addEventListener('change', onProvinceFilterChange);
+        elements.filterDistrictSelect?.addEventListener('change', onDistrictFilterChange);
+
+        // Cascading dropdowns - Form fields
         elements.farmSelect?.addEventListener('change', onFarmChange);
         elements.animalTypeSelect?.addEventListener('change', onAnimalTypeChange);
         elements.diseaseSelect?.addEventListener('change', onDiseaseChange);
@@ -527,6 +536,15 @@
     function resetForm() {
         elements.form?.reset();
         setDefaultDate();
+
+        // Reset province/district filters
+        elements.filterProvinceSelect.value = '';
+        elements.filterDistrictSelect.innerHTML = '<option value="">Select province first</option>';
+        elements.filterDistrictSelect.disabled = true;
+
+        // Repopulate farm dropdown with all farms
+        populateFarmDropdown();
+
         elements.animalTypeSelect.disabled = true;
         elements.animalTypeSelect.innerHTML = '<option value="">Select farm first...</option>';
         elements.diseaseSelect.disabled = true;
@@ -540,6 +558,8 @@
         clearExistingImage = false;
         // Refresh CustomSelect dropdowns to reflect reset state
         if (window.CustomSelect) {
+            CustomSelect.refresh('filterProvince');
+            CustomSelect.refresh('filterDistrict');
             CustomSelect.refresh('farmId');
             CustomSelect.refresh('animalTypeId');
             CustomSelect.refresh('diseaseId');
@@ -553,6 +573,19 @@
         const farmId = report.farmId || '';
         const animalTypeId = report.animalTypeId || '';
         const diseaseId = report.diseaseId || '';
+
+        // Find the farm to get its province/district
+        const farm = farms.find(f => f.id === farmId);
+        if (farm) {
+            // Set province filter and load its districts
+            elements.filterProvinceSelect.value = farm.province || '';
+            if (farm.province) {
+                await onProvinceFilterChange();
+                // Set district filter
+                elements.filterDistrictSelect.value = farm.district || '';
+                onDistrictFilterChange();
+            }
+        }
 
         // Set farm and trigger cascade
         elements.farmSelect.value = farmId;
@@ -602,10 +635,10 @@
             if (elements.editDiseaseDescription) {
                 elements.editDiseaseDescription.value = report.overrideDescription || '';
             }
-            
+
             // Update the display with effective values (show overridden values in display mode)
             updateDiseaseInfoDisplay();
-            
+
             // Keep in display mode but show that overrides are applied
             isDiseaseInfoEditMode = false;
             if (elements.diseaseInfoDisplay) elements.diseaseInfoDisplay.style.display = 'block';
@@ -674,8 +707,8 @@
         // Calculate effective values (use override if set, otherwise use original)
         const effectiveName = overrideName || currentDiseaseData.diseaseName || '-';
         const effectiveSeverity = overrideSeverity || currentDiseaseData.severity || '-';
-        const effectiveNotifiable = overrideNotifiable !== '' 
-            ? (overrideNotifiable === 'true') 
+        const effectiveNotifiable = overrideNotifiable !== ''
+            ? (overrideNotifiable === 'true')
             : currentDiseaseData.isNotifiable;
         const effectiveDescription = overrideDescription || currentDiseaseData.description || '-';
 
@@ -745,7 +778,7 @@
     function showOtherDiseaseSection() {
         if (elements.otherDiseaseSection) {
             elements.otherDiseaseSection.style.display = 'block';
-            
+
             // Initialize CustomSelect for the new disease form dropdowns
             if (window.CustomSelect) {
                 CustomSelect.refresh('newDiseaseSeverity');
@@ -885,7 +918,7 @@
 
         // Use effective notifiable value (override applied)
         const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
-            ? report.effectiveNotifiable 
+            ? report.effectiveNotifiable
             : report.isNotifiable;
         document.getElementById('view-notifiable').textContent = effectiveNotifiable ? 'Yes ⚠️' : 'No';
 
@@ -1059,6 +1092,122 @@
         return response.json();
     }
 
+    // ========================================
+    // Province/District Filter Functions
+    // ========================================
+
+    async function loadProvinces() {
+        try {
+            const provinces = await fetchAPI('/api/locations/provinces');
+            elements.filterProvinceSelect.innerHTML = '<option value="">All provinces</option>';
+
+            provinces.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province.value;
+                option.textContent = province.label;
+                elements.filterProvinceSelect.appendChild(option);
+            });
+
+            if (window.CustomSelect) {
+                CustomSelect.refresh('filterProvince');
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
+        }
+    }
+
+    async function onProvinceFilterChange() {
+        const provinceValue = elements.filterProvinceSelect.value;
+
+        // Reset district dropdown
+        elements.filterDistrictSelect.innerHTML = '<option value="">All districts</option>';
+
+        if (!provinceValue) {
+            elements.filterDistrictSelect.disabled = true;
+            if (window.CustomSelect) {
+                CustomSelect.refresh('filterDistrict');
+            }
+            // Show all farms
+            filterFarmsByLocation('', '');
+            return;
+        }
+
+        // Load districts for selected province
+        try {
+            const districts = await fetchAPI(`/api/locations/districts?provinceName=${provinceValue}`);
+            elements.filterDistrictSelect.disabled = false;
+
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.value;
+                option.textContent = district.label;
+                elements.filterDistrictSelect.appendChild(option);
+            });
+
+            if (window.CustomSelect) {
+                CustomSelect.refresh('filterDistrict');
+            }
+
+            // Filter farms by province only
+            filterFarmsByLocation(provinceValue, '');
+        } catch (error) {
+            console.error('Error loading districts:', error);
+        }
+    }
+
+    function onDistrictFilterChange() {
+        const provinceValue = elements.filterProvinceSelect.value;
+        const districtValue = elements.filterDistrictSelect.value;
+        filterFarmsByLocation(provinceValue, districtValue);
+    }
+
+    function filterFarmsByLocation(province, district) {
+        // Filter the farms array based on province/district
+        const filteredFarms = farms.filter(farm => {
+            if (province && farm.province !== province) return false;
+            if (district && farm.district !== district) return false;
+            return true;
+        });
+
+        // Repopulate the farm dropdown with filtered farms
+        elements.farmSelect.innerHTML = '<option value="">Select farm...</option>';
+
+        if (filteredFarms.length === 0) {
+            elements.farmSelect.innerHTML = '<option value="">No farms in this location</option>';
+        } else {
+            filteredFarms.forEach(farm => {
+                const option = document.createElement('option');
+                option.value = farm.id;
+                option.textContent = farm.farmName;
+                option.dataset.animals = JSON.stringify(farm.animalTags || []);
+                option.dataset.province = farm.province || '';
+                option.dataset.district = farm.district || '';
+                elements.farmSelect.appendChild(option);
+            });
+        }
+
+        // Refresh CustomSelect
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmId');
+        }
+
+        // Reset dependent dropdowns
+        elements.animalTypeSelect.innerHTML = '<option value="">Select farm first...</option>';
+        elements.animalTypeSelect.disabled = true;
+        elements.diseaseSelect.innerHTML = '<option value="">Select animal type first...</option>';
+        elements.diseaseSelect.disabled = true;
+        elements.diseaseInfoSection.style.display = 'none';
+
+        if (window.CustomSelect) {
+            CustomSelect.refresh('animalTypeId');
+            CustomSelect.refresh('diseaseId');
+        }
+    }
+
+    // ========================================
+    // Farm and Disease Dropdown Functions
+    // ========================================
+
     async function loadFarms() {
         try {
             farms = await fetchAPI('/api/vet/farms');
@@ -1077,6 +1226,8 @@
             option.value = farm.id;
             option.textContent = farm.farmName;
             option.dataset.animals = JSON.stringify(farm.animalTags || []);
+            option.dataset.province = farm.province || '';
+            option.dataset.district = farm.district || '';
             elements.farmSelect.appendChild(option);
         });
         // Refresh CustomSelect to reflect new options
