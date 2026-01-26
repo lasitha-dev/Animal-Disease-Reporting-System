@@ -23,6 +23,11 @@
     const VIEW_MODE_STORAGE_KEY = 'disease-reports-view-mode'; // localStorage key
     let isOtherDiseaseSelected = false; // Track if "Other" disease is selected
     const OTHER_DISEASE_VALUE = '__OTHER__'; // Special value for "Other" option
+    let searchQuery = ''; // Current search query
+    let filteredReports = []; // Filtered reports based on search
+    let filteredOtherReports = []; // Filtered other reports based on search
+    let allReports = []; // All my reports
+    let allOtherReports = []; // All other reports
 
     // DOM Elements
     const elements = {
@@ -126,7 +131,14 @@
         reportsTableBody: document.getElementById('reports-table-body'),
         otherReportsGridContainer: document.getElementById('other-reports-grid-container'),
         otherReportsTableContainer: document.getElementById('other-reports-table-container'),
-        otherReportsTableBody: document.getElementById('other-reports-table-body')
+        otherReportsTableBody: document.getElementById('other-reports-table-body'),
+
+        // Search elements
+        searchInput: document.getElementById('reportSearchInput'),
+        clearSearchBtn: document.getElementById('clearSearchBtn'),
+        searchResultsCount: document.getElementById('searchResultsCount'),
+        noSearchResults: document.getElementById('no-search-results'),
+        clearSearchFromEmptyBtn: document.getElementById('clearSearchFromEmpty')
     };
 
     // CSRF Token
@@ -160,6 +172,11 @@
 
         // Form submission
         elements.form?.addEventListener('submit', handleSubmit);
+
+        // Search functionality
+        elements.searchInput?.addEventListener('input', handleSearchInput);
+        elements.clearSearchBtn?.addEventListener('click', clearSearch);
+        elements.clearSearchFromEmptyBtn?.addEventListener('click', clearSearch);
 
         // Cascading dropdowns - Location filters
         elements.filterProvinceSelect?.addEventListener('change', onProvinceFilterChange);
@@ -320,6 +337,410 @@
         }
     }
 
+    // ========================================
+    // Search Functions
+    // ========================================
+
+    function handleSearchInput(e) {
+        const query = e.target.value.trim().toLowerCase();
+        searchQuery = query;
+
+        // Show/hide clear button
+        if (elements.clearSearchBtn) {
+            elements.clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+        }
+
+        // Apply search filter
+        applySearchFilter();
+    }
+
+    function clearSearch() {
+        searchQuery = '';
+        if (elements.searchInput) {
+            elements.searchInput.value = '';
+        }
+        if (elements.clearSearchBtn) {
+            elements.clearSearchBtn.style.display = 'none';
+        }
+        if (elements.searchResultsCount) {
+            elements.searchResultsCount.style.display = 'none';
+        }
+        if (elements.noSearchResults) {
+            elements.noSearchResults.style.display = 'none';
+        }
+
+        // Re-render without filter
+        applySearchFilter();
+    }
+
+    function applySearchFilter() {
+        // Filter reports based on search query
+        if (searchQuery.length === 0) {
+            filteredReports = [...allReports];
+            filteredOtherReports = [...allOtherReports];
+        } else {
+            filteredReports = allReports.filter(report => matchesReportSearch(report, searchQuery));
+            filteredOtherReports = allOtherReports.filter(report => matchesReportSearch(report, searchQuery));
+        }
+
+        // Re-render the current tab
+        if (currentTab === 'my-reports') {
+            renderFilteredReports();
+        } else {
+            renderFilteredOtherReports();
+        }
+
+        // Update search results count
+        updateSearchResultsCount();
+    }
+
+    function matchesReportSearch(report, query) {
+        const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+        const effectiveSeverity = report.effectiveSeverity || report.severity;
+
+        const searchableFields = [
+            effectiveDiseaseName,
+            report.farmName,
+            report.animalTypeName,
+            effectiveSeverity,
+            report.reportedByUsername,
+            report.symptoms,
+            report.diagnosis,
+            report.treatment,
+            report.outcome
+        ];
+
+        return searchableFields.some(field => {
+            if (field && typeof field === 'string') {
+                return field.toLowerCase().includes(query);
+            }
+            return false;
+        });
+    }
+
+    function renderFilteredReports() {
+        if (elements.loadingState) elements.loadingState.style.display = 'none';
+
+        if (searchQuery.length > 0 && filteredReports.length === 0) {
+            showNoSearchResults();
+            return;
+        }
+
+        if (filteredReports.length === 0 && allReports.length === 0) {
+            if (elements.emptyState) elements.emptyState.style.display = 'block';
+            return;
+        }
+
+        if (elements.emptyState) elements.emptyState.style.display = 'none';
+        hideNoSearchResults();
+
+        // Render both grid and table views
+        renderReportsCards(filteredReports, searchQuery);
+        renderReportsTableRows(filteredReports, searchQuery);
+        updateViewDisplay();
+    }
+
+    function renderFilteredOtherReports() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
+
+        if (searchQuery.length > 0 && filteredOtherReports.length === 0) {
+            showNoSearchResults();
+            return;
+        }
+
+        if (filteredOtherReports.length === 0 && allOtherReports.length === 0) {
+            if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'block';
+            return;
+        }
+
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        hideNoSearchResults();
+
+        // Render both grid and table views
+        renderOtherReportsCards(filteredOtherReports, searchQuery);
+        renderOtherReportsTableRows(filteredOtherReports, searchQuery);
+        updateViewDisplay();
+    }
+
+    function updateSearchResultsCount() {
+        if (!elements.searchResultsCount) return;
+
+        if (searchQuery.length === 0) {
+            elements.searchResultsCount.style.display = 'none';
+            return;
+        }
+
+        const count = currentTab === 'my-reports' ? filteredReports.length : filteredOtherReports.length;
+        const total = currentTab === 'my-reports' ? allReports.length : allOtherReports.length;
+
+        elements.searchResultsCount.innerHTML = `Found <strong>${count}</strong> of ${total} report${total !== 1 ? 's' : ''}`;
+        elements.searchResultsCount.style.display = 'block';
+    }
+
+    function showNoSearchResults() {
+        if (elements.noSearchResults) {
+            elements.noSearchResults.style.display = 'flex';
+        }
+        if (elements.emptyState) elements.emptyState.style.display = 'none';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        if (elements.reportsGridContainer) elements.reportsGridContainer.innerHTML = '';
+        if (elements.reportsTableBody) elements.reportsTableBody.innerHTML = '';
+        if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.innerHTML = '';
+        if (elements.otherReportsTableBody) elements.otherReportsTableBody.innerHTML = '';
+    }
+
+    function hideNoSearchResults() {
+        if (elements.noSearchResults) {
+            elements.noSearchResults.style.display = 'none';
+        }
+    }
+
+    function highlightMatch(text, query) {
+        if (!text || !query || query.length === 0) return escapeHtml(text || '');
+        
+        const escapedText = escapeHtml(text);
+        const escapedQuery = escapeHtml(query);
+        const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return escapedText.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+
+    function renderReportsCards(reports, query = '') {
+        const container = elements.reportsGridContainer;
+        if (!container) return;
+
+        container.innerHTML = '';
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'reports-grid';
+
+        reports.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'report-card';
+            card.dataset.reportId = report.id;
+
+            const date = new Date(report.reportDate).toLocaleDateString();
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
+
+            const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName);
+            const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName);
+            const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName);
+
+            const imageHtml = report.imageUrl
+                ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
+                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+
+            card.innerHTML = `
+                <div class="report-card-header">
+                    ${imageHtml}
+                    <div class="report-card-badges">
+                        <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <h4 class="report-card-title">${diseaseNameDisplay}</h4>
+                    <p class="report-card-subtitle">${animalTypeDisplay} at ${farmNameDisplay}</p>
+                    <span class="report-card-date">📅 ${date}</span>
+                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                </div>
+                <div class="report-card-footer">
+                    <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
+                        👁️ View Details
+                    </button>
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                </div>
+            `;
+
+            card.querySelector('.view-btn').addEventListener('click', () => {
+                isViewingOtherReport = false;
+                openViewModal(report.id);
+            });
+
+            cardsGrid.appendChild(card);
+        });
+
+        container.appendChild(cardsGrid);
+    }
+
+    function renderReportsTableRows(reports, query = '') {
+        const tbody = elements.reportsTableBody;
+        if (!tbody) return;
+
+        tbody.innerHTML = reports.map(report => {
+            const date = new Date(report.reportDate).toLocaleDateString();
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
+
+            const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName || 'Unknown');
+            const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName || '-');
+            const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName || '-');
+
+            return `
+                <tr data-report-id="${report.id}">
+                    <td><span class="table-disease-name">${diseaseNameDisplay}</span></td>
+                    <td>${farmNameDisplay}</td>
+                    <td>${animalTypeDisplay}</td>
+                    <td>${date}</td>
+                    <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
+                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                    <td>${report.affectedCount || '-'}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-outline btn-sm edit-btn" data-id="${report.id}">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn btn-danger-outline btn-sm delete-btn" data-id="${report.id}">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Add event listeners
+        tbody.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                isViewingOtherReport = false;
+                openViewModal(btn.dataset.id);
+            });
+        });
+        tbody.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => editReport(btn.dataset.id));
+        });
+        tbody.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => openDeleteModal(btn.dataset.id));
+        });
+    }
+
+    function renderOtherReportsCards(reports, query = '') {
+        const container = elements.otherReportsGridContainer;
+        if (!container) return;
+
+        container.innerHTML = '';
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'reports-grid';
+
+        reports.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'report-card other-vet-card';
+            card.dataset.reportId = report.id;
+
+            const date = new Date(report.reportDate).toLocaleDateString();
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
+
+            const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName);
+            const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName);
+            const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName);
+            const vetNameDisplay = query ? highlightMatch(report.reportedByUsername, query) : escapeHtml(report.reportedByUsername);
+
+            const imageHtml = report.imageUrl
+                ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
+                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+
+            card.innerHTML = `
+                <div class="report-card-header">
+                    ${imageHtml}
+                    <div class="report-card-badges">
+                        <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <h4 class="report-card-title">${diseaseNameDisplay}</h4>
+                    <p class="report-card-subtitle">${animalTypeDisplay} at ${farmNameDisplay}</p>
+                    <div class="report-card-meta">
+                        <span class="meta-item">📅 ${date}</span>
+                        <span class="meta-item">👤 ${vetNameDisplay}</span>
+                    </div>
+                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                </div>
+                <div class="report-card-footer">
+                    <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
+                        👁️ View Details
+                    </button>
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                </div>
+            `;
+
+            card.querySelector('.view-btn').addEventListener('click', () => {
+                isViewingOtherReport = true;
+                openViewModal(report.id);
+            });
+
+            cardsGrid.appendChild(card);
+        });
+
+        container.appendChild(cardsGrid);
+    }
+
+    function renderOtherReportsTableRows(reports, query = '') {
+        const tbody = elements.otherReportsTableBody;
+        if (!tbody) return;
+
+        tbody.innerHTML = reports.map(report => {
+            const date = new Date(report.reportDate).toLocaleDateString();
+            const effectiveDiseaseName = report.effectiveDiseaseName || report.diseaseName;
+            const effectiveSeverity = report.effectiveSeverity || report.severity;
+            const severityClass = effectiveSeverity?.toLowerCase() || '';
+            const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
+                ? report.effectiveNotifiable
+                : report.isNotifiable;
+
+            const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName || 'Unknown');
+            const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName || '-');
+            const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName || '-');
+            const vetNameDisplay = query ? highlightMatch(report.reportedByUsername, query) : escapeHtml(report.reportedByUsername || 'Unknown');
+
+            return `
+                <tr data-report-id="${report.id}">
+                    <td><span class="table-disease-name">${diseaseNameDisplay}</span></td>
+                    <td>${farmNameDisplay}</td>
+                    <td>${animalTypeDisplay}</td>
+                    <td>${date}</td>
+                    <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
+                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                    <td>${report.affectedCount || '-'}</td>
+                    <td>
+                        <div class="table-vet-name">
+                            <span>🩺</span>
+                            <span>${vetNameDisplay}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
+                                👁️ View
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Add event listeners
+        tbody.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                isViewingOtherReport = true;
+                openViewModal(btn.dataset.id);
+            });
+        });
+    }
+
     function handleUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
@@ -347,12 +768,21 @@
 
         try {
             const reports = await fetchAPI('/api/vet/disease-reports/others');
+            
+            // Store all other reports for search
+            allOtherReports = reports;
+            filteredOtherReports = [...reports];
 
             if (reports.length === 0) {
                 showOtherEmptyState();
             } else {
-                renderOtherReportsTable(reports);
-                showOtherReportsTable();
+                // Apply any existing search filter
+                if (searchQuery.length > 0) {
+                    applySearchFilter();
+                } else {
+                    renderOtherReportsTable(reports);
+                    showOtherReportsTable();
+                }
             }
             otherReportsLoaded = true;
         } catch (error) {
@@ -1627,12 +2057,21 @@
 
         try {
             const reports = await fetchAPI('/api/vet/disease-reports');
+            
+            // Store all reports for search
+            allReports = reports;
+            filteredReports = [...reports];
 
             if (reports.length === 0) {
                 showEmptyState();
             } else {
-                renderReportsTable(reports);
-                showReportsTable();
+                // Apply any existing search filter
+                if (searchQuery.length > 0) {
+                    applySearchFilter();
+                } else {
+                    renderReportsTable(reports);
+                    showReportsTable();
+                }
             }
         } catch (error) {
             console.error('Error loading reports:', error);

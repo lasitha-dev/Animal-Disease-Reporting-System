@@ -16,6 +16,9 @@
     let editingFarmId = null; // Track which farm is being edited
     let currentViewMode = 'grid'; // View mode: 'grid' or 'table'
     const VIEW_MODE_STORAGE_KEY = 'farms-view-mode'; // localStorage key
+    let searchQuery = ''; // Current search query
+    let filteredFarms = []; // Filtered farms based on search
+    let filteredOtherFarms = []; // Filtered other farms based on search
 
     // Map State
     let map = null;
@@ -54,6 +57,13 @@
     const farmsTableBody = document.getElementById('farms-table-body');
     const otherFarmsTableContainer = document.getElementById('other-farms-table-container');
     const otherFarmsTableBody = document.getElementById('other-farms-table-body');
+
+    // DOM Elements - Search
+    const searchInput = document.getElementById('farmSearchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchResultsCount = document.getElementById('searchResultsCount');
+    const noSearchResults = document.getElementById('no-search-results');
+    const clearSearchFromEmptyBtn = document.getElementById('clearSearchFromEmpty');
 
     // Form Elements
     const farmTypeSelect = document.getElementById('farmTypeId');
@@ -113,6 +123,11 @@
         // View toggle
         gridViewBtn?.addEventListener('click', () => setViewMode('grid'));
         tableViewBtn?.addEventListener('click', () => setViewMode('table'));
+
+        // Search functionality
+        searchInput?.addEventListener('input', handleSearchInput);
+        clearSearchBtn?.addEventListener('click', clearSearch);
+        clearSearchFromEmptyBtn?.addEventListener('click', clearSearch);
 
         // Form events
         farmTypeSelect?.addEventListener('change', handleFarmTypeChange);
@@ -218,6 +233,192 @@
     }
 
     /**
+     * Search Functions
+     */
+    function handleSearchInput(e) {
+        const query = e.target.value.trim().toLowerCase();
+        searchQuery = query;
+
+        // Show/hide clear button
+        if (clearSearchBtn) {
+            clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+        }
+
+        // Apply search filter
+        applySearchFilter();
+    }
+
+    function clearSearch() {
+        searchQuery = '';
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        if (clearSearchBtn) {
+            clearSearchBtn.style.display = 'none';
+        }
+        if (searchResultsCount) {
+            searchResultsCount.style.display = 'none';
+        }
+        if (noSearchResults) {
+            noSearchResults.style.display = 'none';
+        }
+
+        // Re-render without filter
+        applySearchFilter();
+    }
+
+    function applySearchFilter() {
+        // Filter farms based on search query
+        if (searchQuery.length === 0) {
+            filteredFarms = [...farms];
+            filteredOtherFarms = [...otherFarms];
+        } else {
+            filteredFarms = farms.filter(farm => matchesFarmSearch(farm, searchQuery));
+            filteredOtherFarms = otherFarms.filter(farm => matchesFarmSearch(farm, searchQuery));
+        }
+
+        // Re-render the current tab
+        if (activeTab === 'my-farms') {
+            renderFilteredFarms();
+        } else {
+            renderFilteredOtherFarms();
+        }
+
+        // Update search results count
+        updateSearchResultsCount();
+    }
+
+    function matchesFarmSearch(farm, query) {
+        const searchableFields = [
+            farm.farmName,
+            farm.farmTypeName,
+            farm.ownerName,
+            farm.ownerContact,
+            farm.address,
+            farm.district,
+            farm.districtDisplayName,
+            farm.province,
+            farm.provinceDisplayName,
+            farm.description,
+            farm.createdByUsername
+        ];
+
+        // Also search in animal tags
+        if (farm.animalTags && Array.isArray(farm.animalTags)) {
+            farm.animalTags.forEach(tag => {
+                searchableFields.push(tag.animalTypeName);
+            });
+        }
+
+        return searchableFields.some(field => {
+            if (field && typeof field === 'string') {
+                return field.toLowerCase().includes(query);
+            }
+            return false;
+        });
+    }
+
+    function renderFilteredFarms() {
+        hideLoading();
+
+        if (searchQuery.length > 0 && filteredFarms.length === 0) {
+            // Show no search results state
+            showNoSearchResults();
+            return;
+        }
+
+        if (filteredFarms.length === 0 && farms.length === 0) {
+            showEmpty();
+            return;
+        }
+
+        hideEmpty();
+        hideNoSearchResults();
+
+        // Render grid view
+        farmsGrid.innerHTML = filteredFarms.map(farm => createFarmCard(farm, searchQuery)).join('');
+
+        // Render table view
+        farmsTableBody.innerHTML = filteredFarms.map(farm => createFarmTableRow(farm, searchQuery)).join('');
+
+        // Apply current view mode
+        updateViewDisplay();
+
+        // Attach event listeners to edit/delete buttons (both grid and table)
+        attachFarmCardEventListeners();
+        attachFarmTableEventListeners();
+    }
+
+    function renderFilteredOtherFarms() {
+        hideOtherFarmsLoading();
+
+        if (searchQuery.length > 0 && filteredOtherFarms.length === 0) {
+            // Show no search results state
+            showNoSearchResults();
+            return;
+        }
+
+        if (filteredOtherFarms.length === 0 && otherFarms.length === 0) {
+            showOtherFarmsEmpty();
+            return;
+        }
+
+        hideOtherFarmsEmpty();
+        hideNoSearchResults();
+
+        // Render grid view
+        otherFarmsGrid.innerHTML = filteredOtherFarms.map(farm => createOtherFarmCard(farm, searchQuery)).join('');
+
+        // Render table view
+        otherFarmsTableBody.innerHTML = filteredOtherFarms.map(farm => createOtherFarmTableRow(farm, searchQuery)).join('');
+
+        // Apply current view mode
+        updateViewDisplay();
+    }
+
+    function updateSearchResultsCount() {
+        if (!searchResultsCount) return;
+
+        if (searchQuery.length === 0) {
+            searchResultsCount.style.display = 'none';
+            return;
+        }
+
+        const count = activeTab === 'my-farms' ? filteredFarms.length : filteredOtherFarms.length;
+        const total = activeTab === 'my-farms' ? farms.length : otherFarms.length;
+
+        searchResultsCount.innerHTML = `Found <strong>${count}</strong> of ${total} farm${total !== 1 ? 's' : ''}`;
+        searchResultsCount.style.display = 'block';
+    }
+
+    function showNoSearchResults() {
+        if (noSearchResults) {
+            noSearchResults.style.display = 'flex';
+        }
+        hideEmpty();
+        hideOtherFarmsEmpty();
+        farmsGrid.innerHTML = '';
+        farmsTableBody.innerHTML = '';
+        otherFarmsGrid.innerHTML = '';
+        otherFarmsTableBody.innerHTML = '';
+    }
+
+    function hideNoSearchResults() {
+        if (noSearchResults) {
+            noSearchResults.style.display = 'none';
+        }
+    }
+
+    function highlightMatch(text, query) {
+        if (!text || !query || query.length === 0) return escapeHtml(text || '');
+        
+        const escapedText = escapeHtml(text);
+        const escapedQuery = escapeHtml(query);
+        const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return escapedText.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+
+    /**
      * Load farms from API
      */
     async function loadFarms() {
@@ -248,6 +449,17 @@
         }
 
         hideEmpty();
+        
+        // Initialize filtered farms if not already done
+        filteredFarms = [...farms];
+        
+        // Apply any existing search filter
+        if (searchQuery.length > 0) {
+            applySearchFilter();
+            return;
+        }
+
+        hideNoSearchResults();
 
         // Render grid view
         farmsGrid.innerHTML = farms.map(farm => createFarmCard(farm)).join('');
@@ -295,6 +507,17 @@
         }
 
         hideOtherFarmsEmpty();
+        
+        // Initialize filtered other farms if not already done
+        filteredOtherFarms = [...otherFarms];
+        
+        // Apply any existing search filter
+        if (searchQuery.length > 0) {
+            applySearchFilter();
+            return;
+        }
+
+        hideNoSearchResults();
 
         // Render grid view
         otherFarmsGrid.innerHTML = otherFarms.map(farm => createOtherFarmCard(farm)).join('');
@@ -309,28 +532,36 @@
     /**
      * Create farm card HTML for other vets' farms (view-only, no edit/delete)
      */
-    function createOtherFarmCard(farm) {
+    function createOtherFarmCard(farm, query = '') {
+        const farmName = query ? highlightMatch(farm.farmName, query) : escapeHtml(farm.farmName);
+        const farmType = query ? highlightMatch(farm.farmTypeName || 'Unknown', query) : escapeHtml(farm.farmTypeName || 'Unknown');
+        const ownerName = query ? highlightMatch(farm.ownerName, query) : escapeHtml(farm.ownerName);
+        const district = query ? highlightMatch(farm.districtDisplayName || farm.district, query) : escapeHtml(farm.districtDisplayName || farm.district);
+        const province = query ? highlightMatch(farm.provinceDisplayName || farm.province, query) : escapeHtml(farm.provinceDisplayName || farm.province);
+        const contact = query ? highlightMatch(farm.ownerContact, query) : escapeHtml(farm.ownerContact);
+        const vetName = query ? highlightMatch(farm.createdByUsername || 'Unknown', query) : escapeHtml(farm.createdByUsername || 'Unknown');
+
         return `
             <div class="farm-card" data-farm-id="${farm.id}">
                 <div class="farm-card-header">
-                    <h3 class="farm-card-title">${escapeHtml(farm.farmName)}</h3>
-                    <span class="farm-card-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span>
+                    <h3 class="farm-card-title">${farmName}</h3>
+                    <span class="farm-card-type">${farmType}</span>
                 </div>
                 <div class="farm-card-info">
                     ${farm.ownerName ? `
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">👤</span>
-                        <span>${escapeHtml(farm.ownerName)}</span>
+                        <span>${ownerName}</span>
                     </div>
                     ` : ''}
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">📍</span>
-                        <span>${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}</span>
+                        <span>${district}, ${province}</span>
                     </div>
                     ${farm.ownerContact ? `
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">📞</span>
-                        <span>${escapeHtml(farm.ownerContact)}</span>
+                        <span>${contact}</span>
                     </div>
                     ` : ''}
                 </div>
@@ -347,7 +578,7 @@
                 <div class="farm-card-registered-by">
                     <span class="vet-icon">🩺</span>
                     <span>Registered by:</span>
-                    <span class="vet-name">${escapeHtml(farm.createdByUsername || 'Unknown')}</span>
+                    <span class="vet-name">${vetName}</span>
                 </div>
             </div>
         `;
@@ -356,14 +587,19 @@
     /**
      * Create table row HTML for a farm (My Farms)
      */
-    function createFarmTableRow(farm) {
-        const location = `${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}`;
+    function createFarmTableRow(farm, query = '') {
+        const farmName = query ? highlightMatch(farm.farmName, query) : escapeHtml(farm.farmName);
+        const farmType = query ? highlightMatch(farm.farmTypeName || 'Unknown', query) : escapeHtml(farm.farmTypeName || 'Unknown');
+        const ownerName = farm.ownerName ? (query ? highlightMatch(farm.ownerName, query) : escapeHtml(farm.ownerName)) : '-';
+        const district = query ? highlightMatch(farm.districtDisplayName || farm.district, query) : escapeHtml(farm.districtDisplayName || farm.district);
+        const province = query ? highlightMatch(farm.provinceDisplayName || farm.province, query) : escapeHtml(farm.provinceDisplayName || farm.province);
+        const location = `${district}, ${province}`;
 
         return `
             <tr data-farm-id="${farm.id}">
-                <td><span class="table-farm-name">${escapeHtml(farm.farmName)}</span></td>
-                <td><span class="table-farm-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span></td>
-                <td>${farm.ownerName ? escapeHtml(farm.ownerName) : '-'}</td>
+                <td><span class="table-farm-name">${farmName}</span></td>
+                <td><span class="table-farm-type">${farmType}</span></td>
+                <td>${ownerName}</td>
                 <td><span class="table-location">${location}</span></td>
                 <td class="table-stat">${farm.totalAnimals || 0}</td>
                 <td class="table-stat">${farm.animalTags?.length || 0}</td>
@@ -384,14 +620,20 @@
     /**
      * Create table row HTML for other vets' farms (view-only)
      */
-    function createOtherFarmTableRow(farm) {
-        const location = `${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}`;
+    function createOtherFarmTableRow(farm, query = '') {
+        const farmName = query ? highlightMatch(farm.farmName, query) : escapeHtml(farm.farmName);
+        const farmType = query ? highlightMatch(farm.farmTypeName || 'Unknown', query) : escapeHtml(farm.farmTypeName || 'Unknown');
+        const ownerName = farm.ownerName ? (query ? highlightMatch(farm.ownerName, query) : escapeHtml(farm.ownerName)) : '-';
+        const district = query ? highlightMatch(farm.districtDisplayName || farm.district, query) : escapeHtml(farm.districtDisplayName || farm.district);
+        const province = query ? highlightMatch(farm.provinceDisplayName || farm.province, query) : escapeHtml(farm.provinceDisplayName || farm.province);
+        const location = `${district}, ${province}`;
+        const vetName = query ? highlightMatch(farm.createdByUsername || 'Unknown', query) : escapeHtml(farm.createdByUsername || 'Unknown');
 
         return `
             <tr data-farm-id="${farm.id}">
-                <td><span class="table-farm-name">${escapeHtml(farm.farmName)}</span></td>
-                <td><span class="table-farm-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span></td>
-                <td>${farm.ownerName ? escapeHtml(farm.ownerName) : '-'}</td>
+                <td><span class="table-farm-name">${farmName}</span></td>
+                <td><span class="table-farm-type">${farmType}</span></td>
+                <td>${ownerName}</td>
                 <td><span class="table-location">${location}</span></td>
                 <td class="table-stat">${farm.totalAnimals || 0}</td>
                 <td class="table-stat">${farm.animalTags?.length || 0}</td>
@@ -566,28 +808,35 @@
     /**
      * Create farm card HTML
      */
-    function createFarmCard(farm) {
+    function createFarmCard(farm, query = '') {
+        const farmName = query ? highlightMatch(farm.farmName, query) : escapeHtml(farm.farmName);
+        const farmType = query ? highlightMatch(farm.farmTypeName || 'Unknown', query) : escapeHtml(farm.farmTypeName || 'Unknown');
+        const ownerName = query ? highlightMatch(farm.ownerName, query) : escapeHtml(farm.ownerName);
+        const district = query ? highlightMatch(farm.districtDisplayName || farm.district, query) : escapeHtml(farm.districtDisplayName || farm.district);
+        const province = query ? highlightMatch(farm.provinceDisplayName || farm.province, query) : escapeHtml(farm.provinceDisplayName || farm.province);
+        const contact = query ? highlightMatch(farm.ownerContact, query) : escapeHtml(farm.ownerContact);
+
         return `
             <div class="farm-card" data-farm-id="${farm.id}">
                 <div class="farm-card-header">
-                    <h3 class="farm-card-title">${escapeHtml(farm.farmName)}</h3>
-                    <span class="farm-card-type">${escapeHtml(farm.farmTypeName || 'Unknown')}</span>
+                    <h3 class="farm-card-title">${farmName}</h3>
+                    <span class="farm-card-type">${farmType}</span>
                 </div>
                 <div class="farm-card-info">
                     ${farm.ownerName ? `
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">👤</span>
-                        <span>${escapeHtml(farm.ownerName)}</span>
+                        <span>${ownerName}</span>
                     </div>
                     ` : ''}
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">📍</span>
-                        <span>${escapeHtml(farm.districtDisplayName || farm.district)}, ${escapeHtml(farm.provinceDisplayName || farm.province)}</span>
+                        <span>${district}, ${province}</span>
                     </div>
                     ${farm.ownerContact ? `
                     <div class="farm-card-info-row">
                         <span class="farm-card-info-icon">📞</span>
-                        <span>${escapeHtml(farm.ownerContact)}</span>
+                        <span>${contact}</span>
                     </div>
                     ` : ''}
                 </div>
