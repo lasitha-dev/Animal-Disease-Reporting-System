@@ -371,11 +371,11 @@ function createMapMarkers() {
             title: farm.farmName,
             icon: {
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: hasDiseases ? 12 : 10,
+                scale: hasDiseases ? 8 : 7,
                 fillColor: markerColor,
                 fillOpacity: 1,
                 strokeColor: borderColor,
-                strokeWeight: 2
+                strokeWeight: 1.5
             },
             farmData: farm,
             diseaseData: farmDiseases

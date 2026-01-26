@@ -34,6 +34,17 @@
 
         <!-- Search and View Controls -->
         <div class="search-view-container">
+            <!-- Disease Filter Dropdown -->
+            <div class="filter-container">
+                <label for="diseaseFilter" class="filter-label">Filter by Disease:</label>
+                <div class="filter-select-wrapper">
+                    <select id="diseaseFilter" class="filter-select">
+                        <option value="">All Diseases</option>
+                        <!-- Options populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
             <!-- Search Bar -->
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
@@ -43,7 +54,7 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     <input type="text" id="reportSearchInput" class="search-input" 
-                        placeholder="Search by disease, farm, animal type..." 
+                        placeholder="Search by farm, location, animal type..." 
                         autocomplete="off">
                     <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;" title="Clear search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"

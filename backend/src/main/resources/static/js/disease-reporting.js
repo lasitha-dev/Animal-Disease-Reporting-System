@@ -24,6 +24,7 @@
     let isOtherDiseaseSelected = false; // Track if "Other" disease is selected
     const OTHER_DISEASE_VALUE = '__OTHER__'; // Special value for "Other" option
     let searchQuery = ''; // Current search query
+    let diseaseFilter = ''; // Current disease filter selection
     let filteredReports = []; // Filtered reports based on search
     let filteredOtherReports = []; // Filtered other reports based on search
     let allReports = []; // All my reports
@@ -138,7 +139,10 @@
         clearSearchBtn: document.getElementById('clearSearchBtn'),
         searchResultsCount: document.getElementById('searchResultsCount'),
         noSearchResults: document.getElementById('no-search-results'),
-        clearSearchFromEmptyBtn: document.getElementById('clearSearchFromEmpty')
+        clearSearchFromEmptyBtn: document.getElementById('clearSearchFromEmpty'),
+
+        // Disease filter element
+        diseaseFilterSelect: document.getElementById('diseaseFilter')
     };
 
     // CSRF Token
@@ -177,6 +181,9 @@
         elements.searchInput?.addEventListener('input', handleSearchInput);
         elements.clearSearchBtn?.addEventListener('click', clearSearch);
         elements.clearSearchFromEmptyBtn?.addEventListener('click', clearSearch);
+
+        // Disease filter dropdown
+        elements.diseaseFilterSelect?.addEventListener('change', handleDiseaseFilterChange);
 
         // Cascading dropdowns - Location filters
         elements.filterProvinceSelect?.addEventListener('change', onProvinceFilterChange);
@@ -373,15 +380,70 @@
         applySearchFilter();
     }
 
+    function handleDiseaseFilterChange(e) {
+        diseaseFilter = e.target.value;
+        applySearchFilter();
+    }
+
+    function populateDiseaseFilterDropdown() {
+        const select = elements.diseaseFilterSelect;
+        if (!select) return;
+
+        // Collect unique disease names from all reports
+        const allDiseaseReports = [...allReports, ...allOtherReports];
+        const uniqueDiseases = new Map();
+
+        allDiseaseReports.forEach(report => {
+            const diseaseName = report.effectiveDiseaseName || report.diseaseName;
+            if (diseaseName && !uniqueDiseases.has(diseaseName)) {
+                uniqueDiseases.set(diseaseName, diseaseName);
+            }
+        });
+
+        // Sort diseases alphabetically
+        const sortedDiseases = Array.from(uniqueDiseases.keys()).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+
+        // Keep the first "All Diseases" option and add unique diseases
+        select.innerHTML = '<option value="">All Diseases</option>';
+        sortedDiseases.forEach(disease => {
+            const option = document.createElement('option');
+            option.value = disease;
+            option.textContent = disease;
+            // Restore selected value if it exists
+            if (disease === diseaseFilter) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    }
+
     function applySearchFilter() {
-        // Filter reports based on search query
-        if (searchQuery.length === 0) {
-            filteredReports = [...allReports];
-            filteredOtherReports = [...allOtherReports];
-        } else {
-            filteredReports = allReports.filter(report => matchesReportSearch(report, searchQuery));
-            filteredOtherReports = allOtherReports.filter(report => matchesReportSearch(report, searchQuery));
+        // Filter reports based on search query and disease filter
+        let myFiltered = [...allReports];
+        let otherFiltered = [...allOtherReports];
+
+        // Apply disease filter
+        if (diseaseFilter) {
+            myFiltered = myFiltered.filter(report => {
+                const diseaseName = report.effectiveDiseaseName || report.diseaseName;
+                return diseaseName === diseaseFilter;
+            });
+            otherFiltered = otherFiltered.filter(report => {
+                const diseaseName = report.effectiveDiseaseName || report.diseaseName;
+                return diseaseName === diseaseFilter;
+            });
         }
+
+        // Apply search query filter
+        if (searchQuery.length > 0) {
+            myFiltered = myFiltered.filter(report => matchesReportSearch(report, searchQuery));
+            otherFiltered = otherFiltered.filter(report => matchesReportSearch(report, searchQuery));
+        }
+
+        filteredReports = myFiltered;
+        filteredOtherReports = otherFiltered;
 
         // Re-render the current tab
         if (currentTab === 'my-reports') {
@@ -407,7 +469,11 @@
             report.symptoms,
             report.diagnosis,
             report.treatment,
-            report.outcome
+            report.outcome,
+            report.farmDistrictDisplayName,
+            report.farmProvinceDisplayName,
+            report.farmDistrict,
+            report.farmProvince
         ];
 
         return searchableFields.some(field => {
@@ -421,7 +487,8 @@
     function renderFilteredReports() {
         if (elements.loadingState) elements.loadingState.style.display = 'none';
 
-        if (searchQuery.length > 0 && filteredReports.length === 0) {
+        // Show no results when filtering is active but no matches found
+        if ((searchQuery.length > 0 || diseaseFilter) && filteredReports.length === 0) {
             showNoSearchResults();
             return;
         }
@@ -443,7 +510,8 @@
     function renderFilteredOtherReports() {
         if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
 
-        if (searchQuery.length > 0 && filteredOtherReports.length === 0) {
+        // Show no results when filtering is active but no matches found
+        if ((searchQuery.length > 0 || diseaseFilter) && filteredOtherReports.length === 0) {
             showNoSearchResults();
             return;
         }
@@ -465,7 +533,8 @@
     function updateSearchResultsCount() {
         if (!elements.searchResultsCount) return;
 
-        if (searchQuery.length === 0) {
+        // Show count only when filtering is active (search or disease filter)
+        if (searchQuery.length === 0 && !diseaseFilter) {
             elements.searchResultsCount.style.display = 'none';
             return;
         }
@@ -525,7 +594,18 @@
                 ? report.effectiveNotifiable
                 : report.isNotifiable;
 
+            // Build location string for card title
+            const locationParts = [];
+            if (report.farmDistrictDisplayName) {
+                locationParts.push(report.farmDistrictDisplayName);
+            }
+            if (report.farmProvinceDisplayName) {
+                locationParts.push(report.farmProvinceDisplayName);
+            }
+            const farmLocation = locationParts.length > 0 ? locationParts.join(', ') : (report.farmName || 'Unknown Location');
+
             const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName);
+            const farmLocationDisplay = query ? highlightMatch(farmLocation, query) : escapeHtml(farmLocation);
             const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName);
             const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName);
 
@@ -541,8 +621,9 @@
                     </div>
                 </div>
                 <div class="report-card-body">
-                    <h4 class="report-card-title">${diseaseNameDisplay}</h4>
-                    <p class="report-card-subtitle">${animalTypeDisplay} at ${farmNameDisplay}</p>
+                    <h4 class="report-card-title">${farmNameDisplay}</h4>
+                    <p class="report-card-disease-name">🦠 ${diseaseNameDisplay}</p>
+                    <p class="report-card-subtitle">${animalTypeDisplay} • ${farmLocationDisplay}</p>
                     <span class="report-card-date">📅 ${date}</span>
                     ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
                 </div>
@@ -644,7 +725,18 @@
                 ? report.effectiveNotifiable
                 : report.isNotifiable;
 
+            // Build location string for card title
+            const locationParts = [];
+            if (report.farmDistrictDisplayName) {
+                locationParts.push(report.farmDistrictDisplayName);
+            }
+            if (report.farmProvinceDisplayName) {
+                locationParts.push(report.farmProvinceDisplayName);
+            }
+            const farmLocation = locationParts.length > 0 ? locationParts.join(', ') : (report.farmName || 'Unknown Location');
+
             const diseaseNameDisplay = query ? highlightMatch(effectiveDiseaseName, query) : escapeHtml(effectiveDiseaseName);
+            const farmLocationDisplay = query ? highlightMatch(farmLocation, query) : escapeHtml(farmLocation);
             const farmNameDisplay = query ? highlightMatch(report.farmName, query) : escapeHtml(report.farmName);
             const animalTypeDisplay = query ? highlightMatch(report.animalTypeName, query) : escapeHtml(report.animalTypeName);
             const vetNameDisplay = query ? highlightMatch(report.reportedByUsername, query) : escapeHtml(report.reportedByUsername);
@@ -661,8 +753,9 @@
                     </div>
                 </div>
                 <div class="report-card-body">
-                    <h4 class="report-card-title">${diseaseNameDisplay}</h4>
-                    <p class="report-card-subtitle">${animalTypeDisplay} at ${farmNameDisplay}</p>
+                    <h4 class="report-card-title">${farmNameDisplay}</h4>
+                    <p class="report-card-disease-name">🦠 ${diseaseNameDisplay}</p>
+                    <p class="report-card-subtitle">${animalTypeDisplay} • ${farmLocationDisplay}</p>
                     <div class="report-card-meta">
                         <span class="meta-item">📅 ${date}</span>
                         <span class="meta-item">👤 ${vetNameDisplay}</span>
@@ -773,11 +866,14 @@
             allOtherReports = reports;
             filteredOtherReports = [...reports];
 
+            // Re-populate disease filter dropdown to include diseases from other reports
+            populateDiseaseFilterDropdown();
+
             if (reports.length === 0) {
                 showOtherEmptyState();
             } else {
-                // Apply any existing search filter
-                if (searchQuery.length > 0) {
+                // Apply any existing search/disease filter
+                if (searchQuery.length > 0 || diseaseFilter) {
                     applySearchFilter();
                 } else {
                     renderOtherReportsTable(reports);
@@ -829,6 +925,16 @@
                 ? report.effectiveNotifiable
                 : report.isNotifiable;
 
+            // Build location string for card title
+            const locationParts = [];
+            if (report.farmDistrictDisplayName) {
+                locationParts.push(report.farmDistrictDisplayName);
+            }
+            if (report.farmProvinceDisplayName) {
+                locationParts.push(report.farmProvinceDisplayName);
+            }
+            const farmLocation = locationParts.length > 0 ? locationParts.join(', ') : (report.farmName || 'Unknown Location');
+
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
                 : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
@@ -841,8 +947,9 @@
                     </div>
                 </div>
                 <div class="report-card-body">
-                    <h4 class="report-card-title">${escapeHtml(effectiveDiseaseName)}</h4>
-                    <p class="report-card-subtitle">${escapeHtml(report.animalTypeName)} at ${escapeHtml(report.farmName)}</p>
+                    <h4 class="report-card-title">${escapeHtml(report.farmName) || 'Unknown Farm'}</h4>
+                    <p class="report-card-disease-name">🦠 ${escapeHtml(effectiveDiseaseName)}</p>
+                    <p class="report-card-subtitle">${escapeHtml(report.animalTypeName)} • ${escapeHtml(farmLocation)}</p>
                     <div class="report-card-meta">
                         <span class="meta-item">📅 ${date}</span>
                         <span class="meta-item">👤 ${escapeHtml(report.reportedByUsername)}</span>
@@ -2062,11 +2169,14 @@
             allReports = reports;
             filteredReports = [...reports];
 
+            // Populate disease filter dropdown
+            populateDiseaseFilterDropdown();
+
             if (reports.length === 0) {
                 showEmptyState();
             } else {
-                // Apply any existing search filter
-                if (searchQuery.length > 0) {
+                // Apply any existing search/disease filter
+                if (searchQuery.length > 0 || diseaseFilter) {
                     applySearchFilter();
                 } else {
                     renderReportsTable(reports);
@@ -2099,6 +2209,16 @@
                 ? report.effectiveNotifiable
                 : report.isNotifiable;
 
+            // Build location string for card title
+            const locationParts = [];
+            if (report.farmDistrictDisplayName) {
+                locationParts.push(report.farmDistrictDisplayName);
+            }
+            if (report.farmProvinceDisplayName) {
+                locationParts.push(report.farmProvinceDisplayName);
+            }
+            const farmLocation = locationParts.length > 0 ? locationParts.join(', ') : (report.farmName || 'Unknown Location');
+
             // Image HTML - show actual image or placeholder
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
@@ -2110,13 +2230,14 @@
                 </div>
                 <div class="report-card-content">
                     <div class="report-card-header">
-                        <h4 class="report-card-title">${effectiveDiseaseName || 'Unknown Disease'}</h4>
+                        <h4 class="report-card-title">${escapeHtml(report.farmName) || 'Unknown Farm'}</h4>
                         <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
                     </div>
+                    <p class="report-card-disease-name">🦠 ${escapeHtml(effectiveDiseaseName) || 'Unknown Disease'}</p>
                     <div class="report-card-meta">
                         <div class="report-card-info">
-                            <span class="info-icon">🏠</span>
-                            <span>${report.farmName || '-'}</span>
+                            <span class="info-icon">📍</span>
+                            <span>${farmLocation}</span>
                         </div>
                         <div class="report-card-info">
                             <span class="info-icon">🐄</span>

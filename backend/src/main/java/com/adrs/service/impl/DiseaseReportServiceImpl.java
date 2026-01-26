@@ -509,6 +509,15 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
             dto.setFarmId(report.getFarm().getId());
             dto.setFarmName(report.getFarm().getFarmName());
             dto.setFarmAddress(report.getFarm().getAddress());
+            // Farm location
+            if (report.getFarm().getDistrict() != null) {
+                dto.setFarmDistrict(report.getFarm().getDistrict().name());
+                dto.setFarmDistrictDisplayName(report.getFarm().getDistrict().getDisplayName());
+            }
+            if (report.getFarm().getProvince() != null) {
+                dto.setFarmProvince(report.getFarm().getProvince().name());
+                dto.setFarmProvinceDisplayName(report.getFarm().getProvince().getDisplayName());
+            }
         }
 
         // Animal type info

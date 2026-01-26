@@ -24,6 +24,10 @@ public class DiseaseReportResponseDTO {
     private UUID farmId;
     private String farmName;
     private String farmAddress;
+    private String farmDistrict;
+    private String farmDistrictDisplayName;
+    private String farmProvince;
+    private String farmProvinceDisplayName;
 
     // Animal type info
     private UUID animalTypeId;
