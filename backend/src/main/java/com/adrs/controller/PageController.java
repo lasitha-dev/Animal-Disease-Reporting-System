@@ -11,7 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.UUID;
 
 /**
  * Controller for handling page requests and navigation.
@@ -232,6 +235,29 @@ public class PageController {
         model.addAttribute("pageTitle", "Disease Reporting");
         
         return "vet/disease-reporting";
+    }
+
+    /**
+     * Displays the farm diseases page showing all disease reports for a specific farm.
+     * Allows filtering by animal type and disease.
+     *
+     * @param farmId the farm ID
+     * @param model the model for the view
+     * @return the farm diseases view name
+     */
+    @GetMapping("/vet/disease-reporting/farm/{farmId}")
+    @PreAuthorize("hasRole('VETERINARY_OFFICER')")
+    public String vetFarmDiseases(@PathVariable UUID farmId, Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        logger.info("Farm diseases page accessed by vet: {} for farm: {}", username, farmId);
+        
+        model.addAttribute("username", username);
+        model.addAttribute("pageTitle", "Farm Diseases");
+        model.addAttribute("farmId", farmId.toString());
+        
+        return "vet/farm-diseases";
     }
 
     /**

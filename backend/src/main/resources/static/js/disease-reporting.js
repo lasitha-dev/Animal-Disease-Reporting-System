@@ -8,6 +8,8 @@
 
     // State
     let farms = [];
+    let farmsWithReports = []; // Farms with disease reports for display
+    let otherFarmsWithReports = []; // Other vets' farms with disease reports
     let currentDiseaseData = null;
     let selectedImageFile = null;
     let editMode = false;
@@ -24,9 +26,10 @@
     let isOtherDiseaseSelected = false; // Track if "Other" disease is selected
     const OTHER_DISEASE_VALUE = '__OTHER__'; // Special value for "Other" option
     let searchQuery = ''; // Current search query
-    let diseaseFilter = ''; // Current disease filter selection
-    let filteredReports = []; // Filtered reports based on search
-    let filteredOtherReports = []; // Filtered other reports based on search
+    let provinceFilter = ''; // Current province filter
+    let districtFilter = ''; // Current district filter
+    let filteredFarms = []; // Filtered farms based on search and location
+    let filteredOtherFarms = []; // Filtered other vets' farms
     let allReports = []; // All my reports
     let allOtherReports = []; // All other reports
 
@@ -45,7 +48,11 @@
         form: document.getElementById('disease-report-form'),
         formMessage: document.getElementById('form-message'),
 
-        // Location Filter Dropdowns
+        // Location Filter Dropdowns (main page filters)
+        provinceFilterSelect: document.getElementById('provinceFilter'),
+        districtFilterSelect: document.getElementById('districtFilter'),
+
+        // Modal Location Filter Dropdowns
         filterProvinceSelect: document.getElementById('filterProvince'),
         filterDistrictSelect: document.getElementById('filterDistrict'),
 
@@ -124,25 +131,23 @@
         otherLoadingState: document.getElementById('other-loading-state'),
         otherEmptyState: document.getElementById('other-empty-state'),
 
-        // View Toggle elements
-        gridViewBtn: document.getElementById('gridViewBtn'),
-        tableViewBtn: document.getElementById('tableViewBtn'),
-        reportsGridContainer: document.getElementById('reports-grid-container'),
-        reportsTableContainer: document.getElementById('reports-table-container'),
-        reportsTableBody: document.getElementById('reports-table-body'),
-        otherReportsGridContainer: document.getElementById('other-reports-grid-container'),
-        otherReportsTableContainer: document.getElementById('other-reports-table-container'),
-        otherReportsTableBody: document.getElementById('other-reports-table-body'),
+        // Farm Cards Grid elements
+        farmsGridContainer: document.getElementById('farms-grid-container'),
+        farmsTableContainer: document.getElementById('farms-table-container'),
+        farmsTableBody: document.getElementById('farms-table-body'),
+        otherFarmsGridContainer: document.getElementById('other-farms-grid-container'),
+        otherFarmsTableContainer: document.getElementById('other-farms-table-container'),
+        otherFarmsTableBody: document.getElementById('other-farms-table-body'),
 
         // Search elements
-        searchInput: document.getElementById('reportSearchInput'),
+        searchInput: document.getElementById('farmSearchInput'),
         clearSearchBtn: document.getElementById('clearSearchBtn'),
-        searchResultsCount: document.getElementById('searchResultsCount'),
         noSearchResults: document.getElementById('no-search-results'),
         clearSearchFromEmptyBtn: document.getElementById('clearSearchFromEmpty'),
 
-        // Disease filter element
-        diseaseFilterSelect: document.getElementById('diseaseFilter')
+        // Province/District Filter elements
+        provinceFilterSelect: document.getElementById('provinceFilter'),
+        districtFilterSelect: document.getElementById('districtFilter')
     };
 
     // CSRF Token
@@ -156,9 +161,10 @@
         loadViewPreference(); // Load saved view preference first
         setupEventListeners();
         setDefaultDate();
-        loadProvinces(); // Load provinces for filter
+        loadPageProvinces(); // Load provinces for main page filter
+        loadProvinces(); // Load provinces for modal filter
         loadFarms();
-        loadReports();
+        loadFarmsWithReports(); // New farm-centric data loading
         handleUrlParams();
         setupTabListeners();
         setupViewToggleListeners();
@@ -182,10 +188,11 @@
         elements.clearSearchBtn?.addEventListener('click', clearSearch);
         elements.clearSearchFromEmptyBtn?.addEventListener('click', clearSearch);
 
-        // Disease filter dropdown
-        elements.diseaseFilterSelect?.addEventListener('change', handleDiseaseFilterChange);
+        // Main page province/district filters
+        elements.provinceFilterSelect?.addEventListener('change', handlePageProvinceChange);
+        elements.districtFilterSelect?.addEventListener('change', handlePageDistrictChange);
 
-        // Cascading dropdowns - Location filters
+        // Modal cascading dropdowns - Location filters
         elements.filterProvinceSelect?.addEventListener('change', onProvinceFilterChange);
         elements.filterDistrictSelect?.addEventListener('change', onDistrictFilterChange);
 
@@ -283,9 +290,9 @@
             elements.myReportsTab?.classList.remove('active');
             elements.otherReportsTab?.classList.add('active');
 
-            // Load other reports on first switch
+            // Load other farms with reports on first switch
             if (!otherReportsLoaded) {
-                loadOtherReports();
+                loadOtherFarmsWithReports();
             }
         }
     }
@@ -358,7 +365,7 @@
         }
 
         // Apply search filter
-        applySearchFilter();
+        applyFarmFilters();
     }
 
     function clearSearch() {
@@ -377,7 +384,7 @@
         }
 
         // Re-render without filter
-        applySearchFilter();
+        applyFarmFilters();
     }
 
     function handleDiseaseFilterChange(e) {
@@ -566,7 +573,7 @@
 
     function highlightMatch(text, query) {
         if (!text || !query || query.length === 0) return escapeHtml(text || '');
-        
+
         const escapedText = escapeHtml(text);
         const escapedQuery = escapeHtml(query);
         const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -861,7 +868,7 @@
 
         try {
             const reports = await fetchAPI('/api/vet/disease-reports/others');
-            
+
             // Store all other reports for search
             allOtherReports = reports;
             filteredOtherReports = [...reports];
@@ -2156,37 +2163,338 @@
     }
 
     // ========================================
-    // Reports table
+    // Farm-centric Functions
     // ========================================
 
-    async function loadReports() {
+    async function loadFarmsWithReports() {
         showLoadingState();
 
         try {
+            // Load disease reports for current user
             const reports = await fetchAPI('/api/vet/disease-reports');
-            
-            // Store all reports for search
             allReports = reports;
-            filteredReports = [...reports];
 
-            // Populate disease filter dropdown
-            populateDiseaseFilterDropdown();
+            // Group reports by farm
+            farmsWithReports = groupReportsByFarm(reports);
+            filteredFarms = [...farmsWithReports];
 
-            if (reports.length === 0) {
+            if (farmsWithReports.length === 0) {
                 showEmptyState();
             } else {
-                // Apply any existing search/disease filter
-                if (searchQuery.length > 0 || diseaseFilter) {
-                    applySearchFilter();
-                } else {
-                    renderReportsTable(reports);
-                    showReportsTable();
-                }
+                renderFarmCards();
+                hideLoadingState();
             }
         } catch (error) {
-            console.error('Error loading reports:', error);
+            console.error('Error loading farms with reports:', error);
             showEmptyState();
         }
+    }
+
+    async function loadOtherFarmsWithReports() {
+        if (otherReportsLoaded) return;
+
+        showOtherLoadingState();
+
+        try {
+            const reports = await fetchAPI('/api/vet/disease-reports/others');
+            allOtherReports = reports;
+
+            // Group reports by farm
+            otherFarmsWithReports = groupReportsByFarm(reports, true);
+            filteredOtherFarms = [...otherFarmsWithReports];
+
+            otherReportsLoaded = true;
+
+            if (otherFarmsWithReports.length === 0) {
+                showOtherEmptyState();
+            } else {
+                renderOtherFarmCards();
+                hideOtherLoadingState();
+            }
+        } catch (error) {
+            console.error('Error loading other farms with reports:', error);
+            showOtherEmptyState();
+        }
+    }
+
+    function groupReportsByFarm(reports, isOther = false) {
+        const farmMap = new Map();
+
+        reports.forEach(report => {
+            const farmId = report.farmId;
+            if (!farmId) return;
+
+            if (!farmMap.has(farmId)) {
+                farmMap.set(farmId, {
+                    id: farmId,
+                    name: report.farmName || 'Unknown Farm',
+                    province: report.farmProvince,
+                    provinceName: report.farmProvinceDisplayName || '',
+                    district: report.farmDistrict,
+                    districtName: report.farmDistrictDisplayName || '',
+                    reports: [],
+                    reportCount: 0,
+                    latestReportDate: null,
+                    isOther: isOther,
+                    reportedBy: isOther ? report.reporterName : null
+                });
+            }
+
+            const farm = farmMap.get(farmId);
+            farm.reports.push(report);
+            farm.reportCount++;
+
+            // Track latest report date
+            const reportDate = new Date(report.reportDate || report.createdAt);
+            if (!farm.latestReportDate || reportDate > farm.latestReportDate) {
+                farm.latestReportDate = reportDate;
+            }
+        });
+
+        // Convert to array and sort by latest report date (most recent first)
+        return Array.from(farmMap.values()).sort((a, b) =>
+            (b.latestReportDate || 0) - (a.latestReportDate || 0)
+        );
+    }
+
+    // ========================================
+    // Main Page Province/District Filters
+    // ========================================
+
+    async function loadPageProvinces() {
+        try {
+            const provinces = await fetchAPI('/api/locations/provinces');
+            console.log('Loaded provinces for filter:', provinces);
+
+            if (elements.provinceFilterSelect && Array.isArray(provinces)) {
+                elements.provinceFilterSelect.innerHTML = '<option value="">All Provinces</option>';
+                provinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province.value; // API returns 'value' not 'code'
+                    option.textContent = province.label; // API returns 'label' not 'name'
+                    elements.provinceFilterSelect.appendChild(option);
+                });
+                console.log('Province filter populated with', provinces.length, 'provinces');
+            } else {
+                console.warn('Province filter element not found or provinces not an array:', {
+                    element: elements.provinceFilterSelect,
+                    provinces: provinces
+                });
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
+        }
+    }
+
+    async function handlePageProvinceChange() {
+        const provinceCode = elements.provinceFilterSelect?.value || '';
+        provinceFilter = provinceCode;
+        districtFilter = '';
+
+        // Reset and update district dropdown
+        if (elements.districtFilterSelect) {
+            elements.districtFilterSelect.innerHTML = '<option value="">All Districts</option>';
+            elements.districtFilterSelect.disabled = !provinceCode;
+
+            if (provinceCode) {
+                try {
+                    // API expects 'provinceName' parameter, not 'province'
+                    const districts = await fetchAPI(`/api/locations/districts?provinceName=${provinceCode}`);
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.value; // API returns 'value' not 'code'
+                        option.textContent = district.label; // API returns 'label' not 'name'
+                        elements.districtFilterSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error loading districts:', error);
+                }
+            }
+        }
+
+        applyFarmFilters();
+    }
+
+    function handlePageDistrictChange() {
+        districtFilter = elements.districtFilterSelect?.value || '';
+        applyFarmFilters();
+    }
+
+    function applyFarmFilters() {
+        // Filter farms based on province, district, and search query
+        filteredFarms = farmsWithReports.filter(farm => {
+            // Province filter
+            if (provinceFilter && farm.province !== provinceFilter) return false;
+            // District filter
+            if (districtFilter && farm.district !== districtFilter) return false;
+            // Search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const matchesName = farm.name?.toLowerCase().includes(query);
+                const matchesProvince = farm.provinceName?.toLowerCase().includes(query);
+                const matchesDistrict = farm.districtName?.toLowerCase().includes(query);
+                if (!matchesName && !matchesProvince && !matchesDistrict) return false;
+            }
+            return true;
+        });
+
+        filteredOtherFarms = otherFarmsWithReports.filter(farm => {
+            if (provinceFilter && farm.province !== provinceFilter) return false;
+            if (districtFilter && farm.district !== districtFilter) return false;
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const matchesName = farm.name?.toLowerCase().includes(query);
+                const matchesProvince = farm.provinceName?.toLowerCase().includes(query);
+                const matchesDistrict = farm.districtName?.toLowerCase().includes(query);
+                if (!matchesName && !matchesProvince && !matchesDistrict) return false;
+            }
+            return true;
+        });
+
+        // Render based on current tab
+        if (currentTab === 'my-reports') {
+            if (filteredFarms.length === 0) {
+                showNoSearchResults();
+            } else {
+                hideNoSearchResults();
+                renderFarmCards();
+            }
+        } else {
+            if (filteredOtherFarms.length === 0) {
+                showNoSearchResults();
+            } else {
+                hideNoSearchResults();
+                renderOtherFarmCards();
+            }
+        }
+    }
+
+    // ========================================
+    // Farm Cards Rendering
+    // ========================================
+
+    function renderFarmCards() {
+        const container = elements.farmsGridContainer;
+        if (!container) return;
+
+        container.innerHTML = filteredFarms.map(farm => createFarmCardHtml(farm)).join('');
+
+        // Add click handlers
+        container.querySelectorAll('.farm-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.btn')) {
+                    navigateToFarm(card.dataset.farmId);
+                }
+            });
+        });
+
+        container.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigateToFarm(btn.dataset.farmId);
+            });
+        });
+
+        hideLoadingState();
+    }
+
+    function renderOtherFarmCards() {
+        const container = elements.otherFarmsGridContainer;
+        if (!container) return;
+
+        container.innerHTML = filteredOtherFarms.map(farm => createFarmCardHtml(farm, true)).join('');
+
+        // Add click handlers
+        container.querySelectorAll('.farm-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.btn')) {
+                    navigateToFarm(card.dataset.farmId);
+                }
+            });
+        });
+
+        container.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigateToFarm(btn.dataset.farmId);
+            });
+        });
+
+        hideOtherLoadingState();
+    }
+
+    function createFarmCardHtml(farm, isOther = false) {
+        const location = [farm.districtName, farm.provinceName].filter(Boolean).join(', ') || 'Location not specified';
+        const latestDate = farm.latestReportDate ? farm.latestReportDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+
+        return `
+            <div class="farm-card ${isOther ? 'other-vet-card' : ''}" data-farm-id="${farm.id}" tabindex="0" role="button" aria-label="View ${escapeHtml(farm.name)} disease reports">
+                <div class="farm-card-header">
+                    <div class="farm-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <div class="farm-card-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        ${farm.reportCount} Report${farm.reportCount !== 1 ? 's' : ''}
+                    </div>
+                </div>
+                <div class="farm-card-body">
+                    <h3 class="farm-card-title">${escapeHtml(farm.name)}</h3>
+                    <div class="farm-card-location">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>${escapeHtml(location)}</span>
+                    </div>
+                    <div class="farm-card-meta">
+                        <span class="farm-card-meta-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Latest: ${latestDate}
+                        </span>
+                        ${isOther && farm.reportedBy ? `
+                        <span class="farm-card-meta-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            ${escapeHtml(farm.reportedBy)}
+                        </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="farm-card-footer">
+                    <button class="btn btn-primary btn-sm view-btn" data-farm-id="${farm.id}">
+                        View Reports
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function navigateToFarm(farmId) {
+        window.location.href = `/vet/disease-reporting/farm/${farmId}`;
+    }
+
+    // ========================================
+    // Legacy Reports Table (kept for compatibility)
+    // ========================================
+
+    async function loadReports() {
+        // This function is kept for backwards compatibility
+        // Now replaced by loadFarmsWithReports
+        loadFarmsWithReports();
     }
 
     function renderReportsTable(reports) {
@@ -2317,22 +2625,46 @@
     }
 
     function showLoadingState() {
-        elements.loadingState.style.display = 'block';
-        elements.emptyState.style.display = 'none';
-        if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'none';
-        if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'none';
+        if (elements.loadingState) elements.loadingState.style.display = 'block';
+        if (elements.emptyState) elements.emptyState.style.display = 'none';
+        if (elements.farmsGridContainer) elements.farmsGridContainer.style.display = 'none';
+        if (elements.farmsTableContainer) elements.farmsTableContainer.style.display = 'none';
+    }
+
+    function hideLoadingState() {
+        if (elements.loadingState) elements.loadingState.style.display = 'none';
+        if (elements.farmsGridContainer) elements.farmsGridContainer.style.display = 'block';
     }
 
     function showEmptyState() {
-        elements.loadingState.style.display = 'none';
-        elements.emptyState.style.display = 'block';
-        if (elements.reportsGridContainer) elements.reportsGridContainer.style.display = 'none';
-        if (elements.reportsTableContainer) elements.reportsTableContainer.style.display = 'none';
+        if (elements.loadingState) elements.loadingState.style.display = 'none';
+        if (elements.emptyState) elements.emptyState.style.display = 'block';
+        if (elements.farmsGridContainer) elements.farmsGridContainer.style.display = 'none';
+        if (elements.farmsTableContainer) elements.farmsTableContainer.style.display = 'none';
+    }
+
+    function showOtherLoadingState() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'block';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        if (elements.otherFarmsGridContainer) elements.otherFarmsGridContainer.style.display = 'none';
+        if (elements.otherFarmsTableContainer) elements.otherFarmsTableContainer.style.display = 'none';
+    }
+
+    function hideOtherLoadingState() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
+        if (elements.otherFarmsGridContainer) elements.otherFarmsGridContainer.style.display = 'block';
+    }
+
+    function showOtherEmptyState() {
+        if (elements.otherLoadingState) elements.otherLoadingState.style.display = 'none';
+        if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'block';
+        if (elements.otherFarmsGridContainer) elements.otherFarmsGridContainer.style.display = 'none';
+        if (elements.otherFarmsTableContainer) elements.otherFarmsTableContainer.style.display = 'none';
     }
 
     function showReportsTable() {
-        elements.loadingState.style.display = 'none';
-        elements.emptyState.style.display = 'none';
+        if (elements.loadingState) elements.loadingState.style.display = 'none';
+        if (elements.emptyState) elements.emptyState.style.display = 'none';
         updateViewDisplay();
     }
 

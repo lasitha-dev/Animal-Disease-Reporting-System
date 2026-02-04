@@ -32,15 +32,26 @@
             </button>
         </div>
 
-        <!-- Search and View Controls -->
-        <div class="search-view-container">
-            <!-- Disease Filter Dropdown -->
-            <div class="filter-container">
-                <label for="diseaseFilter" class="filter-label">Filter by Disease:</label>
+        <!-- Filters and View Controls -->
+        <div class="filters-bar">
+            <!-- Province Filter -->
+            <div class="filter-group">
+                <label for="provinceFilter" class="filter-label">Province</label>
                 <div class="filter-select-wrapper">
-                    <select id="diseaseFilter" class="filter-select">
-                        <option value="">All Diseases</option>
-                        <!-- Options populated by JavaScript -->
+                    <select id="provinceFilter" class="filter-select">
+                        <option value="">All Provinces</option>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- District Filter -->
+            <div class="filter-group">
+                <label for="districtFilter" class="filter-label">District</label>
+                <div class="filter-select-wrapper">
+                    <select id="districtFilter" class="filter-select" disabled>
+                        <option value="">All Districts</option>
+                        <!-- Populated by JavaScript based on province -->
                     </select>
                 </div>
             </div>
@@ -48,15 +59,16 @@
             <!-- Search Bar -->
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
-                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" id="reportSearchInput" class="search-input" 
-                        placeholder="Search by farm, location, animal type..." 
-                        autocomplete="off">
-                    <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;" title="Clear search">
+                    <input type="text" id="farmSearchInput" class="search-input"
+                        placeholder="Search farms by name or location..." autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;"
+                        title="Clear search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -64,12 +76,12 @@
                         </svg>
                     </button>
                 </div>
-                <div id="searchResultsCount" class="search-results-count" style="display: none;"></div>
             </div>
 
             <!-- View Toggle -->
             <div class="view-toggle-container">
-                <button type="button" class="view-toggle-btn active" id="gridViewBtn" data-view="grid" title="Grid View">
+                <button type="button" class="view-toggle-btn active" id="gridViewBtn" data-view="grid"
+                    title="Grid View">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -94,36 +106,39 @@
 
         <!-- No Search Results State -->
         <div id="no-search-results" class="no-search-results" style="display: none;">
-            <div class="no-results-icon">🔍</div>
-            <h3>No reports found</h3>
-            <p>Try adjusting your search terms or clear the search to see all reports.</p>
-            <button type="button" class="btn btn-outline" id="clearSearchFromEmpty">Clear Search</button>
+            <div class="no-results-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </div>
+            <h3>No farms found</h3>
+            <p>Try adjusting your search terms or clear the filters to see all farms.</p>
+            <button type="button" class="btn btn-outline" id="clearSearchFromEmpty">Clear Filters</button>
         </div>
 
-        <!-- My Reports Tab Content -->
+        <!-- My Farms Tab Content -->
         <div id="my-reports-tab" class="tab-content active">
-            <div id="reports-container">
-                <!-- Reports Cards Grid View -->
-                <div id="reports-grid-container" class="reports-wrapper">
-                    <!-- Cards will be loaded here by JavaScript -->
+            <div id="farms-container">
+                <!-- Farm Cards Grid View -->
+                <div id="farms-grid-container" class="farms-wrapper">
+                    <!-- Farm cards will be loaded here by JavaScript -->
                 </div>
 
-                <!-- Reports Table View -->
-                <div id="reports-table-container" class="table-container" style="display: none;">
-                    <table class="data-table reports-table">
+                <!-- Farms Table View -->
+                <div id="farms-table-container" class="table-container" style="display: none;">
+                    <table class="data-table farms-table">
                         <thead>
                             <tr>
-                                <th>Disease</th>
-                                <th>Farm</th>
-                                <th>Animal Type</th>
-                                <th>Date</th>
-                                <th>Severity</th>
-                                <th>Notifiable</th>
-                                <th>Affected</th>
+                                <th>Farm Name</th>
+                                <th>Location</th>
+                                <th>Disease Reports</th>
+                                <th>Latest Report</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="reports-table-body">
+                        <tbody id="farms-table-body">
                             <!-- Table rows will be loaded here by JavaScript -->
                         </tbody>
                     </table>
@@ -131,11 +146,15 @@
 
                 <!-- Empty State -->
                 <div id="empty-state" class="empty-state" style="display: none;">
-                    <div class="empty-state-icon">📋</div>
-                    <h3>No Disease Reports</h3>
-                    <p>You haven't submitted any disease reports yet. Click the button above to create your first
-                        report.
-                    </p>
+                    <div class="empty-state-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </div>
+                    <h3>No Farms with Disease Reports</h3>
+                    <p>You haven't submitted any disease reports yet. Click the button above to report a disease.</p>
                     <button type="button" class="btn btn-primary" id="emptyStateReportBtn">
                         Create Your First Report
                     </button>
@@ -144,55 +163,61 @@
                 <!-- Loading State -->
                 <div id="loading-state" class="loading-state">
                     <div class="spinner"></div>
-                    <p>Loading reports...</p>
+                    <p>Loading farms...</p>
                 </div>
             </div>
         </div>
 
-        <!-- Other Reports Tab Content -->
+        <!-- Other Farms Tab Content -->
         <div id="other-reports-tab" class="tab-content">
-            <div id="other-reports-container">
-                <!-- Other Reports Cards Grid View -->
-                <div id="other-reports-grid-container" class="reports-wrapper">
-                    <!-- Cards will be loaded here by JavaScript -->
+            <div id="other-farms-container">
+                <!-- Other Farms Cards Grid View -->
+                <div id="other-farms-grid-container" class="farms-wrapper">
+                    <!-- Farm cards will be loaded here by JavaScript -->
                 </div>
 
-                <!-- Other Reports Table View -->
-                <div id="other-reports-table-container" class="table-container" style="display: none;">
-                    <table class="data-table reports-table">
+                <!-- Other Farms Table View -->
+                <div id="other-farms-table-container" class="table-container" style="display: none;">
+                    <table class="data-table farms-table">
                         <thead>
                             <tr>
-                                <th>Disease</th>
-                                <th>Farm</th>
-                                <th>Animal Type</th>
-                                <th>Date</th>
-                                <th>Severity</th>
-                                <th>Notifiable</th>
-                                <th>Affected</th>
+                                <th>Farm Name</th>
+                                <th>Location</th>
+                                <th>Disease Reports</th>
+                                <th>Latest Report</th>
                                 <th>Reported By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="other-reports-table-body">
+                        <tbody id="other-farms-table-body">
                             <!-- Table rows will be loaded here by JavaScript -->
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Empty State for Other Reports -->
+                <!-- Empty State for Other Farms -->
                 <div id="other-empty-state" class="empty-state" style="display: none;">
-                    <div class="empty-state-icon">👥</div>
-                    <h3>No Other Reports</h3>
+                    <div class="empty-state-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>No Other Farms with Reports</h3>
                     <p>There are no disease reports from other veterinary officers in the system.</p>
                 </div>
 
-                <!-- Loading State for Other Reports -->
+                <!-- Loading State for Other Farms -->
                 <div id="other-loading-state" class="loading-state" style="display: none;">
                     <div class="spinner"></div>
-                    <p>Loading other reports...</p>
+                    <p>Loading other farms...</p>
                 </div>
             </div>
         </div>
+
 
 
         <!-- Disease Report Modal -->
