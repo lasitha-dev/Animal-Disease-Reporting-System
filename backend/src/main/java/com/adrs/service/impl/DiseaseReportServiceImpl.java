@@ -139,7 +139,7 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
     public List<DiseaseReportResponseDTO> getReportsByVet(User vet) {
         logger.debug("Fetching disease reports for vet: {}", vet.getUsername());
 
-        List<DiseaseReport> reports = diseaseReportRepository.findByReportedByOrderByCreatedAtDesc(vet);
+        List<DiseaseReport> reports = diseaseReportRepository.findByReportedByWithAssociations(vet);
         return reports.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -364,9 +364,8 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
             return Collections.emptyList();
         }
 
-        return animalTypeIds.stream()
-                .map(id -> animalTypeRepository.findById(id).orElse(null))
-                .filter(Objects::nonNull)
+        // Single batch query instead of N individual findById calls
+        return animalTypeRepository.findAllById(animalTypeIds).stream()
                 .map(at -> {
                     AnimalTypeDTO dto = new AnimalTypeDTO();
                     dto.setId(at.getId());
@@ -394,9 +393,8 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
             return Collections.emptyList();
         }
 
-        return diseaseIds.stream()
-                .map(id -> diseaseRepository.findById(id).orElse(null))
-                .filter(Objects::nonNull)
+        // Single batch query instead of N individual findById calls
+        return diseaseRepository.findAllById(diseaseIds).stream()
                 .map(d -> {
                     DiseaseDTO dto = new DiseaseDTO();
                     dto.setId(d.getId());
@@ -430,7 +428,7 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
     public List<DiseaseReportResponseDTO> getReportsNotByVet(User vet) {
         logger.debug("Fetching disease reports NOT by vet: {}", vet.getUsername());
 
-        List<DiseaseReport> reports = diseaseReportRepository.findByReportedByNotOrderByCreatedAtDesc(vet);
+        List<DiseaseReport> reports = diseaseReportRepository.findByReportedByNotWithAssociations(vet);
         return reports.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

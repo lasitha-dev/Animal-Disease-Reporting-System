@@ -98,9 +98,12 @@
         initElements();
         initEventListeners();
         setDefaultDateRange();
-        loadAnimalTypes();
-        loadDiseases(); // Load all diseases initially
-        fetchAndRenderChart();
+        // Load dropdowns and chart data in parallel (independent API calls)
+        Promise.all([
+            loadAnimalTypes(),
+            loadDiseases(),        // Load all diseases initially
+            fetchAndRenderChart()
+        ]);
     }
 
     // Make initAnalytics globally accessible for manual triggering

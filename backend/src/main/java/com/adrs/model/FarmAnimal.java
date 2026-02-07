@@ -4,8 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -20,9 +23,12 @@ import java.util.UUID;
 @Table(name = "farm_animals", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"farm_id", "animal_type_id"})
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"farm", "animalType"})
+@EqualsAndHashCode(of = "id")
 public class FarmAnimal {
 
     @Id

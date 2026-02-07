@@ -1,11 +1,8 @@
 /**
  * Dashboard JavaScript
  * Handles filter controls and data loading for dashboard
+ * Note: CSRF token is handled globally by main.js fetch wrapper
  */
-
-// CSRF Token
-const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
 // API endpoints
 const API_DASHBOARD = '/api/dashboard';
@@ -30,10 +27,12 @@ async function loadDashboardData() {
     await loadSummaryStats();
     await loadOverviewChart();
     
-    // Load overview sections immediately
-    loadFarmTypesData();
-    loadAnimalTypesData();
-    loadDiseasesData();
+    // Load overview sections in parallel (independent API calls)
+    await Promise.all([
+        loadFarmTypesData(),
+        loadAnimalTypesData(),
+        loadDiseasesData()
+    ]);
 }
 
 // Setup overview/users view toggle

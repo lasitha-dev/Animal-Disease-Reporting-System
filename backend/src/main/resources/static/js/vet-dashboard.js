@@ -15,9 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
  * Initialize the vet dashboard
  */
 async function initVetDashboard() {
-    await loadVetKPIs();
+    // Load KPIs, chart, and activity in parallel (independent data sources)
+    await Promise.all([
+        loadVetKPIs(),
+        initHealthTrendChartAndData(),
+        loadRecentActivity()
+    ]);
+}
+
+/**
+ * Initialize chart and load data together
+ */
+async function initHealthTrendChartAndData() {
     initHealthTrendChart();
-    loadRecentActivity();
+    // loadHealthTrendData is called inside initHealthTrendChart, no need to await separately
 }
 
 /**
@@ -245,7 +256,7 @@ async function loadRecentActivity() {
 }
 
 /**
- * Fallback: Load recent disease reports as activity
+ * Fallback: Load recent disease reports as activity (limited to 5)
  */
 async function loadFallbackActivity() {
     const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -257,13 +268,15 @@ async function loadFallbackActivity() {
     }
 
     try {
+        // Use the existing disease-reports endpoint but only display 5
+        // TODO: Add a server-side limit parameter to avoid transferring all reports
         const response = await fetch('/api/vet/disease-reports', { headers });
 
         if (response.ok) {
             const reports = await response.json();
             const activities = (reports.slice(0, 5)).map(report => ({
                 type: 'report',
-                title: `${report.diseaseName || 'Disease'} reported`,
+                title: `${report.effectiveDiseaseName || report.diseaseName || 'Disease'} reported`,
                 description: report.farmName || 'Unknown farm',
                 time: report.createdAt || report.reportDate
             }));

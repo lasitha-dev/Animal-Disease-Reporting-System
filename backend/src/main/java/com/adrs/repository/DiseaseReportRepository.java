@@ -4,6 +4,7 @@ import com.adrs.model.DiseaseReport;
 import com.adrs.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -53,6 +54,23 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
      * @return list of disease reports
      */
     List<DiseaseReport> findByReportedByOrderByCreatedAtDesc(User reportedBy);
+
+    /**
+     * Find disease reports by the reporting vet with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param reportedBy the vet who reported
+     * @return list of disease reports with associations
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "LEFT JOIN FETCH dr.farm " +
+           "LEFT JOIN FETCH dr.animalType " +
+           "LEFT JOIN FETCH dr.disease " +
+           "LEFT JOIN FETCH dr.reportedBy " +
+           "LEFT JOIN FETCH dr.confirmedBy " +
+           "WHERE dr.reportedBy = :reportedBy " +
+           "ORDER BY dr.createdAt DESC")
+    List<DiseaseReport> findByReportedByWithAssociations(@Param("reportedBy") User reportedBy);
 
     /**
      * Find disease reports for a specific farm, ordered by creation date descending.
@@ -128,6 +146,23 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
      * @return list of disease reports by other vets
      */
     List<DiseaseReport> findByReportedByNotOrderByCreatedAtDesc(User reportedBy);
+
+    /**
+     * Find disease reports NOT created by a specific vet with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param reportedBy the vet to exclude
+     * @return list of disease reports with associations
+     */
+    @Query("SELECT dr FROM DiseaseReport dr " +
+           "LEFT JOIN FETCH dr.farm " +
+           "LEFT JOIN FETCH dr.animalType " +
+           "LEFT JOIN FETCH dr.disease " +
+           "LEFT JOIN FETCH dr.reportedBy " +
+           "LEFT JOIN FETCH dr.confirmedBy " +
+           "WHERE dr.reportedBy != :reportedBy " +
+           "ORDER BY dr.createdAt DESC")
+    List<DiseaseReport> findByReportedByNotWithAssociations(@Param("reportedBy") User reportedBy);
 
     /**
      * Find distinct disease IDs that have reports with GPS coordinates.

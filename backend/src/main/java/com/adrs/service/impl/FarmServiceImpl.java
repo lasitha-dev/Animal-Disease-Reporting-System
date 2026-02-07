@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     @Transactional(readOnly = true)
     public List<FarmResponseDTO> getFarmsByCreatedBy(User user) {
-        List<Farm> farms = farmRepository.findByCreatedByAndIsActiveTrue(user);
+        List<Farm> farms = farmRepository.findByCreatedByAndIsActiveTrueWithAssociations(user);
         return farms.stream()
                 .map(FarmResponseDTO::fromEntity)
                 .collect(Collectors.toList());
@@ -112,7 +113,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     @Transactional(readOnly = true)
     public List<FarmResponseDTO> getFarmsNotCreatedBy(User user) {
-        List<Farm> farms = farmRepository.findByCreatedByNotAndIsActiveTrue(user);
+        List<Farm> farms = farmRepository.findByCreatedByNotAndIsActiveTrueWithAssociations(user);
         return farms.stream()
                 .map(FarmResponseDTO::fromEntity)
                 .collect(Collectors.toList());
@@ -198,13 +199,24 @@ public class FarmServiceImpl implements FarmService {
     private void addAnimalTagsToFarm(Farm farm, List<FarmRequestDTO.AnimalTagDTO> animalTags) {
         int totalAnimals = 0;
 
+        // Batch load all animal types in a single query instead of N findById calls
+        List<UUID> animalTypeIds = animalTags.stream()
+                .filter(tag -> tag.getCount() != null && tag.getCount() > 0)
+                .map(FarmRequestDTO.AnimalTagDTO::getAnimalTypeId)
+                .collect(Collectors.toList());
+
+        Map<UUID, AnimalType> animalTypeMap = animalTypeRepository.findAllById(animalTypeIds).stream()
+                .collect(Collectors.toMap(AnimalType::getId, at -> at));
+
         for (FarmRequestDTO.AnimalTagDTO tagDTO : animalTags) {
             if (tagDTO.getCount() != null && tagDTO.getCount() > 0) {
-                AnimalType animalType = animalTypeRepository.findById(tagDTO.getAnimalTypeId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Animal type not found: " + tagDTO.getAnimalTypeId()));
+                AnimalType animalType = animalTypeMap.get(tagDTO.getAnimalTypeId());
+                if (animalType == null) {
+                    throw new ResourceNotFoundException("Animal type not found: " + tagDTO.getAnimalTypeId());
+                }
 
                 FarmAnimal farmAnimal = new FarmAnimal(farm, animalType, tagDTO.getCount());
-                farm.getFarmAnimals().add(farmAnimal); // Add to existing collection, don't replace
+                farm.getFarmAnimals().add(farmAnimal);
                 totalAnimals += tagDTO.getCount();
             }
         }

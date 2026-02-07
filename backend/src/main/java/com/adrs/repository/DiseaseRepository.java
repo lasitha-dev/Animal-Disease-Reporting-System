@@ -152,4 +152,13 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
      */
     @Query("SELECT COUNT(DISTINCT d) FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId AND d.isActive = true")
     Long countByAnimalTypeId(UUID animalTypeId);
+
+    /**
+     * Count diseases grouped by severity level (single query).
+     * Returns severity and count pairs.
+     *
+     * @return list of Object[] containing [Severity, Long count]
+     */
+    @Query("SELECT d.severity, COUNT(d) FROM Disease d GROUP BY d.severity")
+    List<Object[]> countGroupBySeverity();
 }

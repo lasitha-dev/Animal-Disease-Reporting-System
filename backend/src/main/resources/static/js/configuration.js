@@ -4,9 +4,7 @@
  * Updated for card-based UI layout
  */
 
-// CSRF Token
-const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+// Note: CSRF token is handled globally by main.js fetch wrapper
 
 // API Base URLs
 const API_BASE = '/api/configuration';

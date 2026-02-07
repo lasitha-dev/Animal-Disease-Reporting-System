@@ -73,16 +73,14 @@ public class DiseaseServiceImpl implements DiseaseService {
         
         // Set animal types if provided (new multi-select approach)
         if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
-            Set<AnimalType> animalTypes = new HashSet<>();
-            for (UUID animalTypeId : diseaseDTO.getAnimalTypeIds()) {
-                AnimalType animalType = animalTypeRepository.findById(animalTypeId)
-                        .orElseThrow(() -> {
-                            logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, animalTypeId);
-                            return new ConfigurationNotFoundException("AnimalType", animalTypeId);
-                        });
-                animalTypes.add(animalType);
+            // Single batch query instead of N individual findById calls
+            List<AnimalType> foundTypes = animalTypeRepository.findAllById(diseaseDTO.getAnimalTypeIds());
+            if (foundTypes.size() != diseaseDTO.getAnimalTypeIds().size()) {
+                logger.error("Some animal types not found. Requested: {}, Found: {}", 
+                            diseaseDTO.getAnimalTypeIds().size(), foundTypes.size());
+                throw new ConfigurationNotFoundException("AnimalType", "one or more IDs not found");
             }
-            disease.setAnimalTypes(animalTypes);
+            disease.setAnimalTypes(new HashSet<>(foundTypes));
         } else if (diseaseDTO.getAnimalTypeId() != null) {
             // Legacy single animal type support for backward compatibility
             AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
@@ -134,16 +132,14 @@ public class DiseaseServiceImpl implements DiseaseService {
         
         // Update animal types if provided (new multi-select approach)
         if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
-            Set<AnimalType> animalTypes = new HashSet<>();
-            for (UUID animalTypeId : diseaseDTO.getAnimalTypeIds()) {
-                AnimalType animalType = animalTypeRepository.findById(animalTypeId)
-                        .orElseThrow(() -> {
-                            logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, animalTypeId);
-                            return new ConfigurationNotFoundException("AnimalType", animalTypeId);
-                        });
-                animalTypes.add(animalType);
+            // Single batch query instead of N individual findById calls
+            List<AnimalType> foundTypes = animalTypeRepository.findAllById(diseaseDTO.getAnimalTypeIds());
+            if (foundTypes.size() != diseaseDTO.getAnimalTypeIds().size()) {
+                logger.error("Some animal types not found. Requested: {}, Found: {}", 
+                            diseaseDTO.getAnimalTypeIds().size(), foundTypes.size());
+                throw new ConfigurationNotFoundException("AnimalType", "one or more IDs not found");
             }
-            disease.setAnimalTypes(animalTypes);
+            disease.setAnimalTypes(new HashSet<>(foundTypes));
         } else if (diseaseDTO.getAnimalTypeId() != null) {
             // Legacy single animal type support for backward compatibility
             AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())

@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * REST Controller for veterinary officer operations.
@@ -273,28 +274,37 @@ public class VetController {
     public ResponseEntity<VetStatsDTO> getVetStats(@AuthenticationPrincipal UserDetails userDetails) {
         logger.info("GET /api/vet/stats - Fetching stats for user: {}", userDetails.getUsername());
         
-        // Basic counts
-        Long farmCount = farmRepository.count();
-        Long animalsCount = farmAnimalRepository.sumTotalAnimals();
-        Long reportCount = diseaseReportRepository.count();
+        // Fire all independent queries in parallel to reduce latency with remote DB
+        CompletableFuture<Long> farmCountFuture = CompletableFuture.supplyAsync(farmRepository::count);
+        CompletableFuture<Long> animalsCountFuture = CompletableFuture.supplyAsync(farmAnimalRepository::sumTotalAnimals);
+        CompletableFuture<Long> reportCountFuture = CompletableFuture.supplyAsync(diseaseReportRepository::count);
+        CompletableFuture<Long> activeOutbreaksFuture = CompletableFuture.supplyAsync(diseaseReportRepository::countByOutcomeOngoing);
         
-        // New KPI calculations
-        // 1. Active Outbreaks: Reports with ONGOING outcome
-        Long activeOutbreaks = diseaseReportRepository.countByOutcomeOngoing();
-        
-        // 2. High-Risk Farms: Farms with >=2 reports in last 30 days
         LocalDate thirtyDaysAgo = LocalDate.now().minusDays(30);
-        List<Object[]> highRiskData = diseaseReportRepository.findHighRiskFarmData(thirtyDaysAgo);
-        Long highRiskFarms = (long) highRiskData.size();
+        CompletableFuture<List<Object[]>> highRiskDataFuture = CompletableFuture.supplyAsync(
+                () -> diseaseReportRepository.findHighRiskFarmData(thirtyDaysAgo));
         
-        // 3. Monthly Coverage: Farms with reports this month / total farms
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = LocalDate.now();
-        Long farmsInspectedThisMonth = diseaseReportRepository.countDistinctFarmsWithReportsInPeriod(startOfMonth, endOfMonth);
+        CompletableFuture<Long> farmsInspectedFuture = CompletableFuture.supplyAsync(
+                () -> diseaseReportRepository.countDistinctFarmsWithReportsInPeriod(startOfMonth, endOfMonth));
         
-        // 4. Pending Follow-ups: ONGOING reports older than 7 days
         LocalDate sevenDaysAgo = LocalDate.now().minusDays(7);
-        Long pendingFollowups = diseaseReportRepository.countPendingFollowups(sevenDaysAgo);
+        CompletableFuture<Long> pendingFollowupsFuture = CompletableFuture.supplyAsync(
+                () -> diseaseReportRepository.countPendingFollowups(sevenDaysAgo));
+        
+        // Wait for all queries to complete
+        CompletableFuture.allOf(farmCountFuture, animalsCountFuture, reportCountFuture,
+                activeOutbreaksFuture, highRiskDataFuture, farmsInspectedFuture, pendingFollowupsFuture).join();
+        
+        Long farmCount = farmCountFuture.join();
+        Long animalsCount = animalsCountFuture.join();
+        Long reportCount = reportCountFuture.join();
+        Long activeOutbreaks = activeOutbreaksFuture.join();
+        List<Object[]> highRiskData = highRiskDataFuture.join();
+        Long highRiskFarms = (long) highRiskData.size();
+        Long farmsInspectedThisMonth = farmsInspectedFuture.join();
+        Long pendingFollowups = pendingFollowupsFuture.join();
         
         VetStatsDTO stats = new VetStatsDTO();
         stats.setFarmsCount(farmCount);

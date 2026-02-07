@@ -50,6 +50,21 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
     List<Farm> findByCreatedByAndIsActiveTrue(User user);
 
     /**
+     * Find all active farms created by a specific user with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param user the user who created the farms
+     * @return list of active farms with associations
+     */
+    @Query("SELECT DISTINCT f FROM Farm f " +
+           "LEFT JOIN FETCH f.farmType " +
+           "LEFT JOIN FETCH f.createdBy " +
+           "LEFT JOIN FETCH f.farmAnimals fa " +
+           "LEFT JOIN FETCH fa.animalType " +
+           "WHERE f.createdBy = :user AND f.isActive = true")
+    List<Farm> findByCreatedByAndIsActiveTrueWithAssociations(@Param("user") User user);
+
+    /**
      * Count farms created by a specific user.
      *
      * @param user the user
@@ -77,6 +92,21 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
      * @return list of active farms created by other users
      */
     List<Farm> findByCreatedByNotAndIsActiveTrue(User user);
+
+    /**
+     * Find all active farms NOT created by a specific user with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param user the user to exclude
+     * @return list of active farms with associations
+     */
+    @Query("SELECT DISTINCT f FROM Farm f " +
+           "LEFT JOIN FETCH f.farmType " +
+           "LEFT JOIN FETCH f.createdBy " +
+           "LEFT JOIN FETCH f.farmAnimals fa " +
+           "LEFT JOIN FETCH fa.animalType " +
+           "WHERE f.createdBy != :user AND f.isActive = true")
+    List<Farm> findByCreatedByNotAndIsActiveTrueWithAssociations(@Param("user") User user);
 
     /**
      * Find distinct provinces that have farms with GPS coordinates.

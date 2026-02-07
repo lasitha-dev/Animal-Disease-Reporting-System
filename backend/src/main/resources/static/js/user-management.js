@@ -3,9 +3,7 @@
  * Handles modal operations and form interactions including cascading province-district dropdowns
  */
 
-// Get CSRF token from meta tag
-const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+// Note: CSRF token is handled globally by main.js fetch wrapper
 
 /**
  * Refresh CustomSelect after options are dynamically loaded

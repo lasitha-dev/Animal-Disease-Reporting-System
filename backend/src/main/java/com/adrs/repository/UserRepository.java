@@ -185,4 +185,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.district = :district AND u.role = :role AND u.active = true")
     List<User> findActiveUsersByDistrictAndRole(@Param("district") com.adrs.model.District district, @Param("role") User.Role role);
+
+    /**
+     * Count users created within a date range.
+     *
+     * @param startDate the start of the range
+     * @param endDate   the end of the range
+     * @return count of users created in the range
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate AND u.createdAt < :endDate")
+    Long countByCreatedAtBetween(@Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
+
+    /**
+     * Get user distribution by district for all active users (single query).
+     * Returns district and count pairs for all districts that have users.
+     *
+     * @return list of Object[] containing [District, Long count]
+     */
+    @Query("SELECT u.district, COUNT(u) FROM User u WHERE u.active = true AND u.district IS NOT NULL GROUP BY u.district")
+    List<Object[]> countActiveUsersByAllDistricts();
+
+    /**
+     * Get user distribution by district for a specific role (single query).
+     * Returns district and count pairs for all districts that have users with the role.
+     *
+     * @param role the user role to filter by
+     * @return list of Object[] containing [District, Long count]
+     */
+    @Query("SELECT u.district, COUNT(u) FROM User u WHERE u.active = true AND u.role = :role AND u.district IS NOT NULL GROUP BY u.district")
+    List<Object[]> countActiveUsersByAllDistrictsAndRole(@Param("role") User.Role role);
 }
