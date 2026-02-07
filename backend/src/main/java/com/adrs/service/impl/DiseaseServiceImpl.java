@@ -10,6 +10,8 @@ import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.DiseaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +45,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO createDisease(DiseaseDTO diseaseDTO) {
         logger.info("Creating new disease: {}", diseaseDTO.getDiseaseName());
         
@@ -97,6 +100,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO updateDisease(UUID id, DiseaseDTO diseaseDTO) {
         logger.info("Updating disease with ID: {}", id);
         
@@ -175,6 +179,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "diseases", key = "'all'")
     public List<DiseaseDTO> getAllDiseases() {
         logger.debug("Fetching all diseases");
         
@@ -186,6 +191,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "diseases", key = "'active'")
     public List<DiseaseDTO> getActiveDiseases() {
         logger.debug("Fetching active diseases");
         
@@ -240,6 +246,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO toggleDiseaseStatus(UUID id, Boolean isActive) {
         logger.info("Toggling disease status for ID: {} to {}", id, isActive);
         
@@ -260,6 +267,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public void deleteDisease(UUID id) {
         logger.info("Attempting to delete disease with ID: {}", id);
         

@@ -10,6 +10,8 @@ import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.AnimalTypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     }
 
     @Override
+    @CacheEvict(value = "animalTypes", allEntries = true)
     public AnimalTypeDTO createAnimalType(AnimalTypeDTO animalTypeDTO) {
         logger.info("Creating new animal type: {}", animalTypeDTO.getTypeName());
         
@@ -62,6 +65,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     }
 
     @Override
+    @CacheEvict(value = "animalTypes", allEntries = true)
     public AnimalTypeDTO updateAnimalType(UUID id, AnimalTypeDTO animalTypeDTO) {
         logger.info("Updating animal type with ID: {}", id);
         
@@ -102,6 +106,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "animalTypes", key = "'all'")
     public List<AnimalTypeDTO> getAllAnimalTypes() {
         logger.debug("Fetching all animal types");
         
@@ -113,6 +118,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "animalTypes", key = "'active'")
     public List<AnimalTypeDTO> getActiveAnimalTypes() {
         logger.debug("Fetching active animal types");
         
@@ -134,6 +140,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     }
 
     @Override
+    @CacheEvict(value = "animalTypes", allEntries = true)
     public AnimalTypeDTO toggleAnimalTypeStatus(UUID id, Boolean isActive) {
         logger.info("Toggling animal type status for ID: {} to {}", id, isActive);
         
@@ -154,6 +161,7 @@ public class AnimalTypeServiceImpl implements AnimalTypeService {
     }
 
     @Override
+    @CacheEvict(value = "animalTypes", allEntries = true)
     public void deleteAnimalType(UUID id) {
         logger.info("Attempting to delete animal type with ID: {}", id);
         
