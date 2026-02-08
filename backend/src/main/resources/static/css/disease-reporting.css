@@ -103,7 +103,7 @@
 .farms-wrapper {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--spacing-lg);
+    gap: var(--spacing-xl, 2rem);
 }
 
 .farm-card {
@@ -130,9 +130,9 @@
     outline-offset: 2px;
 }
 
-/* Other vet's farm card */
+/* Other vet's farm card - same style as My Reports */
 .farm-card.other-vet-card {
-    border-left: 4px solid #6366f1;
+    /* No special border styling - consistent with My Reports cards */
 }
 
 .farm-card-header {
@@ -296,14 +296,9 @@
 }
 
 
-/* Other Vet Report Card Styling */
+/* Other Vet Report Card Styling - consistent with My Reports */
 .report-card.other-vet-card {
-    border-left: 3px solid #6366f1;
-}
-
-.report-card.other-vet-card .report-card-meta .meta-item:last-child {
-    color: #6366f1;
-    font-weight: var(--font-weight-medium);
+    /* No special border styling - consistent with My Reports cards */
 }
 
 /* Report Card Body and Subtitle */

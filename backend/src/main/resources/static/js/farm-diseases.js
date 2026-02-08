@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let farmData = null;
     let isOwnFarm = true; // Whether current user owns this farm
     let currentView = localStorage.getItem('farmDiseasesViewMode') || 'grid';
+    let editSelectedImageFile = null;
+    let editClearExistingImage = false;
 
     // DOM Elements
     const elements = {
@@ -60,7 +62,13 @@ document.addEventListener('DOMContentLoaded', function () {
         editSymptoms: document.getElementById('editSymptoms'),
         editDiagnosis: document.getElementById('editDiagnosis'),
         editTreatment: document.getElementById('editTreatment'),
-        editNotes: document.getElementById('editNotes')
+        editNotes: document.getElementById('editNotes'),
+        // Edit Modal Image Upload
+        editImageDropzone: document.getElementById('editImageDropzone'),
+        editImageInput: document.getElementById('editImageInput'),
+        editImagePreviewContainer: document.getElementById('editImagePreviewContainer'),
+        editImagePreview: document.getElementById('editImagePreview'),
+        editRemoveImage: document.getElementById('editRemoveImage')
     };
 
     // Initialize
@@ -123,6 +131,18 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.editModal?.addEventListener('click', (e) => {
             if (e.target === elements.editModal) closeEditModal();
         });
+
+        // Edit Modal - Image upload
+        elements.editImageDropzone?.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                elements.editImageInput?.click();
+            }
+        });
+        elements.editImageInput?.addEventListener('change', handleEditImageSelect);
+        elements.editImageDropzone?.addEventListener('dragover', handleEditDragOver);
+        elements.editImageDropzone?.addEventListener('dragleave', handleEditDragLeave);
+        elements.editImageDropzone?.addEventListener('drop', handleEditDrop);
+        elements.editRemoveImage?.addEventListener('click', handleEditRemoveImage);
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
@@ -419,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const severity = report.effectiveSeverity || report.severity || 'Unknown';
         const date = formatDate(report.reportDate || report.createdAt);
         const isNotifiable = report.effectiveNotifiable ?? report.notifiable ?? false;
-        const affectedCount = report.numberOfAffectedAnimals || 0;
+        const affectedCount = report.affectedCount || 0;
         const imageUrl = report.imageUrl;
 
         // Only show View button on cards - Edit/Delete are in the modal
@@ -485,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const severity = report.effectiveSeverity || report.severity || 'Unknown';
         const date = formatDate(report.reportDate || report.createdAt);
         const isNotifiable = report.effectiveNotifiable ?? report.notifiable ?? false;
-        const affectedCount = report.numberOfAffectedAnimals || 0;
+        const affectedCount = report.affectedCount || 0;
 
         // Only show View button in table - Edit/Delete are in the modal
         const actionsHtml = `
@@ -534,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const symptoms = report.effectiveSymptoms || report.symptoms || 'Not specified';
         const treatment = report.effectiveTreatment || report.treatment || 'Not specified';
         const notes = report.notes || 'No notes';
-        const affectedCount = report.numberOfAffectedAnimals || 0;
+        const affectedCount = report.affectedCount || 0;
         const imageUrl = report.imageUrl;
 
         elements.viewModalBody.innerHTML = `
@@ -639,12 +659,25 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.editReportDate.value = date.toISOString().split('T')[0];
         }
 
-        elements.editAffectedCount.value = report.numberOfAffectedAnimals || '';
+        elements.editAffectedCount.value = report.affectedCount || '';
         elements.editOutcome.value = report.outcome || 'ONGOING';
         elements.editSymptoms.value = report.effectiveSymptoms || report.symptoms || '';
         elements.editDiagnosis.value = report.diagnosis || '';
         elements.editTreatment.value = report.effectiveTreatment || report.treatment || '';
         elements.editNotes.value = report.notes || '';
+
+        // Handle existing image
+        editClearExistingImage = false;
+        editSelectedImageFile = null;
+        if (report.imageUrl) {
+            elements.editImagePreview.src = report.imageUrl;
+            elements.editImageDropzone.style.display = 'none';
+            elements.editImagePreviewContainer.style.display = 'inline-block';
+        } else {
+            elements.editImagePreview.src = '';
+            elements.editImageDropzone.style.display = 'block';
+            elements.editImagePreviewContainer.style.display = 'none';
+        }
 
         elements.editModal?.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -654,6 +687,13 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.editModal?.classList.add('hidden');
         document.body.style.overflow = '';
         elements.editReportForm?.reset();
+        // Reset image state
+        editSelectedImageFile = null;
+        editClearExistingImage = false;
+        if (elements.editImagePreview) elements.editImagePreview.src = '';
+        if (elements.editImageDropzone) elements.editImageDropzone.style.display = 'block';
+        if (elements.editImagePreviewContainer) elements.editImagePreviewContainer.style.display = 'none';
+        if (elements.editImageInput) elements.editImageInput.value = '';
     }
 
     async function handleEditSubmit(e) {
@@ -678,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 diseaseId: originalReport.diseaseId || null,
                 animalTypeId: originalReport.animalTypeId,
                 reportDate: elements.editReportDate.value,
-                numberOfAffectedAnimals: elements.editAffectedCount.value ? parseInt(elements.editAffectedCount.value) : null,
+                affectedCount: elements.editAffectedCount.value ? parseInt(elements.editAffectedCount.value) : null,
                 outcome: elements.editOutcome.value,
                 symptoms: elements.editSymptoms.value || null,
                 diagnosis: elements.editDiagnosis.value || null,
@@ -687,12 +727,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Preserve custom disease info if it exists
                 customDiseaseName: originalReport.customDiseaseName || null,
                 customSymptoms: originalReport.customSymptoms || null,
-                customTreatment: originalReport.customTreatment || null
+                customTreatment: originalReport.customTreatment || null,
+                // Image clear flag
+                clearImage: editClearExistingImage
             };
 
             // Backend expects multipart/form-data with 'report' part
             const formData = new FormData();
             formData.append('report', new Blob([JSON.stringify(reportData)], { type: 'application/json' }));
+
+            // Append new image if selected
+            if (editSelectedImageFile) {
+                formData.append('image', editSelectedImageFile);
+            }
 
             const response = await fetch(`/api/vet/disease-reports/${currentReportId}`, {
                 method: 'PUT',
@@ -770,6 +817,94 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.confirmDeleteBtn.disabled = false;
             elements.confirmDeleteBtn.textContent = 'Delete';
         }
+    }
+
+    // ========================================
+    // Edit Modal - Image Upload Handlers
+    // ========================================
+
+    /**
+     * Handle image file selection from browse button
+     */
+    function handleEditImageSelect(e) {
+        const file = e.target.files[0];
+        if (file) {
+            validateAndPreviewEditImage(file);
+        }
+    }
+
+    /**
+     * Handle drag over event on dropzone
+     */
+    function handleEditDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.editImageDropzone.classList.add('dragover');
+    }
+
+    /**
+     * Handle drag leave event on dropzone
+     */
+    function handleEditDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.editImageDropzone.classList.remove('dragover');
+    }
+
+    /**
+     * Handle drop event on dropzone
+     */
+    function handleEditDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        elements.editImageDropzone.classList.remove('dragover');
+
+        const file = e.dataTransfer?.files[0];
+        if (file) {
+            validateAndPreviewEditImage(file);
+        }
+    }
+
+    /**
+     * Validate image file and show preview
+     */
+    function validateAndPreviewEditImage(file) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (!allowedTypes.includes(file.type)) {
+            showToast('Invalid file type. Please upload JPEG, PNG, WebP, or GIF.', 'error');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            showToast('File too large. Maximum size is 5MB.', 'error');
+            return;
+        }
+
+        editSelectedImageFile = file;
+        editClearExistingImage = false;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            elements.editImagePreview.src = e.target.result;
+            elements.editImageDropzone.style.display = 'none';
+            elements.editImagePreviewContainer.style.display = 'inline-block';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    /**
+     * Handle removing the image (existing or newly selected)
+     */
+    function handleEditRemoveImage() {
+        editSelectedImageFile = null;
+        editClearExistingImage = true;
+        elements.editImagePreview.src = '';
+        elements.editImageDropzone.style.display = 'block';
+        elements.editImagePreviewContainer.style.display = 'none';
+        if (elements.editImageInput) elements.editImageInput.value = '';
     }
 
     // Navigation

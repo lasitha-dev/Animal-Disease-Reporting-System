@@ -289,6 +289,28 @@
                                     placeholder="Any additional notes" rows="2" maxlength="2000"></textarea>
                             </div>
                         </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="form-section">
+                            <h4 class="form-section-title">📷 Photo (Optional)</h4>
+
+                            <div class="image-upload-container">
+                                <div class="image-dropzone" id="editImageDropzone">
+                                    <div class="dropzone-content">
+                                        <span class="dropzone-icon">📷</span>
+                                        <p class="dropzone-text">Drag and drop an image here, or</p>
+                                        <label class="btn btn-outline btn-sm" for="editImageInput">Browse Files</label>
+                                        <input type="file" id="editImageInput" name="image"
+                                            accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;">
+                                        <p class="dropzone-hint">Max 5MB • JPEG, PNG, WebP, GIF</p>
+                                    </div>
+                                </div>
+                                <div class="image-preview-container" id="editImagePreviewContainer" style="display: none;">
+                                    <img id="editImagePreview" src="" alt="Preview">
+                                    <button type="button" class="remove-image-btn" id="editRemoveImage">✕</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline" id="cancelEditBtn">Cancel</button>

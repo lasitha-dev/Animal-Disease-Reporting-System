@@ -156,7 +156,8 @@
 .reports-wrapper {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-lg, 24px);
+    gap: var(--spacing-lg, 24px);
+    padding: var(--spacing-md, 16px) 0;
 }
 
 /* Report Card */
@@ -164,7 +165,8 @@
     background: var(--color-white, #ffffff);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border, #e2e8f0);
     transition: all 200ms ease;
     cursor: pointer;
     display: flex;
@@ -172,13 +174,44 @@
 }
 
 .report-card:hover {
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     transform: translateY(-2px);
 }
 
 .report-card:focus-visible {
     outline: 3px solid var(--color-primary);
     outline-offset: 2px;
+}
+
+/* Card Body - farm diseases page overrides */
+.reports-wrapper .report-card .report-card-body {
+    padding: var(--spacing-md, 16px) var(--spacing-lg, 24px);
+    gap: var(--spacing-sm, 8px);
+}
+
+.reports-wrapper .report-card .report-card-title {
+    font-size: var(--font-size-md, 1rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-text-primary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.reports-wrapper .report-card .report-card-subtitle {
+    margin: 0;
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary);
+}
+
+.reports-wrapper .report-card .report-card-meta {
+    padding-top: var(--spacing-xs, 4px);
+}
+
+/* Card Footer - proper padding and spacing */
+.reports-wrapper .report-card .report-card-footer {
+    padding: var(--spacing-sm, 8px) var(--spacing-lg, 24px) var(--spacing-md, 16px);
+    margin-top: auto;
+    border-top: 1px solid var(--color-border, #e2e8f0);
 }
 
 /* ========================================

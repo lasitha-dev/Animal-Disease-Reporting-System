@@ -559,6 +559,12 @@
         }
         if (elements.emptyState) elements.emptyState.style.display = 'none';
         if (elements.otherEmptyState) elements.otherEmptyState.style.display = 'none';
+        // Hide farm card containers so no cards show underneath the "no results" message
+        if (elements.farmsGridContainer) elements.farmsGridContainer.style.display = 'none';
+        if (elements.farmsTableContainer) elements.farmsTableContainer.style.display = 'none';
+        if (elements.otherFarmsGridContainer) elements.otherFarmsGridContainer.style.display = 'none';
+        if (elements.otherFarmsTableContainer) elements.otherFarmsTableContainer.style.display = 'none';
+        // Also clear legacy containers
         if (elements.reportsGridContainer) elements.reportsGridContainer.innerHTML = '';
         if (elements.reportsTableBody) elements.reportsTableBody.innerHTML = '';
         if (elements.otherReportsGridContainer) elements.otherReportsGridContainer.innerHTML = '';
@@ -569,6 +575,9 @@
         if (elements.noSearchResults) {
             elements.noSearchResults.style.display = 'none';
         }
+        // Restore farm card containers visibility
+        if (elements.farmsGridContainer) elements.farmsGridContainer.style.display = 'block';
+        if (elements.otherFarmsGridContainer) elements.otherFarmsGridContainer.style.display = 'block';
     }
 
     function highlightMatch(text, query) {
