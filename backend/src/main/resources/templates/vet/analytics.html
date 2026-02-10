@@ -12,7 +12,7 @@
         <!-- Page Header -->
         <div class="page-header-row">
             <div class="page-header-info">
-                <h2>📊 Analytics</h2>
+                <h2><i data-lucide="bar-chart-3" class="icon icon-lg icon-primary"></i> Analytics</h2>
                 <p class="page-subtitle">Analyze disease contraction trends over time</p>
             </div>
         </div>
@@ -32,7 +32,7 @@
             <!-- Metric Type Filter -->
             <div class="filter-group">
                 <label class="filter-label" for="metricTypeSelect">
-                    <span class="label-icon">📈</span>
+                    <i data-lucide="trending-up" class="icon icon-xs"></i>
                     Metric
                 </label>
                 <select id="metricTypeSelect" class="filter-select"
@@ -55,7 +55,7 @@
             <!-- Animal Type Filter -->
             <div class="filter-group">
                 <label class="filter-label" for="animalTypeSelect">
-                    <span class="label-icon">🐄</span>
+                    <i data-lucide="paw-print" class="icon icon-xs"></i>
                     Animal Type
                 </label>
                 <select id="animalTypeSelect" class="filter-select"
@@ -68,7 +68,7 @@
             <!-- Disease Multi-Select Dropdown with Checkboxes -->
             <div class="filter-group">
                 <label class="filter-label">
-                    <span class="label-icon">🦠</span>
+                    <i data-lucide="bug" class="icon icon-xs"></i>
                     Diseases
                 </label>
                 <div class="checkbox-dropdown" id="diseaseDropdown">
@@ -142,14 +142,14 @@
 
                 <!-- Empty State -->
                 <div id="chartEmptyState" class="chart-empty-state" style="display: none;">
-                    <div class="empty-icon">📊</div>
+                    <div class="empty-icon"><i data-lucide="bar-chart-3" class="icon icon-3xl icon-muted"></i></div>
                     <h3>No Data Available</h3>
                     <p>No disease reports found for the selected filters and date range.</p>
                 </div>
 
                 <!-- Error State -->
                 <div id="chartErrorState" class="chart-error-state" style="display: none;">
-                    <div class="error-icon">⚠️</div>
+                    <div class="error-icon"><i data-lucide="alert-triangle" class="icon icon-3xl icon-warning"></i></div>
                     <h3>Error Loading Data</h3>
                     <p id="chartErrorMessage">Failed to load analytics data. Please try again.</p>
                     <button type="button" id="retryButton" class="btn btn-outline">Retry</button>

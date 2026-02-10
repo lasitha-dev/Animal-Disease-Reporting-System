@@ -464,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
                     <div class="report-card-badges">
                         <span class="severity-badge ${severity.toLowerCase()}">${severity}</span>
-                        ${isNotifiable ? '<span class="notifiable-badge">⚠️ Notifiable</span>' : ''}
+                        ${isNotifiable ? '<span class="notifiable-badge"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Notifiable</span>' : ''}
                     </div>
                 </div>
                 <div class="report-card-body">
@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${animalType}</td>
                 <td>${date}</td>
                 <td><span class="severity-badge ${severity.toLowerCase()}">${severity}</span></td>
-                <td>${isNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                <td>${isNotifiable ? '<span class="notifiable-badge-small"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Yes</span>' : 'No'}</td>
                 <td>${affectedCount}</td>
                 <td class="table-actions">${actionsHtml}</td>
             </tr>

@@ -6,295 +6,7 @@
       lang="en">
 <head>
     <title>User Management</title>
-    <style>
-        /* User Management Page Specific Styles */
-        .user-management-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-            gap: var(--spacing-md);
-            flex-wrap: wrap;
-        }
-        
-        .search-box {
-            position: relative;
-            flex: 1;
-            max-width: 400px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 44px;
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            font-size: var(--font-size-sm);
-            background-color: var(--color-white);
-            transition: all var(--transition-fast);
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px var(--color-primary-lighter);
-        }
-        
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: var(--spacing-md);
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1rem;
-            opacity: 0.5;
-        }
-        
-        .add-user-btn {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md) var(--spacing-lg);
-            background: var(--color-primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-lg);
-            font-weight: var(--font-weight-semibold);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-        
-        .add-user-btn:hover {
-            background: var(--color-primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        /* User Table Styles */
-        .user-table-container {
-            background: var(--color-white);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--color-border);
-            overflow: hidden;
-        }
-        
-        .user-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .user-table th {
-            padding: var(--spacing-md) var(--spacing-lg);
-            text-align: left;
-            font-size: var(--font-size-xs);
-            font-weight: var(--font-weight-semibold);
-            color: var(--color-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--color-gray-50);
-            border-bottom: 1px solid var(--color-border);
-        }
-        
-        .user-table td {
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-bottom: 1px solid var(--color-border);
-            vertical-align: middle;
-        }
-        
-        .user-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .user-table tbody tr:hover {
-            background-color: var(--color-gray-50);
-        }
-        
-        /* User Cell with Avatar */
-        .user-cell {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-full);
-            background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: var(--font-weight-bold);
-            font-size: var(--font-size-sm);
-            flex-shrink: 0;
-        }
-        
-        .user-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .user-name {
-            font-weight: var(--font-weight-semibold);
-            color: var(--color-text-primary);
-        }
-        
-        .user-role-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-            font-size: var(--font-size-xs);
-            font-weight: var(--font-weight-medium);
-        }
-        
-        .user-role-badge.admin {
-            background: var(--color-info-light);
-            color: var(--color-info);
-        }
-        
-        .user-role-badge.vet {
-            background: #d1fae5;
-            color: #059669;
-        }
-        
-        /* Contact Cell */
-        .contact-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .contact-email {
-            color: var(--color-text-primary);
-            font-size: var(--font-size-sm);
-        }
-        
-        .contact-id {
-            color: var(--color-text-muted);
-            font-size: var(--font-size-xs);
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: var(--radius-full);
-            font-size: var(--font-size-xs);
-            font-weight: var(--font-weight-semibold);
-        }
-        
-        .status-badge.active {
-            background: #d1fae5;
-            color: #059669;
-        }
-        
-        .status-badge.pending {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        .status-badge.inactive {
-            background: var(--color-error-light);
-            color: var(--color-error);
-        }
-        
-        /* Date Column */
-        .date-cell {
-            color: var(--color-text-secondary);
-            font-size: var(--font-size-sm);
-        }
-        
-        /* Actions Column */
-        .actions-cell {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-        
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-            background: transparent;
-        }
-        
-        .action-btn.edit {
-            color: var(--color-text-secondary);
-        }
-        
-        .action-btn.edit:hover {
-            background: var(--color-gray-100);
-            color: var(--color-primary);
-        }
-        
-        .action-btn.delete {
-            color: var(--color-text-secondary);
-        }
-        
-        .action-btn.delete:hover {
-            background: var(--color-error-light);
-            color: var(--color-error);
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 1024px) {
-            .user-table th:nth-child(4),
-            .user-table td:nth-child(4) {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .user-management-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .search-box {
-                max-width: none;
-            }
-            
-            .add-user-btn {
-                justify-content: center;
-            }
-            
-            .user-table-container {
-                overflow-x: auto;
-            }
-            
-            .user-table th:nth-child(3),
-            .user-table td:nth-child(3),
-            .user-table th:nth-child(4),
-            .user-table td:nth-child(4) {
-                display: none;
-            }
-            
-            .user-table th,
-            .user-table td {
-                padding: var(--spacing-sm) var(--spacing-md);
-            }
-            
-            .user-avatar {
-                width: 36px;
-                height: 36px;
-                font-size: var(--font-size-xs);
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .user-table th:nth-child(2),
-            .user-table td:nth-child(2) {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/user-management.css}">
 </head>
 <body>
 <div layout:fragment="content">
@@ -309,10 +21,11 @@
     <!-- Header with Search and Add Button -->
     <div class="user-management-header">
         <div class="search-box">
+            <i data-lucide="search" class="icon icon-sm search-icon"></i>
             <input type="text" id="user-search" placeholder="Search users..." />
         </div>
         <button class="add-user-btn" onclick="openCreateModal()">
-            <span>+</span>
+            <i data-lucide="user-plus" class="icon icon-sm"></i>
             <span>Add New User</span>
         </button>
     </div>
@@ -331,7 +44,7 @@
             </thead>
             <tbody id="user-table-body">
                 <tr th:if="${#lists.isEmpty(users)}">
-                    <td colspan="5" style="text-align: center; padding: var(--spacing-xl);">
+                    <td colspan="5" class="empty-state-cell">
                         No users found
                     </td>
                 </tr>
@@ -381,15 +94,14 @@
                                     th:data-district="${user.district}"
                                     th:data-role="${user.role}"
                                     title="Edit user">
-                                ✏️
+                                <i data-lucide="pencil" class="icon icon-sm"></i>
                             </button>
                             <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
                                   class="delete-user-form"
-                                  style="display: inline;"
                                   th:data-username="${user.username}">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                                 <button type="submit" class="action-btn delete" title="Delete user">
-                                    🗑️
+                                    <i data-lucide="trash-2" class="icon icon-sm"></i>
                                 </button>
                             </form>
                         </div>

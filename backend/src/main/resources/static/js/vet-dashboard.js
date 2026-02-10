@@ -353,11 +353,11 @@ function getActivityIconClass(type) {
  */
 function getActivityIcon(type) {
     const icons = {
-        'report': '🦠',
-        'farm': '🏠',
-        'resolved': '✓'
+        'report': '<i data-lucide="bug" class="icon icon-xs"></i>',
+        'farm': '<i data-lucide="home" class="icon icon-xs"></i>',
+        'resolved': '<i data-lucide="check" class="icon icon-xs"></i>'
     };
-    return icons[type] || '📋';
+    return icons[type] || '<i data-lucide="clipboard-list" class="icon icon-xs"></i>';
 }
 
 /**

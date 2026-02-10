@@ -34,20 +34,20 @@
    /* 48px */
 
    /* ========================================
-     Primary Colors - Healthcare Cyan (Trust/Calm/Clinical)
+     Primary Colors - Deep Indigo (Trust/Authority/Clinical)
      ======================================== */
-   --color-primary: #0891b2;
-   /* Cyan 600 - Primary */
-   --color-primary-dark: #0e7490;
-   /* Cyan 700 */
-   --color-primary-darker: #155e75;
-   /* Cyan 800 */
-   --color-primary-light: #22d3ee;
-   /* Cyan 400 */
-   --color-primary-lighter: #cffafe;
-   /* Cyan 100 */
-   --color-primary-50: #ecfeff;
-   /* Cyan 50 */
+   --color-primary: #4f46e5;
+   /* Indigo 600 - Primary */
+   --color-primary-dark: #4338ca;
+   /* Indigo 700 */
+   --color-primary-darker: #3730a3;
+   /* Indigo 800 */
+   --color-primary-light: #818cf8;
+   /* Indigo 400 */
+   --color-primary-lighter: #e0e7ff;
+   /* Indigo 100 */
+   --color-primary-50: #eef2ff;
+   /* Indigo 50 */
 
    /* ========================================
      Secondary Colors - Health Green (Wellness/Nature)
@@ -77,8 +77,8 @@
    --sidebar-text-active: #ffffff;
    --sidebar-hover-bg: #334155;
    /* Slate 700 */
-   --sidebar-active-bg: rgba(8, 145, 178, 0.15);
-   /* Healthcare Cyan with opacity */
+   --sidebar-active-bg: rgba(79, 70, 229, 0.15);
+   /* Deep Indigo with opacity */
    --sidebar-border: #334155;
    /* Slate 700 */
 
@@ -122,12 +122,12 @@
    --color-error-dark: #b91c1c;
    /* Red 700 */
 
-   --color-info: #4f46e5;
-   /* Deep Indigo (matches primary) */
+   --color-info: #6366f1;
+   /* Indigo 500 (complementary to primary) */
    --color-info-light: #e0e7ff;
    /* Indigo 100 */
-   --color-info-dark: #4338ca;
-   /* Indigo 700 */
+   --color-info-dark: #4f46e5;
+   /* Indigo 600 */
 
    /* ========================================
      Text Colors
@@ -195,7 +195,7 @@
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
    --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace;
 
-   /* Font Sizes */
+   /* Font Sizes - Strict Clinical Scale */
    --font-size-xs: 0.75rem;
    /* 12px */
    --font-size-sm: 0.875rem;
@@ -205,11 +205,11 @@
    --font-size-lg: 1.125rem;
    /* 18px */
    --font-size-xl: 1.25rem;
-   /* 20px */
+   /* 20px - Subheaders */
    --font-size-2xl: 1.5rem;
    /* 24px */
-   --font-size-3xl: 1.875rem;
-   /* 30px */
+   --font-size-3xl: 1.75rem;
+   /* 28px - Main headers */
    --font-size-4xl: 2.25rem;
    /* 36px */
    --font-size-5xl: 3rem;
@@ -328,8 +328,8 @@
    /* ========================================
      Accessibility
      ======================================== */
-   --touch-target-min: 44px;
-   /* Minimum touch target size (WCAG) */
+   --touch-target-min: 48px;
+   /* Minimum touch target size (48px for field use) */
    --touch-spacing: 8px;
    /* Minimum spacing between touch targets */
 
@@ -356,4 +356,14 @@
    --info-light: var(--color-info-light);
    --info-color: var(--color-info);
    --input-bg: var(--color-white);
+
+   /* ========================================
+     Glassmorphism
+     ======================================== */
+   --glass-bg: rgba(255, 255, 255, 0.72);
+   --glass-bg-dark: rgba(15, 23, 42, 0.78);
+   --glass-border: rgba(255, 255, 255, 0.2);
+   --glass-border-dark: rgba(255, 255, 255, 0.08);
+   --glass-blur: 16px;
+   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }

@@ -12,22 +12,22 @@
         <!-- Page Header -->
         <div class="page-header-row">
             <div class="page-header-info">
-                <h2>🏠 Farms</h2>
+                <h2><i data-lucide="home" class="icon icon-md icon-muted"></i> Farms</h2>
                 <p class="page-subtitle">View and manage farm registrations</p>
             </div>
             <button type="button" class="btn btn-primary" id="openRegisterModal">
-                <span>+</span> Register Farm
+                <i data-lucide="plus" class="icon icon-sm"></i> Register Farm
             </button>
         </div>
 
         <!-- Tab Navigation -->
         <div class="farms-tabs">
             <button type="button" class="tab-btn active" data-tab="my-farms">
-                <span class="tab-icon">📋</span>
+                <i data-lucide="clipboard-list" class="icon icon-sm tab-icon"></i>
                 <span class="tab-label">My Farms</span>
             </button>
             <button type="button" class="tab-btn" data-tab="other-farms">
-                <span class="tab-icon">👥</span>
+                <i data-lucide="users" class="icon icon-sm tab-icon"></i>
                 <span class="tab-label">Other Farms</span>
             </button>
         </div>
@@ -37,20 +37,12 @@
             <!-- Search Bar -->
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
-                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+                    <i data-lucide="search" class="icon icon-sm search-icon"></i>
                     <input type="text" id="farmSearchInput" class="search-input" 
                         placeholder="Search farms by name, owner, location..." 
                         autocomplete="off">
                     <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;" title="Clear search">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <i data-lucide="x" class="icon icon-sm"></i>
                     </button>
                 </div>
                 <div id="searchResultsCount" class="search-results-count" style="display: none;"></div>
@@ -59,31 +51,17 @@
             <!-- View Toggle -->
             <div class="view-toggle-container">
                 <button type="button" class="view-toggle-btn active" id="gridViewBtn" data-view="grid" title="Grid View">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="3" width="7" height="7"></rect>
-                        <rect x="14" y="14" width="7" height="7"></rect>
-                        <rect x="3" y="14" width="7" height="7"></rect>
-                    </svg>
+                    <i data-lucide="layout-grid" class="icon icon-sm"></i>
                 </button>
                 <button type="button" class="view-toggle-btn" id="tableViewBtn" data-view="table" title="Table View">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="8" y1="6" x2="21" y2="6"></line>
-                        <line x1="8" y1="12" x2="21" y2="12"></line>
-                        <line x1="8" y1="18" x2="21" y2="18"></line>
-                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                    </svg>
+                    <i data-lucide="list" class="icon icon-sm"></i>
                 </button>
             </div>
         </div>
 
         <!-- No Search Results State -->
         <div id="no-search-results" class="no-search-results" style="display: none;">
-            <div class="no-results-icon">🔍</div>
+            <div class="no-results-icon"><i data-lucide="search-x" class="icon icon-3xl icon-muted"></i></div>
             <h3>No farms found</h3>
             <p>Try adjusting your search terms or clear the search to see all farms.</p>
             <button type="button" class="btn btn-outline" id="clearSearchFromEmpty">Clear Search</button>
@@ -118,7 +96,7 @@
 
             <!-- Empty State -->
             <div id="empty-state" class="empty-state" style="display: none;">
-                <div class="empty-state-icon">🏠</div>
+                <div class="empty-state-icon"><i data-lucide="home" class="icon icon-3xl icon-muted"></i></div>
                 <h3>No Farms Registered</h3>
                 <p>You haven't registered any farms yet. Click the button above to register your first farm.</p>
                 <button type="button" class="btn btn-primary" id="emptyStateRegisterBtn">
@@ -162,7 +140,7 @@
 
             <!-- Empty State for Other Farms -->
             <div id="other-farms-empty-state" class="empty-state" style="display: none;">
-                <div class="empty-state-icon">👥</div>
+                <div class="empty-state-icon"><i data-lucide="users" class="icon icon-3xl icon-muted"></i></div>
                 <h3>No Other Farms</h3>
                 <p>There are no farms registered by other veterinary officers in the system.</p>
             </div>
@@ -179,7 +157,7 @@
             <div class="modal modal-lg">
                 <div class="modal-header">
                     <h3 class="modal-title">Register New Farm</h3>
-                    <button type="button" class="modal-close" id="closeModal">✕</button>
+                    <button type="button" class="modal-close" id="closeModal"><i data-lucide="x" class="icon icon-md"></i></button>
                 </div>
                 <div class="modal-body">
                     <form id="farm-register-form">
@@ -265,12 +243,12 @@
                                     <!-- Search Box -->
                                     <div class="map-search-container">
                                         <input type="text" id="locationSearchInput" class="form-input map-search-input"
-                                            placeholder="🔍 Search for a location in Sri Lanka...">
+                                            placeholder="Search for a location in Sri Lanka...">
                                     </div>
                                     <div id="locationMap" class="location-map"></div>
                                     <div class="map-controls">
                                         <button type="button" id="useMyLocationBtn" class="btn btn-outline btn-sm">
-                                            📍 Use My Location
+                                            <i data-lucide="map-pin" class="icon icon-xs"></i> Use My Location
                                         </button>
                                         <div id="coordinatesDisplay" class="coordinates-display">
                                             <span>No location selected</span>
@@ -288,7 +266,7 @@
                                 <label for="address" class="form-label required">
                                     Full Address
                                     <span id="addressAutoIndicator" class="auto-populated-badge" style="display: none;">
-                                        📍 Auto-populated from map
+                                        <i data-lucide="map-pin" class="icon icon-xs"></i> Auto-populated from map
                                     </span>
                                 </label>
                                 <textarea id="address" name="address" class="form-textarea"
@@ -313,7 +291,7 @@
                                     </select>
                                     <input type="number" id="animalCountInput" class="form-input count-input"
                                         placeholder="Count" min="1" value="1">
-                                    <button type="button" id="addAnimalTagBtn" class="btn btn-outline btn-sm">+
+                                    <button type="button" id="addAnimalTagBtn" class="btn btn-outline btn-sm"><i data-lucide="plus" class="icon icon-xs"></i>
                                         Add</button>
                                 </div>
                             </div>

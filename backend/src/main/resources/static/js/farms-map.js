@@ -402,6 +402,8 @@ function showFarmInfoWindow(marker, farm) {
     const content = generateFarmInfoWindowContent(farm);
     infoWindow.setContent(content);
     infoWindow.open(map, marker);
+    // Initialize Lucide icons in info window content
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 }
 
 /**
@@ -411,6 +413,8 @@ function showMergedInfoWindow(marker, farm, diseaseInfo) {
     const content = generateMergedInfoWindowContent(farm, diseaseInfo);
     infoWindow.setContent(content);
     infoWindow.open(map, marker);
+    // Initialize Lucide icons in info window content
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 }
 
 /**
@@ -428,7 +432,7 @@ function generateFarmInfoWindowContent(farm) {
     return `
         <div class="farm-info-window">
             <div class="farm-info-header">
-                <span class="farm-info-icon">🏠</span>
+                <span class="farm-info-icon"><i data-lucide="home" class="icon icon-sm"></i></span>
                 <div class="farm-info-title">
                     <h4>${escapeHtml(farm.farmName)}</h4>
                     ${farm.farmTypeName ? `<span class="farm-info-type">${escapeHtml(farm.farmTypeName)}</span>` : ''}
@@ -451,7 +455,7 @@ function generateFarmInfoWindowContent(farm) {
 function generateMergedInfoWindowContent(farm, diseaseInfo) {
     const farmHeader = `
         <div class="farm-info-header disease-header">
-            <span class="farm-info-icon">⚠️</span>
+            <span class="farm-info-icon"><i data-lucide="alert-triangle" class="icon icon-sm"></i></span>
             <div class="farm-info-title">
                 <h4>${escapeHtml(farm.farmName)}</h4>
                 <span class="disease-count-badge">${diseaseInfo.diseases.length} Disease Report${diseaseInfo.diseases.length > 1 ? 's' : ''}</span>
@@ -484,7 +488,7 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
                     <div class="disease-detail"><span class="detail-label">Affected:</span><span class="detail-value">${d.affectedCount || '-'}</span></div>
                     <div class="disease-detail"><span class="detail-label">Date:</span><span class="detail-value">${d.reportDate || '-'}</span></div>
                     <div class="disease-detail"><span class="detail-label">Outcome:</span><span class="detail-value outcome-${(d.outcome || 'unknown').toLowerCase()}">${outcomeText}</span></div>
-                    ${displayNotifiable ? '<span class="notifiable-badge">⚡ Notifiable</span>' : ''}
+                    ${displayNotifiable ? '<span class="notifiable-badge"><i data-lucide="zap" class="icon icon-xs"></i> Notifiable</span>' : ''}
                 </div>
                 <div class="disease-card-footer">
                     <a href="${reportUrl}" class="view-details-link" target="_blank">View Full Report →</a>
@@ -495,7 +499,7 @@ function generateMergedInfoWindowContent(farm, diseaseInfo) {
 
     const locationHtml = `
         <div class="location-info">
-            ${diseaseInfo.districtDisplayName ? `<span>📍 ${escapeHtml(diseaseInfo.districtDisplayName)}</span>` : ''}
+            ${diseaseInfo.districtDisplayName ? `<span><i data-lucide="map-pin" class="icon icon-xs"></i> ${escapeHtml(diseaseInfo.districtDisplayName)}</span>` : ''}
             ${diseaseInfo.provinceDisplayName ? `<span>, ${escapeHtml(diseaseInfo.provinceDisplayName)}</span>` : ''}
         </div>
     `;

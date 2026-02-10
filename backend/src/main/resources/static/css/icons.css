@@ -1,0 +1,165 @@
+/**
+ * Lucide Icon Utility Classes
+ * Used with <i data-lucide="icon-name" class="icon icon-sm"></i>
+ */
+
+/* Base icon styles */
+.icon {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   vertical-align: middle;
+   flex-shrink: 0;
+   line-height: 1;
+}
+
+/* Icon sizes */
+.icon-xs {
+   width: 14px;
+   height: 14px;
+}
+
+.icon-sm {
+   width: 16px;
+   height: 16px;
+}
+
+.icon-md {
+   width: 20px;
+   height: 20px;
+}
+
+.icon-lg {
+   width: 24px;
+   height: 24px;
+}
+
+.icon-xl {
+   width: 32px;
+   height: 32px;
+}
+
+.icon-2xl {
+   width: 40px;
+   height: 40px;
+}
+
+.icon-3xl {
+   width: 48px;
+   height: 48px;
+}
+
+/* Icon color variants */
+.icon-primary {
+   color: var(--color-primary);
+}
+
+.icon-secondary {
+   color: var(--color-secondary);
+}
+
+.icon-success {
+   color: var(--color-success);
+}
+
+.icon-warning {
+   color: var(--color-warning);
+}
+
+.icon-danger {
+   color: var(--color-error);
+}
+
+.icon-info {
+   color: var(--color-info);
+}
+
+.icon-muted {
+   color: var(--color-text-muted);
+}
+
+.icon-white {
+   color: var(--color-white);
+}
+
+.icon-current {
+   color: currentColor;
+}
+
+/* Icon in button helper - ensures proper spacing */
+.btn .icon,
+button .icon {
+   margin-right: var(--space-2);
+}
+
+.btn .icon:last-child,
+button .icon:last-child {
+   margin-right: 0;
+   margin-left: var(--space-2);
+}
+
+.btn .icon:only-child,
+button .icon:only-child {
+   margin: 0;
+}
+
+/* Icon wrapper for circular icon backgrounds (KPIs, stats) */
+.icon-circle {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: var(--radius-full);
+   padding: var(--space-3);
+}
+
+.icon-circle-sm {
+   padding: var(--space-2);
+}
+
+.icon-circle-lg {
+   padding: var(--space-4);
+}
+
+.icon-circle-primary {
+   background: var(--color-primary-50);
+   color: var(--color-primary);
+}
+
+.icon-circle-secondary {
+   background: var(--color-secondary-50);
+   color: var(--color-secondary);
+}
+
+.icon-circle-success {
+   background: var(--color-success-light);
+   color: var(--color-success);
+}
+
+.icon-circle-warning {
+   background: var(--color-warning-light);
+   color: var(--color-warning);
+}
+
+.icon-circle-danger {
+   background: var(--color-error-light);
+   color: var(--color-error);
+}
+
+.icon-circle-info {
+   background: var(--color-info-light);
+   color: var(--color-info);
+}
+
+/* Spin animation for loading icons */
+.icon-spin {
+   animation: icon-spin 1s linear infinite;
+}
+
+@keyframes icon-spin {
+   from {
+      transform: rotate(0deg);
+   }
+   to {
+      transform: rotate(360deg);
+   }
+}

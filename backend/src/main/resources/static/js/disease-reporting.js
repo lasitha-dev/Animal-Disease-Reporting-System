@@ -168,6 +168,9 @@
         handleUrlParams();
         setupTabListeners();
         setupViewToggleListeners();
+
+        // Initialize Lucide icons for any static template icons
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function setupEventListeners() {
@@ -627,7 +630,7 @@
 
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
-                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+                : `<div class="report-card-placeholder"><i data-lucide="bug" class="icon icon-xl icon-muted"></i><span class="placeholder-text">No Image</span></div>`;
 
             card.innerHTML = `
                 <div class="report-card-header">
@@ -638,18 +641,20 @@
                 </div>
                 <div class="report-card-body">
                     <h4 class="report-card-title">${farmNameDisplay}</h4>
-                    <p class="report-card-disease-name">🦠 ${diseaseNameDisplay}</p>
+                    <p class="report-card-disease-name"><i data-lucide="bug" class="icon icon-xs"></i> ${diseaseNameDisplay}</p>
                     <p class="report-card-subtitle">${animalTypeDisplay} • ${farmLocationDisplay}</p>
-                    <span class="report-card-date">📅 ${date}</span>
-                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                    <span class="report-card-date"><i data-lucide="calendar" class="icon icon-xs"></i> ${date}</span>
+                    ${report.affectedCount ? `<span class="affected-count"><i data-lucide="paw-print" class="icon icon-xs"></i> ${report.affectedCount} affected</span>` : ''}
                 </div>
                 <div class="report-card-footer">
                     <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
-                        👁️ View Details
+                        <i data-lucide="eye" class="icon icon-xs"></i> View Details
                     </button>
-                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Notifiable</span>' : ''}
                 </div>
             `;
+
+            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [card] });
 
             card.querySelector('.view-btn').addEventListener('click', () => {
                 isViewingOtherReport = false;
@@ -686,24 +691,25 @@
                     <td>${animalTypeDisplay}</td>
                     <td>${date}</td>
                     <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Yes</span>' : 'No'}</td>
                     <td>${report.affectedCount || '-'}</td>
                     <td>
                         <div class="table-actions">
                             <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
-                                👁️ View
+                                <i data-lucide="eye" class="icon icon-xs"></i> View
                             </button>
                             <button class="btn btn-outline btn-sm edit-btn" data-id="${report.id}">
-                                ✏️ Edit
+                                <i data-lucide="pencil" class="icon icon-xs"></i> Edit
                             </button>
                             <button class="btn btn-danger-outline btn-sm delete-btn" data-id="${report.id}">
-                                🗑️
+                                <i data-lucide="trash-2" class="icon icon-xs"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [tbody] });
 
         // Add event listeners
         tbody.querySelectorAll('.view-btn').forEach(btn => {
@@ -759,7 +765,7 @@
 
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
-                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+                : `<div class="report-card-placeholder"><i data-lucide="bug" class="icon icon-xl icon-muted"></i><span class="placeholder-text">No Image</span></div>`;
 
             card.innerHTML = `
                 <div class="report-card-header">
@@ -770,21 +776,23 @@
                 </div>
                 <div class="report-card-body">
                     <h4 class="report-card-title">${farmNameDisplay}</h4>
-                    <p class="report-card-disease-name">🦠 ${diseaseNameDisplay}</p>
+                    <p class="report-card-disease-name"><i data-lucide="bug" class="icon icon-xs"></i> ${diseaseNameDisplay}</p>
                     <p class="report-card-subtitle">${animalTypeDisplay} • ${farmLocationDisplay}</p>
                     <div class="report-card-meta">
-                        <span class="meta-item">📅 ${date}</span>
-                        <span class="meta-item">👤 ${vetNameDisplay}</span>
+                        <span class="meta-item"><i data-lucide="calendar" class="icon icon-xs"></i> ${date}</span>
+                        <span class="meta-item"><i data-lucide="user" class="icon icon-xs"></i> ${vetNameDisplay}</span>
                     </div>
-                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                    ${report.affectedCount ? `<span class="affected-count"><i data-lucide="paw-print" class="icon icon-xs"></i> ${report.affectedCount} affected</span>` : ''}
                 </div>
                 <div class="report-card-footer">
                     <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
-                        👁️ View Details
+                        <i data-lucide="eye" class="icon icon-xs"></i> View Details
                     </button>
-                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Notifiable</span>' : ''}
                 </div>
             `;
+
+            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [card] });
 
             card.querySelector('.view-btn').addEventListener('click', () => {
                 isViewingOtherReport = true;
@@ -822,24 +830,25 @@
                     <td>${animalTypeDisplay}</td>
                     <td>${date}</td>
                     <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                    <td>${effectiveNotifiable ? '<span class="notifiable-badge-small"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Yes</span>' : 'No'}</td>
                     <td>${report.affectedCount || '-'}</td>
                     <td>
                         <div class="table-vet-name">
-                            <span>🩺</span>
+                            <i data-lucide="stethoscope" class="icon icon-xs"></i>
                             <span>${vetNameDisplay}</span>
                         </div>
                     </td>
                     <td>
                         <div class="table-actions">
                             <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
-                                👁️ View
+                                <i data-lucide="eye" class="icon icon-xs"></i> View
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
         }).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [tbody] });
 
         // Add event listeners
         tbody.querySelectorAll('.view-btn').forEach(btn => {
@@ -953,7 +962,7 @@
 
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
-                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+                : `<div class="report-card-placeholder"><i data-lucide="bug" class="icon icon-xl icon-muted"></i><span class="placeholder-text">No Image</span></div>`;
 
             card.innerHTML = `
                 <div class="report-card-header">
@@ -964,21 +973,23 @@
                 </div>
                 <div class="report-card-body">
                     <h4 class="report-card-title">${escapeHtml(report.farmName) || 'Unknown Farm'}</h4>
-                    <p class="report-card-disease-name">🦠 ${escapeHtml(effectiveDiseaseName)}</p>
+                    <p class="report-card-disease-name"><i data-lucide="bug" class="icon icon-xs"></i> ${escapeHtml(effectiveDiseaseName)}</p>
                     <p class="report-card-subtitle">${escapeHtml(report.animalTypeName)} • ${escapeHtml(farmLocation)}</p>
                     <div class="report-card-meta">
-                        <span class="meta-item">📅 ${date}</span>
-                        <span class="meta-item">👤 ${escapeHtml(report.reportedByUsername)}</span>
+                        <span class="meta-item"><i data-lucide="calendar" class="icon icon-xs"></i> ${date}</span>
+                        <span class="meta-item"><i data-lucide="user" class="icon icon-xs"></i> ${escapeHtml(report.reportedByUsername)}</span>
                     </div>
-                    ${report.affectedCount ? `<span class="affected-count">🐄 ${report.affectedCount} affected</span>` : ''}
+                    ${report.affectedCount ? `<span class="affected-count"><i data-lucide="paw-print" class="icon icon-xs"></i> ${report.affectedCount} affected</span>` : ''}
                 </div>
                 <div class="report-card-footer">
                     <button class="btn btn-outline btn-sm view-btn" data-report-id="${report.id}">
-                        👁️ View Details
+                        <i data-lucide="eye" class="icon icon-xs"></i> View Details
                     </button>
-                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                    ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Notifiable</span>' : ''}
                 </div>
             `;
+
+            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [card] });
 
             // Add click listener for view (no edit/delete for other vets' reports)
             card.querySelector('.view-btn').addEventListener('click', () => {
@@ -1031,18 +1042,18 @@
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
                 <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Yes</span>' : 'No'}</td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>
                     <div class="table-vet-name">
-                        <span>🩺</span>
+                        <i data-lucide="stethoscope" class="icon icon-xs"></i>
                         <span>${escapeHtml(report.reportedByUsername || 'Unknown')}</span>
                     </div>
                 </td>
                 <td>
                     <div class="table-actions">
                         <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
-                            👁️ View
+                            <i data-lucide="eye" class="icon icon-xs"></i> View
                         </button>
                     </div>
                 </td>
@@ -1196,7 +1207,8 @@
             isDiseaseInfoEditMode = false;
             if (elements.diseaseInfoDisplay) elements.diseaseInfoDisplay.style.display = 'block';
             if (elements.diseaseInfoEdit) elements.diseaseInfoEdit.style.display = 'none';
-            if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+            if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.innerHTML = '<i data-lucide="pencil" class="icon icon-xs"></i> Edit Info';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         // Handle existing image
@@ -1241,7 +1253,8 @@
             updateDiseaseInfoDisplay();
             elements.diseaseInfoDisplay.style.display = 'block';
             elements.diseaseInfoEdit.style.display = 'none';
-            elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+            elements.editDiseaseInfoLabel.innerHTML = '<i data-lucide="pencil" class="icon icon-xs"></i> Edit Info';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
 
@@ -1290,7 +1303,7 @@
         }
 
         if (elements.displayNotifiable) {
-            elements.displayNotifiable.textContent = effectiveNotifiable ? 'Yes ⚠️' : 'No';
+            elements.displayNotifiable.textContent = effectiveNotifiable ? 'Yes' : 'No';
             // Add visual indicator if overridden
             if (overrideNotifiable !== '' && (overrideNotifiable === 'true') !== currentDiseaseData.isNotifiable) {
                 elements.displayNotifiable.classList.add('overridden');
@@ -1314,7 +1327,10 @@
         isDiseaseInfoEditMode = false;
         if (elements.diseaseInfoDisplay) elements.diseaseInfoDisplay.style.display = 'block';
         if (elements.diseaseInfoEdit) elements.diseaseInfoEdit.style.display = 'none';
-        if (elements.editDiseaseInfoLabel) elements.editDiseaseInfoLabel.textContent = '✏️ Edit Info';
+        if (elements.editDiseaseInfoLabel) {
+            elements.editDiseaseInfoLabel.innerHTML = '<i data-lucide="pencil" class="icon icon-xs"></i> Edit Info';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
         if (elements.editDiseaseName) elements.editDiseaseName.value = '';
         if (elements.editSeverity) elements.editSeverity.value = '';
         if (elements.editNotifiable) elements.editNotifiable.value = '';
@@ -1473,7 +1489,7 @@
         const effectiveNotifiable = report.effectiveNotifiable !== null && report.effectiveNotifiable !== undefined
             ? report.effectiveNotifiable
             : report.isNotifiable;
-        document.getElementById('view-notifiable').textContent = effectiveNotifiable ? 'Yes ⚠️' : 'No';
+        document.getElementById('view-notifiable').textContent = effectiveNotifiable ? 'Yes' : 'No';
 
         // Report Details
         document.getElementById('view-reportDate').textContent = report.reportDate
@@ -1942,7 +1958,7 @@
         elements.displaySeverity.textContent = disease.severity || '-';
         elements.displaySeverity.className = 'info-value severity-badge ' + severity;
 
-        elements.displayNotifiable.textContent = disease.isNotifiable ? 'Yes ⚠️' : 'No';
+        elements.displayNotifiable.textContent = disease.isNotifiable ? 'Yes' : 'No';
         elements.displayDescription.textContent = disease.description || 'No description available';
 
         // Auto-fill symptoms and treatment from disease defaults (only for new reports)
@@ -2539,7 +2555,7 @@
             // Image HTML - show actual image or placeholder
             const imageHtml = report.imageUrl
                 ? `<img src="${report.imageUrl}" alt="Disease Photo" class="report-card-image">`
-                : `<div class="report-card-placeholder"><span>🦠</span><span class="placeholder-text">No Image</span></div>`;
+                : `<div class="report-card-placeholder"><i data-lucide="bug" class="icon icon-xl icon-muted"></i><span class="placeholder-text">No Image</span></div>`;
 
             card.innerHTML = `
                 <div class="report-card-media">
@@ -2550,29 +2566,31 @@
                         <h4 class="report-card-title">${escapeHtml(report.farmName) || 'Unknown Farm'}</h4>
                         <span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span>
                     </div>
-                    <p class="report-card-disease-name">🦠 ${escapeHtml(effectiveDiseaseName) || 'Unknown Disease'}</p>
+                    <p class="report-card-disease-name"><i data-lucide="bug" class="icon icon-xs"></i> ${escapeHtml(effectiveDiseaseName) || 'Unknown Disease'}</p>
                     <div class="report-card-meta">
                         <div class="report-card-info">
-                            <span class="info-icon">📍</span>
+                            <i data-lucide="map-pin" class="icon icon-xs info-icon"></i>
                             <span>${farmLocation}</span>
                         </div>
                         <div class="report-card-info">
-                            <span class="info-icon">🐄</span>
+                            <i data-lucide="paw-print" class="icon icon-xs info-icon"></i>
                             <span>${report.animalTypeName || '-'}</span>
                         </div>
                         <div class="report-card-info">
-                            <span class="info-icon">📅</span>
+                            <i data-lucide="calendar" class="icon icon-xs info-icon"></i>
                             <span>${date}</span>
                         </div>
                     </div>
                     <div class="report-card-footer">
                         <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
-                            👁️ View Details
+                            <i data-lucide="eye" class="icon icon-xs"></i> View Details
                         </button>
-                        ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner">⚠️ Notifiable</span>' : ''}
+                        ${effectiveNotifiable ? '<span class="notifiable-badge notifiable-corner"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Notifiable</span>' : ''}
                     </div>
                 </div>
             `;
+
+            if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [card] });
 
             // Add click event for view button
             const viewBtn = card.querySelector('.view-btn');
@@ -2620,12 +2638,12 @@
                 <td>${escapeHtml(report.animalTypeName || '-')}</td>
                 <td>${date}</td>
                 <td><span class="severity-badge ${severityClass}">${effectiveSeverity || '-'}</span></td>
-                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small">⚠️ Yes</span>' : 'No'}</td>
+                <td>${effectiveNotifiable ? '<span class="notifiable-badge-small"><i data-lucide="alert-triangle" class="icon icon-xs"></i> Yes</span>' : 'No'}</td>
                 <td>${report.affectedCount || '-'}</td>
                 <td>
                     <div class="table-actions">
                         <button class="btn btn-outline btn-sm view-btn" data-id="${report.id}">
-                            👁️ View
+                            <i data-lucide="eye" class="icon icon-xs"></i> View
                         </button>
                     </div>
                 </td>

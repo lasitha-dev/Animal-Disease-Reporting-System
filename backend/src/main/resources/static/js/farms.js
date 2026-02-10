@@ -341,6 +341,9 @@
         // Render table view
         farmsTableBody.innerHTML = filteredFarms.map(farm => createFarmTableRow(farm, searchQuery)).join('');
 
+        // Initialize Lucide icons in dynamically rendered content
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
         // Apply current view mode
         updateViewDisplay();
 
@@ -371,6 +374,9 @@
 
         // Render table view
         otherFarmsTableBody.innerHTML = filteredOtherFarms.map(farm => createOtherFarmTableRow(farm, searchQuery)).join('');
+
+        // Initialize Lucide icons in dynamically rendered content
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 
         // Apply current view mode
         updateViewDisplay();
@@ -467,6 +473,9 @@
         // Render table view
         farmsTableBody.innerHTML = farms.map(farm => createFarmTableRow(farm)).join('');
 
+        // Initialize Lucide icons in dynamically rendered content
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
         // Apply current view mode
         updateViewDisplay();
 
@@ -525,6 +534,9 @@
         // Render table view
         otherFarmsTableBody.innerHTML = otherFarms.map(farm => createOtherFarmTableRow(farm)).join('');
 
+        // Initialize Lucide icons in dynamically rendered content
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
         // Apply current view mode
         updateViewDisplay();
     }
@@ -550,17 +562,17 @@
                 <div class="farm-card-info">
                     ${farm.ownerName ? `
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">👤</span>
+                        <span class="farm-card-info-icon"><i data-lucide="user" class="icon icon-sm"></i></span>
                         <span>${ownerName}</span>
                     </div>
                     ` : ''}
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">📍</span>
+                        <span class="farm-card-info-icon"><i data-lucide="map-pin" class="icon icon-sm"></i></span>
                         <span>${district}, ${province}</span>
                     </div>
                     ${farm.ownerContact ? `
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">📞</span>
+                        <span class="farm-card-info-icon"><i data-lucide="phone" class="icon icon-sm"></i></span>
                         <span>${contact}</span>
                     </div>
                     ` : ''}
@@ -576,7 +588,7 @@
                     </div>
                 </div>
                 <div class="farm-card-registered-by">
-                    <span class="vet-icon">🩺</span>
+                    <span class="vet-icon"><i data-lucide="stethoscope" class="icon icon-sm"></i></span>
                     <span>Registered by:</span>
                     <span class="vet-name">${vetName}</span>
                 </div>
@@ -606,10 +618,10 @@
                 <td>
                     <div class="table-actions">
                         <button type="button" class="btn btn-sm btn-outline farm-edit-btn" data-farm-id="${farm.id}">
-                            ✏️ Edit
+                            <i data-lucide="pencil" class="icon icon-xs"></i> Edit
                         </button>
                         <button type="button" class="btn btn-sm btn-danger-outline farm-delete-btn" data-farm-id="${farm.id}">
-                            🗑️ Delete
+                            <i data-lucide="trash-2" class="icon icon-xs"></i> Delete
                         </button>
                     </div>
                 </td>
@@ -639,7 +651,7 @@
                 <td class="table-stat">${farm.animalTags?.length || 0}</td>
                 <td>
                     <div class="table-vet-name">
-                        <span class="vet-icon">🩺</span>
+                        <span class="vet-icon"><i data-lucide="stethoscope" class="icon icon-sm"></i></span>
                         <span>${escapeHtml(farm.createdByUsername || 'Unknown')}</span>
                     </div>
                 </td>
@@ -825,17 +837,17 @@
                 <div class="farm-card-info">
                     ${farm.ownerName ? `
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">👤</span>
+                        <span class="farm-card-info-icon"><i data-lucide="user" class="icon icon-sm"></i></span>
                         <span>${ownerName}</span>
                     </div>
                     ` : ''}
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">📍</span>
+                        <span class="farm-card-info-icon"><i data-lucide="map-pin" class="icon icon-sm"></i></span>
                         <span>${district}, ${province}</span>
                     </div>
                     ${farm.ownerContact ? `
                     <div class="farm-card-info-row">
-                        <span class="farm-card-info-icon">📞</span>
+                        <span class="farm-card-info-icon"><i data-lucide="phone" class="icon icon-sm"></i></span>
                         <span>${contact}</span>
                     </div>
                     ` : ''}
@@ -852,10 +864,10 @@
                 </div>
                 <div class="farm-card-actions">
                     <button type="button" class="btn btn-sm btn-outline farm-edit-btn" data-farm-id="${farm.id}">
-                        ✏️ Edit
+                        <i data-lucide="pencil" class="icon icon-xs"></i> Edit
                     </button>
                     <button type="button" class="btn btn-sm btn-danger-outline farm-delete-btn" data-farm-id="${farm.id}">
-                        🗑️ Delete
+                        <i data-lucide="trash-2" class="icon icon-xs"></i> Delete
                     </button>
                 </div>
             </div>
@@ -1100,9 +1112,9 @@
             const tagElement = document.createElement('span');
             tagElement.className = 'animal-tag';
             tagElement.innerHTML = `
-                🐮 ${tag.animalTypeName}
+                <i data-lucide="paw-print" class="icon icon-xs"></i> ${tag.animalTypeName}
                 <span class="tag-count">${tag.count}</span>
-                <button type="button" class="tag-remove" data-index="${index}">✕</button>
+                <button type="button" class="tag-remove" data-index="${index}">&times;</button>
             `;
             selectedTagsContainer.appendChild(tagElement);
         });
@@ -1110,6 +1122,9 @@
         selectedTagsContainer.querySelectorAll('.tag-remove').forEach(btn => {
             btn.addEventListener('click', handleRemoveTag);
         });
+
+        // Initialize Lucide icons in dynamically rendered tags
+        if (typeof lucide !== 'undefined') { lucide.createIcons(); }
     }
 
     function handleRemoveTag(e) {
@@ -1522,9 +1537,10 @@
     function updateCoordinateDisplay(lat, lng) {
         if (coordinatesDisplay) {
             coordinatesDisplay.innerHTML = `
-                <span class="coord-icon">📍</span>
+                <span class="coord-icon"><i data-lucide="map-pin" class="icon icon-sm"></i></span>
                 <span>Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</span>
             `;
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             coordinatesDisplay.classList.add('has-location');
         }
     }

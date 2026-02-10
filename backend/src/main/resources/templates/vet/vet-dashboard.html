@@ -13,19 +13,11 @@
         <!-- Quick Action Bar -->
         <div class="quick-action-bar">
             <a th:href="@{/vet/disease-reporting}" class="quick-action-btn quick-action-btn--alert">
-                <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path
-                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
+                <i data-lucide="alert-triangle" class="icon icon-md quick-action-icon"></i>
                 <span>Report Case</span>
             </a>
             <a th:href="@{/vet/farms}" class="quick-action-btn quick-action-btn--primary">
-                <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
+                <i data-lucide="home" class="icon icon-md quick-action-icon"></i>
                 <span>Register Farm</span>
             </a>
         </div>
@@ -36,11 +28,7 @@
                 <div class="kpi-card-header">
                     <span class="kpi-card-label">Active Outbreaks</span>
                     <div class="kpi-card-icon kpi-card-icon--danger">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
+                        <i data-lucide="alert-circle" class="icon icon-lg"></i>
                     </div>
                 </div>
                 <div class="kpi-card-value" id="kpi-outbreaks">0</div>
@@ -53,12 +41,7 @@
                 <div class="kpi-card-header">
                     <span class="kpi-card-label">High-Risk Farms</span>
                     <div class="kpi-card-icon kpi-card-icon--warning">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path
-                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                            <line x1="12" y1="9" x2="12" y2="13" />
-                            <line x1="12" y1="17" x2="12.01" y2="17" />
-                        </svg>
+                        <i data-lucide="triangle-alert" class="icon icon-lg"></i>
                     </div>
                 </div>
                 <div class="kpi-card-value" id="kpi-high-risk">0</div>
@@ -71,10 +54,7 @@
                 <div class="kpi-card-header">
                     <span class="kpi-card-label">Monthly Coverage</span>
                     <div class="kpi-card-icon kpi-card-icon--success">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
+                        <i data-lucide="check-circle" class="icon icon-lg"></i>
                     </div>
                 </div>
                 <div class="kpi-card-value" id="kpi-coverage">0%</div>
@@ -87,10 +67,7 @@
                 <div class="kpi-card-header">
                     <span class="kpi-card-label">Pending Follow-ups</span>
                     <div class="kpi-card-icon kpi-card-icon--info">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                        </svg>
+                        <i data-lucide="clock" class="icon icon-lg"></i>
                     </div>
                 </div>
                 <div class="kpi-card-value" id="kpi-followups">0</div>

@@ -273,9 +273,9 @@
             const tagElement = document.createElement('span');
             tagElement.className = 'animal-tag';
             tagElement.innerHTML = `
-                🐮 ${tag.animalTypeName}
+                <i data-lucide="paw-print" class="icon icon-xs"></i> ${tag.animalTypeName}
                 <span class="tag-count">${tag.count}</span>
-                <button type="button" class="tag-remove" data-index="${index}" aria-label="Remove">✕</button>
+                <button type="button" class="tag-remove" data-index="${index}" aria-label="Remove">&times;</button>
             `;
             selectedTagsContainer.appendChild(tagElement);
         });

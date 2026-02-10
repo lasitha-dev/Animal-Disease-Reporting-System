@@ -160,7 +160,7 @@ function renderFarmTypesCards(farmTypes) {
     if (!farmTypes || farmTypes.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
-                <div class="config-empty-state-icon">🏡</div>
+                <div class="config-empty-state-icon"><i data-lucide="warehouse" class="icon icon-2xl icon-muted"></i></div>
                 <p>No farm types found. Add one to get started!</p>
             </div>
         `;
@@ -169,14 +169,14 @@ function renderFarmTypesCards(farmTypes) {
 
     container.innerHTML = farmTypes.map(ft => `
         <div class="config-item-card" onclick="editFarmType('${ft.id}')" data-id="${ft.id}">
-            <div class="config-item-icon">🏡</div>
+            <div class="config-item-icon"><i data-lucide="warehouse" class="icon icon-md"></i></div>
             <div class="config-item-content">
                 <div class="config-item-name">${escapeHtml(ft.typeName)}</div>
                 <div class="config-item-description">${escapeHtml(ft.description || 'No description')}</div>
             </div>
             <div class="config-item-actions" onclick="event.stopPropagation()">
-                <button class="config-action-btn" onclick="editFarmType('${ft.id}')" title="Edit">✏️</button>
-                <button class="config-action-btn delete" onclick="deleteFarmType('${ft.id}')" title="Delete">🗑️</button>
+                <button class="config-action-btn" onclick="editFarmType('${ft.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                <button class="config-action-btn delete" onclick="deleteFarmType('${ft.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
             </div>
         </div>
     `).join('');
@@ -333,7 +333,7 @@ function renderAnimalTypesCards(animalTypes) {
     if (!animalTypes || animalTypes.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
-                <div class="config-empty-state-icon">🐾</div>
+                <div class="config-empty-state-icon"><i data-lucide="paw-print" class="icon icon-2xl icon-muted"></i></div>
                 <p>No animal types found. Add one to get started!</p>
             </div>
         `;
@@ -342,14 +342,14 @@ function renderAnimalTypesCards(animalTypes) {
 
     container.innerHTML = animalTypes.map(at => `
         <div class="config-item-card" onclick="editAnimalType('${at.id}')" data-id="${at.id}">
-            <div class="config-item-icon">🐾</div>
+            <div class="config-item-icon"><i data-lucide="paw-print" class="icon icon-md"></i></div>
             <div class="config-item-content">
                 <div class="config-item-name">${escapeHtml(at.typeName)}</div>
                 <div class="config-item-description">${escapeHtml(at.description || 'No description')}</div>
             </div>
             <div class="config-item-actions" onclick="event.stopPropagation()">
-                <button class="config-action-btn" onclick="editAnimalType('${at.id}')" title="Edit">✏️</button>
-                <button class="config-action-btn delete" onclick="deleteAnimalType('${at.id}')" title="Delete">🗑️</button>
+                <button class="config-action-btn" onclick="editAnimalType('${at.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                <button class="config-action-btn delete" onclick="deleteAnimalType('${at.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
             </div>
         </div>
     `).join('');
@@ -528,7 +528,7 @@ function renderDiseasesCards(diseases) {
     if (!diseases || diseases.length === 0) {
         container.innerHTML = `
             <div class="config-empty-state">
-                <div class="config-empty-state-icon">🦠</div>
+                <div class="config-empty-state-icon"><i data-lucide="bug" class="icon icon-2xl icon-muted"></i></div>
                 <p>No diseases found. Add one to get started!</p>
             </div>
         `;
@@ -546,14 +546,14 @@ function renderDiseasesCards(diseases) {
         
         return `
             <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
-                <div class="config-item-icon">🦠</div>
+                <div class="config-item-icon"><i data-lucide="bug" class="icon icon-md"></i></div>
                 <div class="config-item-content">
                     <div class="config-item-name">${escapeHtml(d.diseaseName)}</div>
                     <div class="config-item-description">${escapeHtml(animalTypesDisplay)} • ${d.severity}</div>
                 </div>
                 <div class="config-item-actions" onclick="event.stopPropagation()">
-                    <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
-                    <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
+                    <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                    <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
                 </div>
             </div>
         `;

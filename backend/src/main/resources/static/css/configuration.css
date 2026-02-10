@@ -1090,3 +1090,513 @@ select.form-control option {
     font-size: var(--font-size-sm);
 }
 
+/* ==========================================================================
+   Configuration Page — Clinical-Modern Overrides
+   ========================================================================== */
+
+/* Page Header */
+.config-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.config-header h2 {
+    font-size: var(--font-size-xl, 1.25rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.config-header p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm, 0.875rem);
+}
+
+/* Tabs — underline indicator */
+.config-tabs {
+    display: flex;
+    gap: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+}
+
+.config-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md) 0;
+    background: none;
+    border: none;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+    min-height: var(--touch-target-min, 48px);
+}
+
+.config-tab:hover {
+    color: var(--color-primary);
+}
+
+.config-tab.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.config-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 1px 1px 0 0;
+}
+
+/* Section Header */
+.config-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.config-section-title {
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.add-new-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: var(--touch-target-min, 48px);
+}
+
+.add-new-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-lighter, #e0e7ff);
+}
+
+/* Item Cards Grid */
+.config-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.config-item-card {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.config-item-card:hover {
+    border-color: var(--color-primary-light, #818cf8);
+    box-shadow: var(--shadow-md);
+}
+
+.config-item-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary-lighter, #e0e7ff);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-primary);
+}
+
+.config-item-content {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.config-item-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-item-description {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+.config-item-card:hover .config-item-actions {
+    opacity: 1;
+}
+
+.config-action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+}
+
+.config-action-btn:hover {
+    background: var(--color-bg-secondary);
+}
+
+.config-action-btn.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Empty State */
+.config-empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl, 3rem);
+    color: var(--color-text-secondary);
+}
+
+.config-empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+/* Loading State */
+.config-loading {
+    text-align: center;
+    padding: var(--spacing-2xl, 3rem);
+    color: var(--color-text-secondary);
+}
+
+/* Tab Content */
+.config-tab-content {
+    display: none;
+}
+
+.config-tab-content.active {
+    display: block;
+}
+
+/* Disease Modal — wider */
+.disease-modal-wide {
+    max-width: 560px;
+}
+
+/* Form Row Grid */
+.form-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.form-group-flex-end {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* Delete Modal — compact */
+.delete-modal-compact {
+    max-width: 450px;
+}
+
+/* Delete Disease List */
+.delete-disease-list {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    border-radius: var(--border-radius-md);
+}
+
+.disease-list-title {
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-sm, 0.875rem);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.disease-names-list {
+    list-style: disc;
+    margin: 0 0 var(--spacing-sm) var(--spacing-lg);
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.disease-names-list li {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary);
+    padding: 2px 0;
+}
+
+.disease-list-note {
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin: 0;
+}
+
+/* Dropdown Arrow */
+.dropdown-arrow .icon {
+    transition: transform 0.2s ease;
+}
+
+.checkbox-dropdown.open .dropdown-arrow .icon {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Configuration Page — Responsive Overrides
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .config-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 768px) {
+    .config-header {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .config-header h2 {
+        font-size: var(--font-size-lg, 1.125rem);
+        text-align: center;
+        justify-content: center;
+    }
+
+    .config-header p {
+        text-align: center;
+    }
+
+    .config-tabs {
+        gap: 0;
+        overflow-x: auto;
+        padding-bottom: 0;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .config-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .config-tab {
+        white-space: nowrap;
+        flex: 1 0 auto;
+        min-width: 100px;
+        padding: var(--spacing-md) var(--spacing-sm);
+        font-size: var(--font-size-xs, 0.75rem);
+        text-align: center;
+        justify-content: center;
+    }
+
+    .config-cards-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .config-item-card {
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+
+    .config-item-actions {
+        opacity: 1;
+    }
+
+    .config-section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+
+    .config-section-title {
+        text-align: center;
+        font-size: var(--font-size-base, 1rem);
+    }
+
+    .add-new-btn {
+        justify-content: center;
+    }
+
+    .config-item-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .config-item-name {
+        font-size: var(--font-size-sm, 0.875rem);
+    }
+
+    .config-item-description {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-action-btn {
+        background: var(--color-bg-secondary);
+    }
+
+    .config-action-btn.delete {
+        background: #fee2e2;
+    }
+
+    .form-row-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .delete-disease-list {
+        padding: var(--spacing-sm);
+    }
+
+    .disease-list-title {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .disease-names-list {
+        max-height: 120px;
+        margin-left: var(--spacing-md);
+    }
+
+    .disease-names-list li {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .disease-list-note {
+        font-size: 0.625rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-header h2 {
+        font-size: var(--font-size-base, 1rem);
+    }
+
+    .config-header p {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-tab {
+        min-width: 80px;
+        padding: var(--spacing-sm);
+        font-size: 0.625rem;
+    }
+
+    .config-section-title {
+        font-size: var(--font-size-sm, 0.875rem);
+    }
+
+    .config-item-card {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .config-item-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .config-item-name {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-item-description {
+        font-size: 0.625rem;
+    }
+
+    .config-action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .add-new-btn {
+        font-size: var(--font-size-xs, 0.75rem);
+        padding: var(--spacing-sm);
+    }
+
+    .config-empty-state {
+        padding: var(--spacing-lg);
+    }
+
+    .config-empty-state-icon {
+        font-size: 2rem;
+    }
+
+    .delete-disease-list {
+        padding: var(--spacing-xs);
+    }
+
+    .disease-names-list {
+        max-height: 100px;
+    }
+}
+
+@media (max-width: 360px) {
+    .config-item-card {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .config-item-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .config-action-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .config-item-name {
+        font-size: 0.625rem;
+    }
+
+    .config-item-description {
+        font-size: 0.5625rem;
+    }
+}
