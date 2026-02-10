@@ -96,6 +96,184 @@
     margin-left: auto;
 }
 
+.filter-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: 2px;
+}
+
+/* ========================================
+   Checkbox Dropdown (Disease Filter)
+   ======================================== */
+.checkbox-dropdown {
+    position: relative;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+}
+
+.checkbox-dropdown .dropdown-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md, 6px);
+    background: var(--color-bg-secondary, #f9fafb);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.checkbox-dropdown .dropdown-toggle:hover {
+    border-color: var(--color-primary);
+}
+
+.checkbox-dropdown .dropdown-toggle:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.checkbox-dropdown .dropdown-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.checkbox-dropdown .dropdown-text.has-selection {
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+.checkbox-dropdown .dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: var(--spacing-sm);
+    transition: transform 0.2s ease;
+}
+
+.checkbox-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.checkbox-dropdown .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--color-bg-primary, #fff);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md, 6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    display: none;
+    max-height: 300px;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.checkbox-dropdown.open .dropdown-menu {
+    display: flex;
+}
+
+.checkbox-dropdown .dropdown-search {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checkbox-dropdown .dropdown-search input {
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm, 4px);
+    font-size: 0.85rem;
+    background: var(--color-bg-secondary, #f9fafb);
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-search input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.checkbox-dropdown .dropdown-options {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 200px;
+    padding: var(--spacing-xs) 0;
+}
+
+.checkbox-dropdown .dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.checkbox-dropdown .dropdown-option:hover {
+    background: var(--color-bg-tertiary, #f3f4f6);
+}
+
+.checkbox-dropdown .dropdown-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+.checkbox-dropdown .dropdown-option label {
+    flex: 1;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-option.hidden {
+    display: none;
+}
+
+.checkbox-dropdown .dropdown-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary, #f9fafb);
+}
+
+.checkbox-dropdown .dropdown-action-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: var(--border-radius-sm, 4px);
+}
+
+.checkbox-dropdown .dropdown-action-btn:hover {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.checkbox-dropdown .dropdown-no-results {
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
 /* ========================================
    Farm Cards Grid
    ======================================== */
@@ -248,6 +426,17 @@
 
     .filter-group {
         max-width: none;
+    }
+
+    .checkbox-dropdown {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .checkbox-dropdown .dropdown-toggle {
+        width: 100%;
+        min-height: 40px;
     }
 
     .filters-bar .search-bar-container {

@@ -28,6 +28,7 @@
     let searchQuery = ''; // Current search query
     let provinceFilter = ''; // Current province filter
     let districtFilter = ''; // Current district filter
+    let selectedDiseases = new Set(); // Selected disease names for filtering
     let filteredFarms = []; // Filtered farms based on search and location
     let filteredOtherFarms = []; // Filtered other vets' farms
     let allReports = []; // All my reports
@@ -147,7 +148,16 @@
 
         // Province/District Filter elements
         provinceFilterSelect: document.getElementById('provinceFilter'),
-        districtFilterSelect: document.getElementById('districtFilter')
+        districtFilterSelect: document.getElementById('districtFilter'),
+
+        // Disease Filter elements (multi-select checkbox dropdown)
+        diseaseFilterDropdown: document.getElementById('diseaseFilterDropdown'),
+        diseaseFilterToggle: document.getElementById('diseaseFilterToggle'),
+        diseaseFilterMenu: document.getElementById('diseaseFilterMenu'),
+        diseaseFilterSearch: document.getElementById('diseaseFilterSearch'),
+        diseaseFilterOptions: document.getElementById('diseaseFilterOptions'),
+        selectAllPageDiseases: document.getElementById('selectAllPageDiseases'),
+        clearAllPageDiseases: document.getElementById('clearAllPageDiseases')
     };
 
     // CSRF Token
@@ -194,6 +204,9 @@
         // Main page province/district filters
         elements.provinceFilterSelect?.addEventListener('change', handlePageProvinceChange);
         elements.districtFilterSelect?.addEventListener('change', handlePageDistrictChange);
+
+        // Disease filter dropdown events
+        setupDiseaseFilterListeners();
 
         // Modal cascading dropdowns - Location filters
         elements.filterProvinceSelect?.addEventListener('change', onProvinceFilterChange);
@@ -2203,6 +2216,9 @@
             farmsWithReports = groupReportsByFarm(reports);
             filteredFarms = [...farmsWithReports];
 
+            // Populate the disease filter dropdown
+            populatePageDiseaseFilter();
+
             if (farmsWithReports.length === 0) {
                 showEmptyState();
             } else {
@@ -2229,6 +2245,9 @@
             filteredOtherFarms = [...otherFarmsWithReports];
 
             otherReportsLoaded = true;
+
+            // Re-populate disease filter to include diseases from other reports
+            populatePageDiseaseFilter();
 
             if (otherFarmsWithReports.length === 0) {
                 showOtherEmptyState();
@@ -2280,6 +2299,159 @@
         return Array.from(farmMap.values()).sort((a, b) =>
             (b.latestReportDate || 0) - (a.latestReportDate || 0)
         );
+    }
+
+    // ========================================
+    // Disease Filter (checkbox dropdown) Functions
+    // ========================================
+
+    function setupDiseaseFilterListeners() {
+        // Toggle dropdown open/close
+        elements.diseaseFilterToggle?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = elements.diseaseFilterDropdown;
+            if (!dropdown) return;
+            dropdown.classList.toggle('open');
+            // Focus search input when opening
+            if (dropdown.classList.contains('open') && elements.diseaseFilterSearch) {
+                setTimeout(() => elements.diseaseFilterSearch.focus(), 50);
+            }
+        });
+
+        // Search within disease options
+        elements.diseaseFilterSearch?.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = elements.diseaseFilterOptions?.querySelectorAll('.dropdown-option');
+            let hasVisible = false;
+            options?.forEach(option => {
+                const label = option.querySelector('label');
+                const text = label?.textContent?.toLowerCase() || '';
+                if (text.includes(searchTerm)) {
+                    option.classList.remove('hidden');
+                    hasVisible = true;
+                } else {
+                    option.classList.add('hidden');
+                }
+            });
+
+            // Show/hide no results message
+            let noResults = elements.diseaseFilterOptions?.querySelector('.dropdown-no-results');
+            if (!hasVisible) {
+                if (!noResults) {
+                    noResults = document.createElement('div');
+                    noResults.className = 'dropdown-no-results';
+                    noResults.textContent = 'No diseases found';
+                    elements.diseaseFilterOptions?.appendChild(noResults);
+                }
+                noResults.style.display = 'block';
+            } else if (noResults) {
+                noResults.style.display = 'none';
+            }
+        });
+
+        // Select All
+        elements.selectAllPageDiseases?.addEventListener('click', () => {
+            const checkboxes = elements.diseaseFilterOptions?.querySelectorAll('input[type="checkbox"]');
+            checkboxes?.forEach(cb => {
+                cb.checked = true;
+                selectedDiseases.add(cb.value);
+            });
+            updateDiseaseFilterToggleText();
+            applyFarmFilters();
+        });
+
+        // Clear All
+        elements.clearAllPageDiseases?.addEventListener('click', () => {
+            const checkboxes = elements.diseaseFilterOptions?.querySelectorAll('input[type="checkbox"]');
+            checkboxes?.forEach(cb => {
+                cb.checked = false;
+            });
+            selectedDiseases.clear();
+            updateDiseaseFilterToggleText();
+            applyFarmFilters();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const dropdown = elements.diseaseFilterDropdown;
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+    }
+
+    function populatePageDiseaseFilter() {
+        const optionsContainer = elements.diseaseFilterOptions;
+        if (!optionsContainer) return;
+
+        // Collect unique disease names from all reports
+        const diseaseNames = new Set();
+        [...allReports, ...allOtherReports].forEach(report => {
+            const name = report.effectiveDiseaseName || report.diseaseName;
+            if (name) diseaseNames.add(name);
+        });
+
+        // Sort alphabetically
+        const sorted = Array.from(diseaseNames).sort((a, b) => a.localeCompare(b));
+
+        // Clear existing options (except no-results)
+        optionsContainer.innerHTML = '';
+
+        if (sorted.length === 0) {
+            optionsContainer.innerHTML = '<div class="dropdown-no-results">No diseases available</div>';
+            return;
+        }
+
+        // Create checkbox options
+        sorted.forEach(name => {
+            const option = document.createElement('div');
+            option.className = 'dropdown-option';
+
+            const id = 'disease-filter-' + name.replace(/\s+/g, '-').toLowerCase();
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = id;
+            checkbox.value = name;
+            checkbox.checked = selectedDiseases.has(name);
+
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    selectedDiseases.add(name);
+                } else {
+                    selectedDiseases.delete(name);
+                }
+                updateDiseaseFilterToggleText();
+                applyFarmFilters();
+            });
+
+            const label = document.createElement('label');
+            label.htmlFor = id;
+            label.textContent = name;
+
+            option.appendChild(checkbox);
+            option.appendChild(label);
+            optionsContainer.appendChild(option);
+        });
+
+        // Clear search input
+        if (elements.diseaseFilterSearch) {
+            elements.diseaseFilterSearch.value = '';
+        }
+
+        updateDiseaseFilterToggleText();
+    }
+
+    function updateDiseaseFilterToggleText() {
+        const textEl = elements.diseaseFilterToggle?.querySelector('.dropdown-text');
+        if (!textEl) return;
+
+        if (selectedDiseases.size === 0) {
+            textEl.textContent = 'All Diseases';
+            textEl.classList.remove('has-selection');
+        } else {
+            textEl.textContent = `${selectedDiseases.size} selected`;
+            textEl.classList.add('has-selection');
+        }
     }
 
     // ========================================
@@ -2346,7 +2518,7 @@
     }
 
     function applyFarmFilters() {
-        // Filter farms based on province, district, and search query
+        // Filter farms based on province, district, search query, and disease
         filteredFarms = farmsWithReports.filter(farm => {
             // Province filter
             if (provinceFilter && farm.province !== provinceFilter) return false;
@@ -2360,6 +2532,14 @@
                 const matchesDistrict = farm.districtName?.toLowerCase().includes(query);
                 if (!matchesName && !matchesProvince && !matchesDistrict) return false;
             }
+            // Disease filter — keep farm only if it has at least one report matching a selected disease
+            if (selectedDiseases.size > 0) {
+                const hasMatchingReport = farm.reports.some(report => {
+                    const diseaseName = report.effectiveDiseaseName || report.diseaseName;
+                    return selectedDiseases.has(diseaseName);
+                });
+                if (!hasMatchingReport) return false;
+            }
             return true;
         });
 
@@ -2372,6 +2552,14 @@
                 const matchesProvince = farm.provinceName?.toLowerCase().includes(query);
                 const matchesDistrict = farm.districtName?.toLowerCase().includes(query);
                 if (!matchesName && !matchesProvince && !matchesDistrict) return false;
+            }
+            // Disease filter — keep farm only if it has at least one report matching a selected disease
+            if (selectedDiseases.size > 0) {
+                const hasMatchingReport = farm.reports.some(report => {
+                    const diseaseName = report.effectiveDiseaseName || report.diseaseName;
+                    return selectedDiseases.has(diseaseName);
+                });
+                if (!hasMatchingReport) return false;
             }
             return true;
         });

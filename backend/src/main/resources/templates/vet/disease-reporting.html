@@ -56,6 +56,33 @@
                 </div>
             </div>
 
+            <!-- Disease Filter (multi-select with search) -->
+            <div class="filter-group">
+                <label class="filter-label">Disease</label>
+                <div class="checkbox-dropdown" id="diseaseFilterDropdown">
+                    <button type="button" class="dropdown-toggle" id="diseaseFilterToggle">
+                        <span class="dropdown-text">All Diseases</span>
+                        <span class="dropdown-arrow">
+                            <i data-lucide="chevron-down" class="icon icon-xs"></i>
+                        </span>
+                    </button>
+                    <div class="dropdown-menu" id="diseaseFilterMenu">
+                        <div class="dropdown-search">
+                            <input type="text" placeholder="Search diseases..." id="diseaseFilterSearch">
+                        </div>
+                        <div class="dropdown-options" id="diseaseFilterOptions">
+                            <!-- Dynamically populated with checkboxes -->
+                        </div>
+                        <div class="dropdown-actions">
+                            <button type="button" class="dropdown-action-btn" id="selectAllPageDiseases">Select
+                                All</button>
+                            <button type="button" class="dropdown-action-btn" id="clearAllPageDiseases">Clear
+                                All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Search Bar -->
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
@@ -269,7 +296,8 @@
                             <div class="disease-info-header">
                                 <h4 class="form-section-title">Disease Information</h4>
                                 <button type="button" class="btn btn-outline btn-sm" id="toggleEditDiseaseInfo">
-                                    <span id="editDiseaseInfoLabel"><i data-lucide="pencil" class="icon icon-xs"></i> Edit Info</span>
+                                    <span id="editDiseaseInfoLabel"><i data-lucide="pencil" class="icon icon-xs"></i>
+                                        Edit Info</span>
                                 </button>
                             </div>
 
@@ -344,7 +372,8 @@
 
                         <!-- Other Disease Form (Hidden by default - shown when "Other" is selected) -->
                         <div class="form-section" id="otherDiseaseSection" style="display: none;">
-                            <h4 class="form-section-title"><i data-lucide="plus-circle" class="icon icon-sm icon-primary"></i> New Disease Details</h4>
+                            <h4 class="form-section-title"><i data-lucide="plus-circle"
+                                    class="icon icon-sm icon-primary"></i> New Disease Details</h4>
                             <p class="form-section-subtitle">This disease will be added to the system for all vets to
                                 use.</p>
 
@@ -452,7 +481,8 @@
                             <div class="image-upload-container">
                                 <div class="image-dropzone" id="imageDropzone">
                                     <div class="dropzone-content">
-                                        <span class="dropzone-icon"><i data-lucide="camera" class="icon icon-2xl icon-muted"></i></span>
+                                        <span class="dropzone-icon"><i data-lucide="camera"
+                                                class="icon icon-2xl icon-muted"></i></span>
                                         <p class="dropzone-text">Drag and drop an image here, or</p>
                                         <label class="btn btn-outline btn-sm" for="imageInput">Browse Files</label>
                                         <input type="file" id="imageInput" name="image"
@@ -499,7 +529,8 @@
 
                         <!-- Report Info Grid -->
                         <div class="view-info-section">
-                            <h4 class="view-section-title"><i data-lucide="map-pin" class="icon icon-sm icon-primary"></i> Location & Animal</h4>
+                            <h4 class="view-section-title"><i data-lucide="map-pin"
+                                    class="icon icon-sm icon-primary"></i> Location & Animal</h4>
                             <div class="view-info-grid">
                                 <div class="view-info-row">
                                     <span class="view-label">Farm</span>
@@ -521,7 +552,8 @@
                         </div>
 
                         <div class="view-info-section">
-                            <h4 class="view-section-title"><i data-lucide="bug" class="icon icon-sm icon-primary"></i> Disease Information</h4>
+                            <h4 class="view-section-title"><i data-lucide="bug" class="icon icon-sm icon-primary"></i>
+                                Disease Information</h4>
                             <div class="view-info-grid">
                                 <div class="view-info-row">
                                     <span class="view-label">Disease</span>
@@ -543,7 +575,8 @@
                         </div>
 
                         <div class="view-info-section">
-                            <h4 class="view-section-title"><i data-lucide="clipboard-list" class="icon icon-sm icon-primary"></i> Report Details</h4>
+                            <h4 class="view-section-title"><i data-lucide="clipboard-list"
+                                    class="icon icon-sm icon-primary"></i> Report Details</h4>
                             <div class="view-info-grid">
                                 <div class="view-info-row">
                                     <span class="view-label">Report Date</span>
@@ -561,22 +594,26 @@
                         </div>
 
                         <div class="view-info-section" id="view-symptomsSection">
-                            <h4 class="view-section-title"><i data-lucide="stethoscope" class="icon icon-sm icon-primary"></i> Symptoms</h4>
+                            <h4 class="view-section-title"><i data-lucide="stethoscope"
+                                    class="icon icon-sm icon-primary"></i> Symptoms</h4>
                             <p class="view-text" id="view-symptoms">-</p>
                         </div>
 
                         <div class="view-info-section" id="view-diagnosisSection">
-                            <h4 class="view-section-title"><i data-lucide="microscope" class="icon icon-sm icon-primary"></i> Diagnosis</h4>
+                            <h4 class="view-section-title"><i data-lucide="microscope"
+                                    class="icon icon-sm icon-primary"></i> Diagnosis</h4>
                             <p class="view-text" id="view-diagnosis">-</p>
                         </div>
 
                         <div class="view-info-section" id="view-treatmentSection">
-                            <h4 class="view-section-title"><i data-lucide="pill" class="icon icon-sm icon-primary"></i> Treatment</h4>
+                            <h4 class="view-section-title"><i data-lucide="pill" class="icon icon-sm icon-primary"></i>
+                                Treatment</h4>
                             <p class="view-text" id="view-treatment">-</p>
                         </div>
 
                         <div class="view-info-section" id="view-notesSection">
-                            <h4 class="view-section-title"><i data-lucide="file-text" class="icon icon-sm icon-primary"></i> Notes</h4>
+                            <h4 class="view-section-title"><i data-lucide="file-text"
+                                    class="icon icon-sm icon-primary"></i> Notes</h4>
                             <p class="view-text" id="view-notes">-</p>
                         </div>
                     </div>
@@ -597,7 +634,8 @@
         <div id="deleteModal" class="modal-overlay hidden">
             <div class="modal modal-sm">
                 <div class="modal-header">
-                    <h3 class="modal-title"><i data-lucide="alert-triangle" class="icon icon-md icon-warning"></i> Confirm Delete</h3>
+                    <h3 class="modal-title"><i data-lucide="alert-triangle" class="icon icon-md icon-warning"></i>
+                        Confirm Delete</h3>
                     <button type="button" class="modal-close" id="closeDeleteModal">✕</button>
                 </div>
                 <div class="modal-body">

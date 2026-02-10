@@ -131,6 +131,7 @@
 
 .dashboard-user {
   padding: var(--spacing-lg);
+  margin-left: calc(-1 * var(--spacing-md));
   border-top: 1px solid var(--sidebar-border);
   background-color: var(--sidebar-bg-dark);
 }
@@ -173,6 +174,7 @@
   font-size: var(--font-size-xs);
   color: var(--sidebar-text);
 }
+
 
 .sidebar-logout-btn {
   display: flex;
