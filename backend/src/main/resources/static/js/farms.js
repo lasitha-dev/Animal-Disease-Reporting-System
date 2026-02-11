@@ -19,6 +19,8 @@
     let searchQuery = ''; // Current search query
     let filteredFarms = []; // Filtered farms based on search
     let filteredOtherFarms = []; // Filtered other farms based on search
+    let provinceFilter = ''; // Page-level province filter
+    let districtFilter = ''; // Page-level district filter
 
     // Map State
     let map = null;
@@ -57,6 +59,10 @@
     const farmsTableBody = document.getElementById('farms-table-body');
     const otherFarmsTableContainer = document.getElementById('other-farms-table-container');
     const otherFarmsTableBody = document.getElementById('other-farms-table-body');
+
+    // DOM Elements - Page Filters
+    const farmProvinceFilter = document.getElementById('farmProvinceFilter');
+    const farmDistrictFilter = document.getElementById('farmDistrictFilter');
 
     // DOM Elements - Search
     const searchInput = document.getElementById('farmSearchInput');
@@ -101,6 +107,7 @@
         loadFarmTypes();
         loadProvinces();
         loadAnimalTypes();
+        loadPageFilterProvinces();
         setupEventListeners();
     }
 
@@ -128,6 +135,10 @@
         searchInput?.addEventListener('input', handleSearchInput);
         clearSearchBtn?.addEventListener('click', clearSearch);
         clearSearchFromEmptyBtn?.addEventListener('click', clearSearch);
+
+        // Page filter events
+        farmProvinceFilter?.addEventListener('change', handlePageFilterProvinceChange);
+        farmDistrictFilter?.addEventListener('change', handlePageFilterDistrictChange);
 
         // Form events
         farmTypeSelect?.addEventListener('change', handleFarmTypeChange);
@@ -267,14 +278,97 @@
         applySearchFilter();
     }
 
+    /**
+     * Page Filter Functions
+     */
+    async function loadPageFilterProvinces() {
+        if (!farmProvinceFilter) return;
+        try {
+            const response = await fetch('/api/locations/provinces', { headers: getHeaders() });
+            if (!response.ok) throw new Error('Failed to load provinces');
+            const provinces = await response.json();
+
+            farmProvinceFilter.innerHTML = '<option value="">All Provinces</option>';
+            provinces.forEach(province => {
+                const option = document.createElement('option');
+                option.value = province.value;
+                option.textContent = province.label;
+                farmProvinceFilter.appendChild(option);
+            });
+
+            if (window.CustomSelect) {
+                CustomSelect.refresh('farmProvinceFilter');
+            }
+        } catch (error) {
+            console.error('Error loading page filter provinces:', error);
+        }
+    }
+
+    async function handlePageFilterProvinceChange() {
+        const provinceCode = farmProvinceFilter?.value || '';
+        provinceFilter = provinceCode;
+        districtFilter = '';
+
+        // Reset district dropdown
+        if (farmDistrictFilter) {
+            farmDistrictFilter.innerHTML = '<option value="">All Districts</option>';
+            farmDistrictFilter.disabled = !provinceCode;
+
+            if (window.CustomSelect) {
+                CustomSelect.refresh('farmDistrictFilter');
+            }
+
+            if (provinceCode) {
+                try {
+                    const response = await fetch(`/api/locations/districts?provinceName=${provinceCode}`, { headers: getHeaders() });
+                    if (!response.ok) throw new Error('Failed to load districts');
+                    const districts = await response.json();
+
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.value;
+                        option.textContent = district.label;
+                        farmDistrictFilter.appendChild(option);
+                    });
+
+                    if (window.CustomSelect) {
+                        CustomSelect.refresh('farmDistrictFilter');
+                    }
+                } catch (error) {
+                    console.error('Error loading districts for filter:', error);
+                }
+            }
+        }
+
+        applySearchFilter();
+    }
+
+    function handlePageFilterDistrictChange() {
+        districtFilter = farmDistrictFilter?.value || '';
+        applySearchFilter();
+    }
+
     function applySearchFilter() {
-        // Filter farms based on search query
-        if (searchQuery.length === 0) {
-            filteredFarms = [...farms];
-            filteredOtherFarms = [...otherFarms];
-        } else {
-            filteredFarms = farms.filter(farm => matchesFarmSearch(farm, searchQuery));
-            filteredOtherFarms = otherFarms.filter(farm => matchesFarmSearch(farm, searchQuery));
+        // Start with all farms
+        filteredFarms = [...farms];
+        filteredOtherFarms = [...otherFarms];
+
+        // Apply province filter
+        if (provinceFilter) {
+            filteredFarms = filteredFarms.filter(farm => farm.province === provinceFilter);
+            filteredOtherFarms = filteredOtherFarms.filter(farm => farm.province === provinceFilter);
+        }
+
+        // Apply district filter
+        if (districtFilter) {
+            filteredFarms = filteredFarms.filter(farm => farm.district === districtFilter);
+            filteredOtherFarms = filteredOtherFarms.filter(farm => farm.district === districtFilter);
+        }
+
+        // Apply search query filter
+        if (searchQuery.length > 0) {
+            filteredFarms = filteredFarms.filter(farm => matchesFarmSearch(farm, searchQuery));
+            filteredOtherFarms = filteredOtherFarms.filter(farm => matchesFarmSearch(farm, searchQuery));
         }
 
         // Re-render the current tab
@@ -321,8 +415,8 @@
     function renderFilteredFarms() {
         hideLoading();
 
-        if (searchQuery.length > 0 && filteredFarms.length === 0) {
-            // Show no search results state
+        if ((searchQuery.length > 0 || provinceFilter || districtFilter) && filteredFarms.length === 0) {
+            // Show no search/filter results state
             showNoSearchResults();
             return;
         }
@@ -355,8 +449,8 @@
     function renderFilteredOtherFarms() {
         hideOtherFarmsLoading();
 
-        if (searchQuery.length > 0 && filteredOtherFarms.length === 0) {
-            // Show no search results state
+        if ((searchQuery.length > 0 || provinceFilter || districtFilter) && filteredOtherFarms.length === 0) {
+            // Show no search/filter results state
             showNoSearchResults();
             return;
         }
@@ -417,7 +511,7 @@
 
     function highlightMatch(text, query) {
         if (!text || !query || query.length === 0) return escapeHtml(text || '');
-        
+
         const escapedText = escapeHtml(text);
         const escapedQuery = escapeHtml(query);
         const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -455,10 +549,10 @@
         }
 
         hideEmpty();
-        
+
         // Initialize filtered farms if not already done
         filteredFarms = [...farms];
-        
+
         // Apply any existing search filter
         if (searchQuery.length > 0) {
             applySearchFilter();
@@ -516,10 +610,10 @@
         }
 
         hideOtherFarmsEmpty();
-        
+
         // Initialize filtered other farms if not already done
         filteredOtherFarms = [...otherFarms];
-        
+
         // Apply any existing search filter
         if (searchQuery.length > 0) {
             applySearchFilter();

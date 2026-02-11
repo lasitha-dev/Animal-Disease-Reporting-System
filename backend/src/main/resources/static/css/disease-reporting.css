@@ -1575,6 +1575,18 @@
     position: relative;
 }
 
+/* CustomSelect integration for filter dropdowns */
+.filter-group .custom-select-wrapper {
+    width: 100%;
+}
+
+.filter-group .custom-select-trigger {
+    min-height: 44px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+}
+
 .filter-select {
     width: 100%;
     padding: var(--spacing-sm) var(--spacing-md);

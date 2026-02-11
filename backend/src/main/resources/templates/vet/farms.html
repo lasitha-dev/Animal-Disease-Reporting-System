@@ -32,16 +32,40 @@
             </button>
         </div>
 
-        <!-- Search and View Controls -->
-        <div class="search-view-container">
+        <!-- Filters, Search, and View Controls -->
+        <div class="filters-bar">
+            <!-- Province Filter -->
+            <div class="filter-group">
+                <label for="farmProvinceFilter" class="filter-label">Province</label>
+                <div class="filter-select-wrapper">
+                    <select id="farmProvinceFilter" class="filter-select" data-custom-select
+                        data-placeholder="All Provinces" data-title="Select Province">
+                        <option value="">All Provinces</option>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- District Filter -->
+            <div class="filter-group">
+                <label for="farmDistrictFilter" class="filter-label">District</label>
+                <div class="filter-select-wrapper">
+                    <select id="farmDistrictFilter" class="filter-select" data-custom-select
+                        data-placeholder="All Districts" data-title="Select District" disabled>
+                        <option value="">All Districts</option>
+                        <!-- Populated by JavaScript based on province -->
+                    </select>
+                </div>
+            </div>
+
             <!-- Search Bar -->
             <div class="search-bar-container">
                 <div class="search-input-wrapper">
                     <i data-lucide="search" class="icon icon-sm search-icon"></i>
-                    <input type="text" id="farmSearchInput" class="search-input" 
-                        placeholder="Search farms by name, owner, location..." 
-                        autocomplete="off">
-                    <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;" title="Clear search">
+                    <input type="text" id="farmSearchInput" class="search-input"
+                        placeholder="Search farms by name, owner, location..." autocomplete="off">
+                    <button type="button" id="clearSearchBtn" class="search-clear-btn" style="display: none;"
+                        title="Clear search">
                         <i data-lucide="x" class="icon icon-sm"></i>
                     </button>
                 </div>
@@ -50,7 +74,8 @@
 
             <!-- View Toggle -->
             <div class="view-toggle-container">
-                <button type="button" class="view-toggle-btn active" id="gridViewBtn" data-view="grid" title="Grid View">
+                <button type="button" class="view-toggle-btn active" id="gridViewBtn" data-view="grid"
+                    title="Grid View">
                     <i data-lucide="layout-grid" class="icon icon-sm"></i>
                 </button>
                 <button type="button" class="view-toggle-btn" id="tableViewBtn" data-view="table" title="Table View">
@@ -157,7 +182,8 @@
             <div class="modal modal-lg">
                 <div class="modal-header">
                     <h3 class="modal-title">Register New Farm</h3>
-                    <button type="button" class="modal-close" id="closeModal"><i data-lucide="x" class="icon icon-md"></i></button>
+                    <button type="button" class="modal-close" id="closeModal"><i data-lucide="x"
+                            class="icon icon-md"></i></button>
                 </div>
                 <div class="modal-body">
                     <form id="farm-register-form">
@@ -179,7 +205,8 @@
                                 <div class="form-group">
                                     <label for="farmTypeId" class="form-label required">Farm Type</label>
                                     <select id="farmTypeId" name="farmTypeId" class="form-select" required
-                                        data-custom-select data-placeholder="Select farm type..." data-title="Select Farm Type">
+                                        data-custom-select data-placeholder="Select farm type..."
+                                        data-title="Select Farm Type">
                                         <option value="">Select farm type...</option>
                                     </select>
                                 </div>
@@ -222,7 +249,8 @@
                                 <div class="form-group">
                                     <label for="province" class="form-label required">Province</label>
                                     <select id="province" name="province" class="form-select" required
-                                        data-custom-select data-placeholder="Select province..." data-title="Select Province">
+                                        data-custom-select data-placeholder="Select province..."
+                                        data-title="Select Province">
                                         <option value="">Select province...</option>
                                     </select>
                                 </div>
@@ -230,7 +258,8 @@
                                 <div class="form-group">
                                     <label for="district" class="form-label required">District</label>
                                     <select id="district" name="district" class="form-select" required disabled
-                                        data-custom-select data-placeholder="Select district..." data-title="Select District">
+                                        data-custom-select data-placeholder="Select district..."
+                                        data-title="Select District">
                                         <option value="">Select province first...</option>
                                     </select>
                                 </div>
@@ -285,13 +314,14 @@
                                 <div id="selected-animal-tags" class="selected-tags"></div>
 
                                 <div class="add-animal-tag">
-                                    <select id="animalTypeSelect" class="form-select"
-                                        data-custom-select data-placeholder="Select animal type..." data-title="Select Animal Type">
+                                    <select id="animalTypeSelect" class="form-select" data-custom-select
+                                        data-placeholder="Select animal type..." data-title="Select Animal Type">
                                         <option value="">Select animal type...</option>
                                     </select>
                                     <input type="number" id="animalCountInput" class="form-input count-input"
                                         placeholder="Count" min="1" value="1">
-                                    <button type="button" id="addAnimalTagBtn" class="btn btn-outline btn-sm"><i data-lucide="plus" class="icon icon-xs"></i>
+                                    <button type="button" id="addAnimalTagBtn" class="btn btn-outline btn-sm"><i
+                                            data-lucide="plus" class="icon icon-xs"></i>
                                         Add</button>
                                 </div>
                             </div>

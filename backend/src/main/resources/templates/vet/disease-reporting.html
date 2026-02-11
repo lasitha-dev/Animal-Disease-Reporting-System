@@ -38,7 +38,8 @@
             <div class="filter-group">
                 <label for="provinceFilter" class="filter-label">Province</label>
                 <div class="filter-select-wrapper">
-                    <select id="provinceFilter" class="filter-select">
+                    <select id="provinceFilter" class="filter-select" data-custom-select
+                        data-placeholder="All Provinces" data-title="Select Province">
                         <option value="">All Provinces</option>
                         <!-- Populated by JavaScript -->
                     </select>
@@ -49,7 +50,8 @@
             <div class="filter-group">
                 <label for="districtFilter" class="filter-label">District</label>
                 <div class="filter-select-wrapper">
-                    <select id="districtFilter" class="filter-select" disabled>
+                    <select id="districtFilter" class="filter-select" data-custom-select
+                        data-placeholder="All Districts" data-title="Select District" disabled>
                         <option value="">All Districts</option>
                         <!-- Populated by JavaScript based on province -->
                     </select>

@@ -2472,6 +2472,11 @@
                     elements.provinceFilterSelect.appendChild(option);
                 });
                 console.log('Province filter populated with', provinces.length, 'provinces');
+
+                // Refresh CustomSelect to reflect new options
+                if (window.CustomSelect) {
+                    CustomSelect.refresh('provinceFilter');
+                }
             } else {
                 console.warn('Province filter element not found or provinces not an array:', {
                     element: elements.provinceFilterSelect,
@@ -2493,6 +2498,11 @@
             elements.districtFilterSelect.innerHTML = '<option value="">All Districts</option>';
             elements.districtFilterSelect.disabled = !provinceCode;
 
+            // Refresh CustomSelect for district reset
+            if (window.CustomSelect) {
+                CustomSelect.refresh('districtFilter');
+            }
+
             if (provinceCode) {
                 try {
                     // API expects 'provinceName' parameter, not 'province'
@@ -2503,6 +2513,11 @@
                         option.textContent = district.label; // API returns 'label' not 'name'
                         elements.districtFilterSelect.appendChild(option);
                     });
+
+                    // Refresh CustomSelect to reflect new district options
+                    if (window.CustomSelect) {
+                        CustomSelect.refresh('districtFilter');
+                    }
                 } catch (error) {
                     console.error('Error loading districts:', error);
                 }
