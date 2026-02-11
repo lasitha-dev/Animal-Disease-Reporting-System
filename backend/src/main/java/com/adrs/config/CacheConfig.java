@@ -37,7 +37,8 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
             "animalTypes", 
             "diseases", 
-            "farmTypes"
+            "farmTypes",
+            "dashboardStats"
         );
         
         cacheManager.setCaffeine(Caffeine.newBuilder()
