@@ -75,6 +75,22 @@
                     <!-- Dynamically populated -->
                 </select>
             </div>
+
+            <!-- Outcome Filter (shown when Disease Outbreaks checked) -->
+            <div class="filter-section filter-select-group" id="outcomeFilterSection" style="display: none;">
+                <label class="select-label" for="outcomeSelect">
+                    <i data-lucide="activity" class="icon icon-xs"></i>
+                    Current Outcome
+                </label>
+                <select id="outcomeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Outcomes" data-title="Select Outcome">
+                    <option value="">All Outcomes</option>
+                    <option value="RECOVERED">Recovered</option>
+                    <option value="DIED">Died</option>
+                    <option value="ONGOING">Ongoing</option>
+                    <option value="EUTHANIZED">Euthanized</option>
+                </select>
+            </div>
         </div>
 
         <!-- Map Container -->

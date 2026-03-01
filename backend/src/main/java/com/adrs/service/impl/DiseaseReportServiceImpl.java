@@ -263,8 +263,8 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province) {
-        logger.debug("Fetching disease reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}", animalTypeIds, diseaseIds, province);
+    public List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province, DiseaseReport.Outcome outcome) {
+        logger.debug("Fetching disease reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}, outcome: {}", animalTypeIds, diseaseIds, province, outcome);
 
         List<DiseaseReport> reports;
         boolean hasAnimalFilter = animalTypeIds != null && !animalTypeIds.isEmpty();
@@ -284,6 +284,13 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
         if (province != null) {
             reports = reports.stream()
                     .filter(r -> r.getFarm().getProvince() == province)
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by outcome if specified
+        if (outcome != null) {
+            reports = reports.stream()
+                    .filter(r -> r.getOutcome() == outcome)
                     .collect(Collectors.toList());
         }
 

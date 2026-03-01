@@ -5,6 +5,7 @@ import com.adrs.dto.DiseaseDTO;
 import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
+import com.adrs.model.DiseaseReport;
 import com.adrs.model.Province;
 import com.adrs.model.User;
 import org.springframework.web.multipart.MultipartFile;
@@ -84,9 +85,10 @@ public interface DiseaseReportService {
      * @param animalTypeIds optional list of animal type IDs to filter by
      * @param diseaseIds optional list of disease IDs to filter by
      * @param province optional province to filter by
+     * @param outcome optional outcome to filter by
      * @return list of disease data grouped by farm location
      */
-    List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province);
+    List<DiseaseMapDTO> getReportsForMap(List<UUID> animalTypeIds, List<UUID> diseaseIds, Province province, DiseaseReport.Outcome outcome);
 
     /**
      * Get animal types that have disease reports with GPS coordinates.

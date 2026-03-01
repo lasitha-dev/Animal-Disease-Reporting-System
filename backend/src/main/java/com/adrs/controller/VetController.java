@@ -1,6 +1,7 @@
 package com.adrs.controller;
 
 import com.adrs.dto.*;
+import com.adrs.model.DiseaseReport;
 import com.adrs.model.Province;
 import com.adrs.model.User;
 import com.adrs.repository.DiseaseReportRepository;
@@ -516,9 +517,10 @@ public class VetController {
     public ResponseEntity<List<DiseaseMapDTO>> getDiseaseReportsForMap(
             @RequestParam(required = false) List<UUID> animalTypeIds,
             @RequestParam(required = false) List<UUID> diseaseIds,
-            @RequestParam(required = false) String province) {
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String outcome) {
         
-        logger.info("GET /api/vet/disease-reports/map - Fetching reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}", animalTypeIds, diseaseIds, province);
+        logger.info("GET /api/vet/disease-reports/map - Fetching reports for map, animalTypeIds: {}, diseaseIds: {}, province: {}, outcome: {}", animalTypeIds, diseaseIds, province, outcome);
         
         Province provinceEnum = null;
         if (province != null && !province.isEmpty()) {
@@ -528,8 +530,17 @@ public class VetController {
                 logger.warn("Invalid province value: {}", province);
             }
         }
+
+        DiseaseReport.Outcome outcomeEnum = null;
+        if (outcome != null && !outcome.isEmpty()) {
+            try {
+                outcomeEnum = DiseaseReport.Outcome.valueOf(outcome);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid outcome value: {}", outcome);
+            }
+        }
         
-        List<DiseaseMapDTO> reports = diseaseReportService.getReportsForMap(animalTypeIds, diseaseIds, provinceEnum);
+        List<DiseaseMapDTO> reports = diseaseReportService.getReportsForMap(animalTypeIds, diseaseIds, provinceEnum, outcomeEnum);
         return ResponseEntity.ok(reports);
     }
 

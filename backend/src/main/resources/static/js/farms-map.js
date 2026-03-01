@@ -15,6 +15,7 @@ let provincesWithFarms = [];
 let selectedAnimalTypeIds = [];
 let selectedDiseaseIds = [];
 let selectedProvince = '';
+let selectedOutcome = '';
 
 /**
  * Initialize the farm map (called by Google Maps API callback)
@@ -182,6 +183,9 @@ async function loadDiseaseReports() {
         }
         if (selectedProvince) {
             params.append('province', selectedProvince);
+        }
+        if (selectedOutcome) {
+            params.append('outcome', selectedOutcome);
         }
 
         if (params.toString()) {
@@ -562,19 +566,30 @@ function setupFilterListeners() {
     const provinceSelect = document.getElementById('provinceSelect');
     const animalTypeSection = document.getElementById('animalTypeFilterSection');
     const diseaseSection = document.getElementById('diseaseFilterSection');
+    const outcomeSection = document.getElementById('outcomeFilterSection');
     const animalTypeSelect = document.getElementById('animalTypeSelect');
     const diseaseSelect = document.getElementById('diseaseSelect');
+    const outcomeSelect = document.getElementById('outcomeSelect');
+
+    /**
+     * Show province filter when either Farms or Disease Outbreaks toggle is on.
+     * Reset province selection when both toggles are off.
+     */
+    function updateProvinceVisibility() {
+        const showProvince = (farmFilter && farmFilter.checked) || (diseaseFilter && diseaseFilter.checked);
+        if (provinceSection) {
+            provinceSection.style.display = showProvince ? 'flex' : 'none';
+        }
+        if (!showProvince) {
+            selectedProvince = '';
+            if (provinceSelect) provinceSelect.value = '';
+        }
+    }
 
     // Farm filter toggle
     if (farmFilter) {
-        farmFilter.addEventListener('change', (e) => {
-            if (provinceSection) {
-                provinceSection.style.display = e.target.checked ? 'flex' : 'none';
-            }
-            if (!e.target.checked) {
-                selectedProvince = '';
-                if (provinceSelect) provinceSelect.value = '';
-            }
+        farmFilter.addEventListener('change', () => {
+            updateProvinceVisibility();
             createMapMarkers();
             fitMapToMarkers();
         });
@@ -583,17 +598,22 @@ function setupFilterListeners() {
     // Disease filter toggle
     if (diseaseFilter) {
         diseaseFilter.addEventListener('change', (e) => {
+            updateProvinceVisibility();
             if (e.target.checked) {
                 if (animalTypeSection) animalTypeSection.style.display = 'flex';
                 if (diseaseSection) diseaseSection.style.display = 'flex';
+                if (outcomeSection) outcomeSection.style.display = 'flex';
                 loadDiseasesWithReports();
                 loadDiseaseReports();
             } else {
                 if (animalTypeSection) animalTypeSection.style.display = 'none';
                 if (diseaseSection) diseaseSection.style.display = 'none';
+                if (outcomeSection) outcomeSection.style.display = 'none';
                 diseaseData = [];
                 selectedAnimalTypeIds = [];
                 selectedDiseaseIds = [];
+                selectedOutcome = '';
+                if (outcomeSelect) outcomeSelect.value = '';
                 updateDiseaseCount(0);
                 createMapMarkers();
             }
@@ -631,6 +651,15 @@ function setupFilterListeners() {
         diseaseSelect.addEventListener('change', () => {
             selectedDiseaseIds = diseaseSelect.value ? [diseaseSelect.value] : [];
             console.log('Selected disease:', selectedDiseaseIds);
+            loadDiseaseReports();
+        });
+    }
+
+    // Outcome select
+    if (outcomeSelect) {
+        outcomeSelect.addEventListener('change', () => {
+            selectedOutcome = outcomeSelect.value;
+            console.log('Selected outcome:', selectedOutcome);
             loadDiseaseReports();
         });
     }
