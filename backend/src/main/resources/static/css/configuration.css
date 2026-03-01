@@ -1258,13 +1258,9 @@ select.form-control option {
 .config-item-actions {
     display: flex;
     gap: var(--spacing-xs);
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.2s ease;
     flex-shrink: 0;
-}
-
-.config-item-card:hover .config-item-actions {
-    opacity: 1;
 }
 
 .config-action-btn {

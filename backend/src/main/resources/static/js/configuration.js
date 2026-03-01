@@ -137,6 +137,19 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.add('hidden');
 }
 
+function refreshConfigurationIcons(container = null) {
+    if (typeof lucide === 'undefined') {
+        return;
+    }
+
+    if (container) {
+        lucide.createIcons({ nodes: [container] });
+        return;
+    }
+
+    lucide.createIcons();
+}
+
 // ========================================
 // FARM TYPE OPERATIONS
 // ========================================
@@ -164,6 +177,7 @@ function renderFarmTypesCards(farmTypes) {
                 <p>No farm types found. Add one to get started!</p>
             </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
 
@@ -180,6 +194,8 @@ function renderFarmTypesCards(farmTypes) {
             </div>
         </div>
     `).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openFarmTypeModal(farmType = null) {
@@ -337,6 +353,7 @@ function renderAnimalTypesCards(animalTypes) {
                 <p>No animal types found. Add one to get started!</p>
             </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
 
@@ -353,6 +370,8 @@ function renderAnimalTypesCards(animalTypes) {
             </div>
         </div>
     `).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openAnimalTypeModal(animalType = null) {
@@ -532,6 +551,7 @@ function renderDiseasesCards(diseases) {
                 <p>No diseases found. Add one to get started!</p>
             </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
 
@@ -558,6 +578,8 @@ function renderDiseasesCards(diseases) {
             </div>
         `;
     }).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openDiseaseModal(disease = null) {
