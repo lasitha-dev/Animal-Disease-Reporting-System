@@ -19,6 +19,25 @@ import java.util.UUID;
 public interface FarmRepository extends JpaRepository<Farm, UUID> {
 
     /**
+     * Checks if a farm exists with the given name (case-insensitive).
+     * Used to prevent duplicate farm names on creation.
+     *
+     * @param farmName the farm name to check
+     * @return true if a farm with the name exists
+     */
+    boolean existsByFarmNameIgnoreCase(String farmName);
+
+    /**
+     * Checks if a farm exists with the given name (case-insensitive),
+     * excluding a specific farm by ID. Used for update uniqueness checks.
+     *
+     * @param farmName the farm name to check
+     * @param id       the farm ID to exclude from the check
+     * @return true if another farm with the name exists
+     */
+    boolean existsByFarmNameIgnoreCaseAndIdNot(String farmName, UUID id);
+
+    /**
      * Count all active farms.
      *
      * @return count of active farms

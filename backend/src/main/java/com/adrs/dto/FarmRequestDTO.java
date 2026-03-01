@@ -1,5 +1,7 @@
 package com.adrs.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -31,6 +33,7 @@ public class FarmRequestDTO {
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
+    @NotBlank(message = "Owner name is required")
     @Size(max = 100, message = "Owner name must not exceed 100 characters")
     private String ownerName;
 
@@ -53,6 +56,7 @@ public class FarmRequestDTO {
      * List of animal types with their counts for this farm.
      * This is optional and can be added later.
      */
+    @Valid
     private List<AnimalTagDTO> animalTags = new ArrayList<>();
 
     /**
@@ -66,6 +70,7 @@ public class FarmRequestDTO {
         private UUID animalTypeId;
 
         @NotNull(message = "Count is required")
+        @Min(value = 1, message = "Animal count must be at least 1")
         private Integer count;
     }
 }

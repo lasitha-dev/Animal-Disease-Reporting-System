@@ -19,6 +19,20 @@ import java.util.UUID;
 public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UUID> {
 
     /**
+     * Checks if a duplicate disease report already exists for the same
+     * disease, farm, report date, and reporter. Prevents accidental
+     * double-submissions by the same veterinary officer.
+     *
+     * @param diseaseId  the disease ID
+     * @param farmId     the farm ID
+     * @param reportDate the report date
+     * @param reportedBy the reporting user
+     * @return true if a matching report already exists
+     */
+    boolean existsByDiseaseIdAndFarmIdAndReportDateAndReportedBy(
+            UUID diseaseId, UUID farmId, LocalDate reportDate, User reportedBy);
+
+    /**
      * Count all disease reports.
      *
      * @return count of all disease reports

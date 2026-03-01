@@ -1622,7 +1622,8 @@
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete report');
+                const errorData = await response.json().catch(() => ({ message: 'Failed to delete report' }));
+                throw new Error(errorData.message || 'Failed to delete report');
             }
 
             closeDeleteModal();
@@ -1630,7 +1631,7 @@
 
         } catch (error) {
             console.error('Error deleting report:', error);
-            alert('Failed to delete report. Please try again.');
+            alert(error.message || 'Failed to delete report. Please try again.');
         } finally {
             setDeleteLoading(false);
         }

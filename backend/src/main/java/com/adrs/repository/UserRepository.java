@@ -50,6 +50,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
+     * Checks if a user exists with the given username (case-insensitive).
+     *
+     * @param username the username to check
+     * @return true if a user with the username exists, false otherwise
+     */
+    boolean existsByUsernameIgnoreCase(String username);
+
+    /**
+     * Checks if a user exists with the given email (case-insensitive).
+     *
+     * @param email the email to check
+     * @return true if a user with the email exists, false otherwise
+     */
+    boolean existsByEmailIgnoreCase(String email);
+
+    /**
+     * Checks if a user exists with the given username (case-insensitive),
+     * excluding a specific user by ID. Used for update uniqueness checks.
+     *
+     * @param username the username to check
+     * @param id       the user ID to exclude from the check
+     * @return true if another user with the username exists
+     */
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, Long id);
+
+    /**
+     * Checks if a user exists with the given email (case-insensitive),
+     * excluding a specific user by ID. Used for update uniqueness checks.
+     *
+     * @param email the email to check
+     * @param id    the user ID to exclude from the check
+     * @return true if another user with the email exists
+     */
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+
+    /**
      * Finds all users with a specific role.
      *
      * @param role the role to filter by

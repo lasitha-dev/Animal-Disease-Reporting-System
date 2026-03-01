@@ -6,6 +6,7 @@ import com.adrs.dto.DiseaseMapDTO;
 import com.adrs.dto.DiseaseReportRequestDTO;
 import com.adrs.dto.DiseaseReportResponseDTO;
 import com.adrs.exception.ConfigurationNotFoundException;
+import com.adrs.exception.DuplicateResourceException;
 import com.adrs.model.*;
 import com.adrs.repository.*;
 import com.adrs.service.DiseaseReportService;
@@ -72,8 +73,21 @@ public class DiseaseReportServiceImpl implements DiseaseReportService {
                     .orElseThrow(() -> new ConfigurationNotFoundException("Disease", request.getDiseaseId()));
         }
 
+        // Check for duplicate report (same disease + farm + date + reporter)
+        if (request.getReportDate() != null && diseaseReportRepository
+                .existsByDiseaseIdAndFarmIdAndReportDateAndReportedBy(
+                        disease.getId(), farm.getId(), request.getReportDate(), reporter)) {
+            throw new DuplicateResourceException(
+                    "A disease report for this disease on this farm and date already exists",
+                    "DiseaseReport", "disease+farm+date+reporter", disease.getDiseaseName());
+        }
+
         // Validate affected count does not exceed registered animal count
         if (request.getAffectedCount() != null) {
+            if (request.getAffectedCount() < 0) {
+                throw new IllegalArgumentException("Affected count cannot be negative");
+            }
+
             Integer registeredCount = farm.getFarmAnimals().stream()
                     .filter(fa -> fa.getAnimalType().getId().equals(animalType.getId()))
                     .findFirst()

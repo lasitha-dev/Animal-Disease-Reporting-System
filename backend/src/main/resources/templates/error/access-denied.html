@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Access Denied - Animal Disease Reporting System</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" th:href="@{/css/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <link rel="stylesheet" th:href="@{/css/button.css}">
+    <link rel="stylesheet" th:href="@{/css/icons.css}">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <style>
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--spacing-xl);
+            background: var(--color-bg);
+            text-align: center;
+        }
+
+        .error-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-3xl) var(--spacing-2xl);
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--color-danger-lighter, #fee2e2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .error-icon .icon {
+            width: 40px;
+            height: 40px;
+            color: var(--color-danger, #ef4444);
+        }
+
+        .error-code {
+            font-size: var(--font-size-4xl, 3rem);
+            font-weight: var(--font-weight-bold, 700);
+            color: var(--color-danger, #ef4444);
+            margin-bottom: var(--spacing-xs);
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: var(--font-size-xl, 1.25rem);
+            font-weight: var(--font-weight-semibold, 600);
+            color: var(--color-text);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .error-message {
+            font-size: var(--font-size-md, 1rem);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-xl);
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+
+        .error-actions .btn {
+            min-width: 200px;
+        }
+
+        .error-info {
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-lg);
+            border-top: 1px solid var(--color-border);
+            font-size: var(--font-size-sm, 0.875rem);
+            color: var(--color-text-muted, #9ca3af);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <div class="error-icon">
+                <i data-lucide="shield-off" class="icon"></i>
+            </div>
+            <div class="error-code">403</div>
+            <h1 class="error-title">Access Denied</h1>
+            <p class="error-message">
+                You do not have permission to access this page. 
+                This may happen if your session changed — for example, 
+                if you logged in as a different user in another tab.
+            </p>
+
+            <div class="error-actions">
+                <a th:href="@{/login}" class="btn btn-primary btn-lg">
+                    <i data-lucide="log-in" class="icon icon-sm"></i>
+                    <span>Sign In Again</span>
+                </a>
+                <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                    <i data-lucide="arrow-left" class="icon icon-sm"></i>
+                    <span>Go Back</span>
+                </a>
+            </div>
+
+            <div class="error-info">
+                <p>
+                    <i data-lucide="info" class="icon icon-xs" style="vertical-align: middle;"></i>
+                    <strong>Tip:</strong> Only one user session is active per browser. 
+                    Use a private/incognito window to log in as a different user simultaneously.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -42,6 +42,7 @@ public class PageController {
     private static final String DASHBOARD_VIEW = "dashboard/dashboard";
     private static final String VET_DASHBOARD_VIEW = "vet/vet-dashboard";
     private static final String VET_FARM_REGISTER_VIEW = "vet/farm-register";
+    private static final String ACCESS_DENIED_VIEW = "error/access-denied";
 
     /**
      * Adds the current URI to the model for all requests.
@@ -82,6 +83,21 @@ public class PageController {
         }
 
         return LOGIN_VIEW;
+    }
+
+    /**
+     * Displays the access denied page when a user lacks permissions.
+     * This typically occurs when a user's session changes (e.g., logging in
+     * as a different user in another browser tab).
+     *
+     * @return the access denied view name
+     */
+    @GetMapping("/access-denied")
+    public String accessDenied() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication != null ? authentication.getName() : "anonymous";
+        logger.warn("Access denied page shown to user: {}", username);
+        return ACCESS_DENIED_VIEW;
     }
 
     /**

@@ -4,6 +4,7 @@ import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
+import com.adrs.exception.DuplicateResourceException;
 import com.adrs.exception.ResourceNotFoundException;
 import com.adrs.model.Province;
 import com.adrs.model.User;
@@ -96,14 +97,14 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(UserRequest userRequest) {
         logger.info("Creating new user: {}", userRequest.getUsername());
 
-        // Check if username already exists
-        if (userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        // Check if username already exists (case-insensitive)
+        if (userRepository.existsByUsernameIgnoreCase(userRequest.getUsername())) {
+            throw new DuplicateResourceException("User", "username", userRequest.getUsername());
         }
 
-        // Check if email already exists
-        if (userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+        // Check if email already exists (case-insensitive)
+        if (userRepository.existsByEmailIgnoreCase(userRequest.getEmail())) {
+            throw new DuplicateResourceException("User", "email", userRequest.getEmail());
         }
 
         User user = new User();
@@ -138,16 +139,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_MSG + id));
 
-        // Check if username is being changed and if it already exists
-        if (!user.getUsername().equals(userRequest.getUsername()) &&
-                userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
+        // Check if username is being changed and if it already exists (case-insensitive)
+        if (userRepository.existsByUsernameIgnoreCaseAndIdNot(userRequest.getUsername(), id)) {
+            throw new DuplicateResourceException("User", "username", userRequest.getUsername());
         }
 
-        // Check if email is being changed and if it already exists
-        if (!user.getEmail().equals(userRequest.getEmail()) &&
-                userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+        // Check if email is being changed and if it already exists (case-insensitive)
+        if (userRepository.existsByEmailIgnoreCaseAndIdNot(userRequest.getEmail(), id)) {
+            throw new DuplicateResourceException("User", "email", userRequest.getEmail());
         }
 
         user.setUsername(userRequest.getUsername());

@@ -2,6 +2,7 @@ package com.adrs.service.impl;
 
 import com.adrs.dto.FarmRequestDTO;
 import com.adrs.dto.FarmResponseDTO;
+import com.adrs.exception.DuplicateResourceException;
 import com.adrs.exception.ResourceNotFoundException;
 import com.adrs.model.*;
 import com.adrs.repository.AnimalRepository;
@@ -60,6 +61,11 @@ public class FarmServiceImpl implements FarmService {
     @Override
     public FarmResponseDTO createFarm(FarmRequestDTO request, User createdBy) {
         logger.info("Creating farm: {} by user: {}", request.getFarmName(), createdBy.getUsername());
+
+        // Check if farm name already exists (case-insensitive)
+        if (farmRepository.existsByFarmNameIgnoreCase(request.getFarmName())) {
+            throw new DuplicateResourceException("Farm", "farmName", request.getFarmName());
+        }
 
         // Validate and get farm type
         FarmType farmType = farmTypeRepository.findById(request.getFarmTypeId())
@@ -132,6 +138,11 @@ public class FarmServiceImpl implements FarmService {
                     updatedBy.getUsername(), id, 
                     farm.getCreatedBy() != null ? farm.getCreatedBy().getUsername() : "unknown");
             throw new AccessDeniedException("You can only update farms that you registered");
+        }
+
+        // Check if farm name already exists for another farm (case-insensitive)
+        if (farmRepository.existsByFarmNameIgnoreCaseAndIdNot(request.getFarmName(), id)) {
+            throw new DuplicateResourceException("Farm", "farmName", request.getFarmName());
         }
 
         // Update basic fields

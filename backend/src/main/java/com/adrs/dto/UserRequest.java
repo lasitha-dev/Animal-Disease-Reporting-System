@@ -13,11 +13,24 @@ import lombok.NoArgsConstructor;
 
 /**
  * Data Transfer Object for user creation and updates.
+ *
+ * <p>Uses validation groups to differentiate between create and update rules:
+ * password is required on creation but optional on updates.</p>
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRequest {
+
+    /**
+     * Validation group for user creation operations.
+     */
+    public interface Create {}
+
+    /**
+     * Validation group for user update operations.
+     */
+    public interface Update {}
 
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
@@ -27,7 +40,7 @@ public class UserRequest {
     @Email(message = "Email should be valid")
     private String email;
 
-    @NotBlank(message = "Password is required")
+    @NotBlank(message = "Password is required", groups = Create.class)
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 

@@ -115,6 +115,9 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
+                .exceptionHandling(exceptions -> exceptions
+                        .accessDeniedPage("/access-denied")
+                )
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)

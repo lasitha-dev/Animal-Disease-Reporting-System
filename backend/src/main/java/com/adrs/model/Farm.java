@@ -40,7 +40,7 @@ public class Farm {
 
     @NotBlank(message = "Farm name is required")
     @Size(max = 100, message = "Farm name must not exceed 100 characters")
-    @Column(name = "farm_name", nullable = false, length = 100)
+    @Column(name = "farm_name", nullable = false, unique = true, length = 100)
     private String farmName;
 
     @ManyToOne(fetch = FetchType.LAZY)

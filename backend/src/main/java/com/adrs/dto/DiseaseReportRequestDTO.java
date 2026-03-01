@@ -1,8 +1,10 @@
 package com.adrs.dto;
 
 import com.adrs.model.DiseaseReport;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -64,6 +66,7 @@ public class DiseaseReportRequestDTO {
     private Boolean newDiseaseIsNotifiable;
 
     @NotNull(message = "Report date is required")
+    @PastOrPresent(message = "Report date cannot be in the future")
     private LocalDate reportDate;
 
     @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
@@ -83,6 +86,7 @@ public class DiseaseReportRequestDTO {
     /**
      * Number of affected animals of this type
      */
+    @Min(value = 0, message = "Affected count cannot be negative")
     private Integer affectedCount;
     
     /**
