@@ -3,15 +3,21 @@ package com.adrs.service.impl;
 import com.adrs.dto.DiseaseDTO;
 import com.adrs.exception.ConfigurationInUseException;
 import com.adrs.exception.ConfigurationNotFoundException;
+import com.adrs.model.AnimalType;
 import com.adrs.model.Disease;
+import com.adrs.repository.AnimalTypeRepository;
 import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.DiseaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,14 +33,19 @@ public class DiseaseServiceImpl implements DiseaseService {
     private static final Logger logger = LoggerFactory.getLogger(DiseaseServiceImpl.class);
     private static final String ENTITY_TYPE = "Disease";
     private static final String NOT_FOUND_MSG = "Disease not found with ID: {}";
+    private static final String ANIMAL_TYPE_NOT_FOUND_MSG = "Animal type not found with ID: {}";
     
     private final DiseaseRepository diseaseRepository;
+    private final AnimalTypeRepository animalTypeRepository;
 
-    public DiseaseServiceImpl(DiseaseRepository diseaseRepository) {
+    public DiseaseServiceImpl(DiseaseRepository diseaseRepository,
+                              AnimalTypeRepository animalTypeRepository) {
         this.diseaseRepository = diseaseRepository;
+        this.animalTypeRepository = animalTypeRepository;
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO createDisease(DiseaseDTO diseaseDTO) {
         logger.info("Creating new disease: {}", diseaseDTO.getDiseaseName());
         
@@ -53,10 +64,32 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setDiseaseName(diseaseDTO.getDiseaseName());
         disease.setDiseaseCode(diseaseDTO.getDiseaseCode());
         disease.setDescription(diseaseDTO.getDescription());
+        disease.setSymptoms(diseaseDTO.getSymptoms());
+        disease.setTreatment(diseaseDTO.getTreatment());
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
-        disease.setIsNotifiable(diseaseDTO.getIsNotifiable() != null ? diseaseDTO.getIsNotifiable() : false);
+        disease.setIsNotifiable(Boolean.TRUE.equals(diseaseDTO.getIsNotifiable()));
         disease.setIsActive(true);
+        
+        // Set animal types if provided (new multi-select approach)
+        if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
+            // Single batch query instead of N individual findById calls
+            List<AnimalType> foundTypes = animalTypeRepository.findAllById(diseaseDTO.getAnimalTypeIds());
+            if (foundTypes.size() != diseaseDTO.getAnimalTypeIds().size()) {
+                logger.error("Some animal types not found. Requested: {}, Found: {}", 
+                            diseaseDTO.getAnimalTypeIds().size(), foundTypes.size());
+                throw new ConfigurationNotFoundException("AnimalType", "one or more IDs not found");
+            }
+            disease.setAnimalTypes(new HashSet<>(foundTypes));
+        } else if (diseaseDTO.getAnimalTypeId() != null) {
+            // Legacy single animal type support for backward compatibility
+            AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
+                    .orElseThrow(() -> {
+                        logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
+                        return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
+                    });
+            disease.getAnimalTypes().add(animalType);
+        }
         
         Disease savedDisease = diseaseRepository.save(disease);
         logger.info("Disease created successfully with ID: {}", savedDisease.getId());
@@ -65,6 +98,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO updateDisease(UUID id, DiseaseDTO diseaseDTO) {
         logger.info("Updating disease with ID: {}", id);
         
@@ -90,9 +124,34 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setDiseaseName(diseaseDTO.getDiseaseName());
         disease.setDiseaseCode(diseaseDTO.getDiseaseCode());
         disease.setDescription(diseaseDTO.getDescription());
+        disease.setSymptoms(diseaseDTO.getSymptoms());
+        disease.setTreatment(diseaseDTO.getTreatment());
         disease.setAffectedAnimalTypes(diseaseDTO.getAffectedAnimalTypes());
         disease.setSeverity(diseaseDTO.getSeverity());
         disease.setIsNotifiable(diseaseDTO.getIsNotifiable());
+        
+        // Update animal types if provided (new multi-select approach)
+        if (diseaseDTO.getAnimalTypeIds() != null && !diseaseDTO.getAnimalTypeIds().isEmpty()) {
+            // Single batch query instead of N individual findById calls
+            List<AnimalType> foundTypes = animalTypeRepository.findAllById(diseaseDTO.getAnimalTypeIds());
+            if (foundTypes.size() != diseaseDTO.getAnimalTypeIds().size()) {
+                logger.error("Some animal types not found. Requested: {}, Found: {}", 
+                            diseaseDTO.getAnimalTypeIds().size(), foundTypes.size());
+                throw new ConfigurationNotFoundException("AnimalType", "one or more IDs not found");
+            }
+            disease.setAnimalTypes(new HashSet<>(foundTypes));
+        } else if (diseaseDTO.getAnimalTypeId() != null) {
+            // Legacy single animal type support for backward compatibility
+            AnimalType animalType = animalTypeRepository.findById(diseaseDTO.getAnimalTypeId())
+                    .orElseThrow(() -> {
+                        logger.error(ANIMAL_TYPE_NOT_FOUND_MSG, diseaseDTO.getAnimalTypeId());
+                        return new ConfigurationNotFoundException("AnimalType", diseaseDTO.getAnimalTypeId());
+                    });
+            disease.getAnimalTypes().clear();
+            disease.getAnimalTypes().add(animalType);
+        } else {
+            disease.getAnimalTypes().clear();
+        }
         
         Disease updatedDisease = diseaseRepository.save(disease);
         logger.info("Disease updated successfully: {}", updatedDisease.getId());
@@ -116,6 +175,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "diseases", key = "'all'")
     public List<DiseaseDTO> getAllDiseases() {
         logger.debug("Fetching all diseases");
         
@@ -127,6 +187,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "diseases", key = "'active'")
     public List<DiseaseDTO> getActiveDiseases() {
         logger.debug("Fetching active diseases");
         
@@ -170,6 +231,18 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<DiseaseDTO> getDiseasesByAnimalType(UUID animalTypeId) {
+        logger.debug("Fetching diseases for animal type: {}", animalTypeId);
+        
+        List<Disease> diseases = diseaseRepository.findByAnimalTypeIdAndIsActiveTrue(animalTypeId);
+        return diseases.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public DiseaseDTO toggleDiseaseStatus(UUID id, Boolean isActive) {
         logger.info("Toggling disease status for ID: {} to {}", id, isActive);
         
@@ -190,6 +263,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @CacheEvict(value = "diseases", allEntries = true)
     public void deleteDisease(UUID id) {
         logger.info("Attempting to delete disease with ID: {}", id);
         
@@ -243,12 +317,33 @@ public class DiseaseServiceImpl implements DiseaseService {
         dto.setDiseaseName(disease.getDiseaseName());
         dto.setDiseaseCode(disease.getDiseaseCode());
         dto.setDescription(disease.getDescription());
+        dto.setSymptoms(disease.getSymptoms());
+        dto.setTreatment(disease.getTreatment());
         dto.setAffectedAnimalTypes(disease.getAffectedAnimalTypes());
         dto.setSeverity(disease.getSeverity());
         dto.setIsNotifiable(disease.getIsNotifiable());
         dto.setIsActive(disease.getIsActive());
+        dto.setCreatedByVet(disease.getCreatedByVet());
         dto.setCreatedAt(disease.getCreatedAt());
         dto.setUpdatedAt(disease.getUpdatedAt());
+        
+        // Set animal type information (multiple animal types)
+        if (disease.getAnimalTypes() != null && !disease.getAnimalTypes().isEmpty()) {
+            List<UUID> animalTypeIds = disease.getAnimalTypes().stream()
+                    .map(AnimalType::getId)
+                    .collect(Collectors.toList());
+            List<String> animalTypeNames = disease.getAnimalTypes().stream()
+                    .map(AnimalType::getTypeName)
+                    .collect(Collectors.toList());
+            
+            dto.setAnimalTypeIds(animalTypeIds);
+            dto.setAnimalTypeNames(animalTypeNames);
+            
+            // For backward compatibility, set the first animal type as the single one
+            AnimalType firstType = disease.getAnimalTypes().iterator().next();
+            dto.setAnimalTypeId(firstType.getId());
+            dto.setAnimalTypeName(String.join(", ", animalTypeNames));
+        }
         
         if (disease.getCreatedBy() != null) {
             dto.setCreatedByUsername(disease.getCreatedBy().getUsername());

@@ -1,24 +1,24 @@
 /**
  * Configuration Management JavaScript
  * Handles CRUD operations for farm types, animal types, and diseases
+ * Updated for card-based UI layout
  */
 
-// CSRF Token
-const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+// Note: CSRF token is handled globally by main.js fetch wrapper
 
 // API Base URLs
 const API_BASE = '/api/configuration';
 const FARM_TYPES_API = `${API_BASE}/farm-types`;
 const ANIMAL_TYPES_API = `${API_BASE}/animal-types`;
 const DISEASES_API = `${API_BASE}/diseases`;
-const CONFIG_TABS = ['farm-types', 'animal-types', 'diseases'];
+const CONFIG_TABS = ['animal-types', 'farm-types', 'diseases'];
 
 // Current state
-let currentTab = 'farm-types';
+let currentTab = 'animal-types';
 let currentEditId = null;
 let currentDeleteId = null;
 let currentDeleteType = null;
+let animalTypesCache = []; // Cache for animal types dropdown
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,18 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('farm-type-form').addEventListener('submit', handleFarmTypeSubmit);
     document.getElementById('animal-type-form').addEventListener('submit', handleAnimalTypeSubmit);
     document.getElementById('disease-form').addEventListener('submit', handleDiseaseSubmit);
-    
+
     // Set up add buttons
     document.getElementById('add-farm-type-btn').addEventListener('click', () => openFarmTypeModal());
     document.getElementById('add-animal-type-btn').addEventListener('click', () => openAnimalTypeModal());
     document.getElementById('add-disease-btn').addEventListener('click', () => openDiseaseModal());
-    
+
     // Set up delete confirmation
     document.getElementById('confirm-delete-btn').addEventListener('click', handleDelete);
 });
 
 // ========================================
-// TAB MANAGEMENT
+// TAB MANAGEMENT (Updated for new UI)
 // ========================================
 
 function getInitialTab() {
@@ -59,7 +59,7 @@ function getValidTabName(tabName) {
 }
 
 function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabButtons = document.querySelectorAll('.config-tab');
     for (const button of tabButtons) {
         button.addEventListener('click', () => {
             const tabName = button.dataset.tab;
@@ -70,25 +70,25 @@ function initializeTabs() {
 
 function switchTab(tabName) {
     const validTab = getValidTabName(tabName);
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+    const tabButtons = document.querySelectorAll('.config-tab');
+    const tabContents = document.querySelectorAll('.config-tab-content');
 
     for (const btn of tabButtons) {
         btn.classList.remove('active');
     }
-    const activeButton = document.querySelector(`[data-tab="${validTab}"]`);
+    const activeButton = document.querySelector(`.config-tab[data-tab="${validTab}"]`);
     if (activeButton) {
         activeButton.classList.add('active');
     }
-    
+
     for (const content of tabContents) {
         content.classList.remove('active');
     }
-    const targetContent = document.getElementById(`${validTab}-tab`);
+    const targetContent = document.getElementById(`${validTab}-content`);
     if (targetContent) {
         targetContent.classList.add('active');
     }
-    
+
     // Load data for the tab
     currentTab = validTab;
     switch (validTab) {
@@ -118,23 +118,36 @@ function initializeModals() {
             }
         });
     });
-    
-    // Click outside to close
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal(modal.id);
+
+    // Click outside to close (click on overlay)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeModal(overlay.id);
             }
         });
     });
 }
 
 function openModal(modalId) {
-    document.getElementById(modalId).classList.add('show');
+    document.getElementById(modalId).classList.remove('hidden');
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('show');
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+function refreshConfigurationIcons(container = null) {
+    if (typeof lucide === 'undefined') {
+        return;
+    }
+
+    if (container) {
+        lucide.createIcons({ nodes: [container] });
+        return;
+    }
+
+    lucide.createIcons();
 }
 
 // ========================================
@@ -145,54 +158,51 @@ async function loadFarmTypes() {
     try {
         const response = await fetch(FARM_TYPES_API);
         if (!response.ok) throw new Error('Failed to load farm types');
-        
+
         const farmTypes = await response.json();
-        renderFarmTypes(farmTypes);
+        renderFarmTypesCards(farmTypes);
     } catch (error) {
         console.error('Error loading farm types:', error);
         showError('Failed to load farm types');
     }
 }
 
-function renderFarmTypes(farmTypes) {
-    const tbody = document.querySelector('#farm-types-table tbody');
-    
-    if (farmTypes.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="7">
-                    <div class="icon">🏡</div>
-                    <p>No farm types found. Add one to get started!</p>
-                </td>
-            </tr>
+function renderFarmTypesCards(farmTypes) {
+    const container = document.getElementById('farm-types-cards');
+
+    if (!farmTypes || farmTypes.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon"><i data-lucide="warehouse" class="icon icon-2xl icon-muted"></i></div>
+                <p>No farm types found. Add one to get started!</p>
+            </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
-    
-    tbody.innerHTML = farmTypes.map(ft => `
-        <tr>
-            <td data-label="Type Name"><strong>${escapeHtml(ft.typeName)}</strong></td>
-            <td data-label="Description" class="text-truncate">${escapeHtml(ft.description || '-')}</td>
-            <td data-label="Status"><span class="status-badge ${ft.isActive ? 'active' : 'inactive'}">${ft.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(ft.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(ft.createdAt)}</td>
-            <td data-label="Usage"><strong>${ft.usageCount || 0}</strong> farms</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editFarmType('${ft.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleFarmType('${ft.id}', ${!ft.isActive})" title="${ft.isActive ? 'Deactivate' : 'Activate'}">${ft.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteFarmType('${ft.id}')" title="Delete">🗑️</button>
-                </div>
-            </td>
-        </tr>
+
+    container.innerHTML = farmTypes.map(ft => `
+        <div class="config-item-card" onclick="editFarmType('${ft.id}')" data-id="${ft.id}">
+            <div class="config-item-icon"><i data-lucide="warehouse" class="icon icon-md"></i></div>
+            <div class="config-item-content">
+                <div class="config-item-name">${escapeHtml(ft.typeName)}</div>
+                <div class="config-item-description">${escapeHtml(ft.description || 'No description')}</div>
+            </div>
+            <div class="config-item-actions" onclick="event.stopPropagation()">
+                <button class="config-action-btn" onclick="editFarmType('${ft.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                <button class="config-action-btn delete" onclick="deleteFarmType('${ft.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
+            </div>
+        </div>
     `).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openFarmTypeModal(farmType = null) {
     currentEditId = farmType ? farmType.id : null;
     const form = document.getElementById('farm-type-form');
     const title = document.getElementById('farm-type-modal-title');
-    
+
     if (farmType) {
         title.textContent = 'Edit Farm Type';
         document.getElementById('farm-type-id').value = farmType.id;
@@ -203,27 +213,27 @@ function openFarmTypeModal(farmType = null) {
         title.textContent = 'Add Farm Type';
         form.reset();
     }
-    
+
     // Clear errors
     form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
     form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-    
+
     openModal('farm-type-modal');
 }
 
 async function handleFarmTypeSubmit(e) {
     e.preventDefault();
-    
+
     const formData = {
         typeName: document.getElementById('farm-type-name').value.trim(),
         description: document.getElementById('farm-type-description').value.trim(),
         isActive: document.getElementById('farm-type-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${FARM_TYPES_API}/${currentEditId}` : FARM_TYPES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -232,12 +242,12 @@ async function handleFarmTypeSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save farm type');
         }
-        
+
         showSuccess(`Farm type ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('farm-type-modal');
         loadFarmTypes();
@@ -251,7 +261,7 @@ async function editFarmType(id) {
     try {
         const response = await fetch(`${FARM_TYPES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load farm type');
-        
+
         const farmType = await response.json();
         openFarmTypeModal(farmType);
     } catch (error) {
@@ -270,9 +280,9 @@ async function toggleFarmType(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Farm type ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadFarmTypes();
     } catch (error) {
@@ -284,7 +294,7 @@ async function toggleFarmType(id, isActive) {
 function deleteFarmType(id) {
     currentDeleteId = id;
     currentDeleteType = 'farm-type';
-    
+
     // Check usage before showing delete modal
     fetch(`${FARM_TYPES_API}/${id}/usage`)
         .then(response => response.json())
@@ -292,8 +302,12 @@ function deleteFarmType(id) {
             const usageCount = data.usageCount || 0;
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset disease list (only used for animal types)
+            diseaseListContainer.style.display = 'none';
+
             if (usageCount > 0) {
                 message.textContent = `This farm type is currently used by ${usageCount} farm(s).`;
                 warning.style.display = 'block';
@@ -303,7 +317,7 @@ function deleteFarmType(id) {
                 warning.style.display = 'none';
                 deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -320,88 +334,82 @@ async function loadAnimalTypes() {
     try {
         const response = await fetch(ANIMAL_TYPES_API);
         if (!response.ok) throw new Error('Failed to load animal types');
-        
+
         const animalTypes = await response.json();
-        renderAnimalTypes(animalTypes);
+        renderAnimalTypesCards(animalTypes);
     } catch (error) {
         console.error('Error loading animal types:', error);
         showError('Failed to load animal types');
     }
 }
 
-function renderAnimalTypes(animalTypes) {
-    const tbody = document.querySelector('#animal-types-table tbody');
-    
-    if (animalTypes.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="8">
-                    <div class="icon">🐄</div>
-                    <p>No animal types found. Add one to get started!</p>
-                </td>
-            </tr>
+function renderAnimalTypesCards(animalTypes) {
+    const container = document.getElementById('animal-types-cards');
+
+    if (!animalTypes || animalTypes.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon"><i data-lucide="paw-print" class="icon icon-2xl icon-muted"></i></div>
+                <p>No animal types found. Add one to get started!</p>
+            </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
-    
-    tbody.innerHTML = animalTypes.map(at => `
-        <tr>
-            <td data-label="Type Name"><strong>${escapeHtml(at.typeName)}</strong></td>
-            <td data-label="Species"><em>${escapeHtml(at.species)}</em></td>
-            <td data-label="Description" class="text-truncate">${escapeHtml(at.description || '-')}</td>
-            <td data-label="Status"><span class="status-badge ${at.isActive ? 'active' : 'inactive'}">${at.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(at.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(at.createdAt)}</td>
-            <td data-label="Usage"><strong>${at.usageCount || 0}</strong> animals</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editAnimalType('${at.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleAnimalType('${at.id}', ${!at.isActive})" title="${at.isActive ? 'Deactivate' : 'Activate'}">${at.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteAnimalType('${at.id}')" title="Delete">🗑️</button>
-                </div>
-            </td>
-        </tr>
+
+    container.innerHTML = animalTypes.map(at => `
+        <div class="config-item-card" onclick="editAnimalType('${at.id}')" data-id="${at.id}">
+            <div class="config-item-icon"><i data-lucide="paw-print" class="icon icon-md"></i></div>
+            <div class="config-item-content">
+                <div class="config-item-name">${escapeHtml(at.typeName)}</div>
+                <div class="config-item-description">${escapeHtml(at.description || 'No description')}</div>
+            </div>
+            <div class="config-item-actions" onclick="event.stopPropagation()">
+                <button class="config-action-btn" onclick="editAnimalType('${at.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                <button class="config-action-btn delete" onclick="deleteAnimalType('${at.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
+            </div>
+        </div>
     `).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openAnimalTypeModal(animalType = null) {
     currentEditId = animalType ? animalType.id : null;
     const form = document.getElementById('animal-type-form');
     const title = document.getElementById('animal-type-modal-title');
-    
+
     if (animalType) {
         title.textContent = 'Edit Animal Type';
         document.getElementById('animal-type-id').value = animalType.id;
         document.getElementById('animal-type-name').value = animalType.typeName;
-        document.getElementById('animal-type-species').value = animalType.species;
         document.getElementById('animal-type-description').value = animalType.description || '';
         document.getElementById('animal-type-active').checked = animalType.isActive;
     } else {
         title.textContent = 'Add Animal Type';
         form.reset();
     }
-    
+
     // Clear errors
     form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
     form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
-    
+
     openModal('animal-type-modal');
 }
 
 async function handleAnimalTypeSubmit(e) {
     e.preventDefault();
-    
+
     const formData = {
         typeName: document.getElementById('animal-type-name').value.trim(),
-        species: document.getElementById('animal-type-species').value.trim(),
         description: document.getElementById('animal-type-description').value.trim(),
         isActive: document.getElementById('animal-type-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${ANIMAL_TYPES_API}/${currentEditId}` : ANIMAL_TYPES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -410,15 +418,17 @@ async function handleAnimalTypeSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save animal type');
         }
-        
+
         showSuccess(`Animal type ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('animal-type-modal');
         loadAnimalTypes();
+        // Clear cache so disease dropdown refreshes with new animal types
+        animalTypesCache = [];
     } catch (error) {
         console.error('Error saving animal type:', error);
         showError(error.message);
@@ -429,7 +439,7 @@ async function editAnimalType(id) {
     try {
         const response = await fetch(`${ANIMAL_TYPES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load animal type');
-        
+
         const animalType = await response.json();
         openAnimalTypeModal(animalType);
     } catch (error) {
@@ -448,11 +458,13 @@ async function toggleAnimalType(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Animal type ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadAnimalTypes();
+        // Clear cache so disease dropdown refreshes with updated animal types
+        animalTypesCache = [];
     } catch (error) {
         console.error('Error toggling animal type:', error);
         showError(error.message);
@@ -462,25 +474,48 @@ async function toggleAnimalType(id, isActive) {
 function deleteAnimalType(id) {
     currentDeleteId = id;
     currentDeleteType = 'animal-type';
-    
+
     fetch(`${ANIMAL_TYPES_API}/${id}/usage`)
         .then(response => response.json())
         .then(data => {
             const usageCount = data.usageCount || 0;
+            const diseaseCount = data.diseaseCount || 0;
+            const diseaseNames = data.diseaseNames || [];
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
+            const diseaseNamesList = document.getElementById('disease-names-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset all elements first
+            warning.style.display = 'none';
+            diseaseListContainer.style.display = 'none';
+            diseaseNamesList.innerHTML = '';
+            deleteBtn.disabled = false;
+
             if (usageCount > 0) {
+                // Animals are using this type - block deletion
                 message.textContent = `This animal type is currently used by ${usageCount} animal(s).`;
                 warning.style.display = 'block';
                 deleteBtn.disabled = true;
+            } else if (diseaseCount > 0) {
+                // Diseases are linked to this type - show disease names and block deletion
+                message.textContent = 'This animal type cannot be deleted.';
+
+                // Populate disease names list
+                diseaseNames.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    diseaseNamesList.appendChild(li);
+                });
+
+                diseaseListContainer.style.display = 'block';
+                deleteBtn.disabled = true;
             } else {
+                // No usage - allow deletion
                 message.textContent = 'Are you sure you want to delete this animal type?';
-                warning.style.display = 'none';
-                deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -497,85 +532,333 @@ async function loadDiseases() {
     try {
         const response = await fetch(DISEASES_API);
         if (!response.ok) throw new Error('Failed to load diseases');
-        
+
         const diseases = await response.json();
-        renderDiseases(diseases);
+        renderDiseasesCards(diseases);
     } catch (error) {
         console.error('Error loading diseases:', error);
         showError('Failed to load diseases');
     }
 }
 
-function renderDiseases(diseases) {
-    const tbody = document.querySelector('#diseases-table tbody');
-    
-    if (diseases.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="9">
-                    <div class="icon">🦠</div>
-                    <p>No diseases found. Add one to get started!</p>
-                </td>
-            </tr>
+function renderDiseasesCards(diseases) {
+    const container = document.getElementById('diseases-cards');
+
+    if (!diseases || diseases.length === 0) {
+        container.innerHTML = `
+            <div class="config-empty-state">
+                <div class="config-empty-state-icon"><i data-lucide="bug" class="icon icon-2xl icon-muted"></i></div>
+                <p>No diseases found. Add one to get started!</p>
+            </div>
         `;
+        refreshConfigurationIcons(container);
         return;
     }
-    
-    tbody.innerHTML = diseases.map(d => `
-        <tr>
-            <td data-label="Disease Name"><strong>${escapeHtml(d.diseaseName)}</strong></td>
-            <td data-label="Code">${escapeHtml(d.diseaseCode || '-')}</td>
-            <td data-label="Severity"><span class="severity-badge ${d.severity.toLowerCase()}">${d.severity}</span></td>
-            <td data-label="Notifiable">${d.isNotifiable ? '<span class="notifiable-badge">Notifiable</span>' : '-'}</td>
-            <td data-label="Status"><span class="status-badge ${d.isActive ? 'active' : 'inactive'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
-            <td data-label="Created By">${escapeHtml(d.createdByUsername || 'System')}</td>
-            <td data-label="Created Date">${formatDate(d.createdAt)}</td>
-            <td data-label="Usage"><strong>${d.usageCount || 0}</strong> reports</td>
-            <td data-label="Actions">
-                <div class="action-buttons">
-                    <button class="btn-icon edit" onclick="editDisease('${d.id}')" title="Edit">✏️</button>
-                    <button class="btn-icon toggle" onclick="toggleDisease('${d.id}', ${!d.isActive})" title="${d.isActive ? 'Deactivate' : 'Activate'}">${d.isActive ? '🔒' : '🔓'}</button>
-                    <button class="btn-icon delete" onclick="deleteDisease('${d.id}')" title="Delete">🗑️</button>
+
+    container.innerHTML = diseases.map(d => {
+        // Format animal types display (use animalTypeNames array if available, else fallback)
+        let animalTypesDisplay = 'All animals';
+        if (d.animalTypeNames && d.animalTypeNames.length > 0) {
+            animalTypesDisplay = d.animalTypeNames.join(', ');
+        } else if (d.animalTypeName) {
+            animalTypesDisplay = d.animalTypeName;
+        }
+        
+        return `
+            <div class="config-item-card" onclick="editDisease('${d.id}')" data-id="${d.id}">
+                <div class="config-item-icon"><i data-lucide="bug" class="icon icon-md"></i></div>
+                <div class="config-item-content">
+                    <div class="config-item-name">${escapeHtml(d.diseaseName)}</div>
+                    <div class="config-item-description">${escapeHtml(animalTypesDisplay)} • ${d.severity}</div>
                 </div>
-            </td>
-        </tr>
-    `).join('');
+                <div class="config-item-actions" onclick="event.stopPropagation()">
+                    <button class="config-action-btn" onclick="editDisease('${d.id}')" title="Edit"><i data-lucide="pencil" class="icon icon-xs"></i></button>
+                    <button class="config-action-btn delete" onclick="deleteDisease('${d.id}')" title="Delete"><i data-lucide="trash-2" class="icon icon-xs"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    refreshConfigurationIcons(container);
 }
 
 function openDiseaseModal(disease = null) {
     currentEditId = disease ? disease.id : null;
     const form = document.getElementById('disease-form');
     const title = document.getElementById('disease-modal-title');
-    
-    if (disease) {
-        title.textContent = 'Edit Disease';
-        document.getElementById('disease-id').value = disease.id;
-        document.getElementById('disease-name').value = disease.diseaseName;
-        document.getElementById('disease-code').value = disease.diseaseCode || '';
-        document.getElementById('disease-severity').value = disease.severity;
-        document.getElementById('disease-notifiable').checked = disease.isNotifiable;
-        document.getElementById('disease-description').value = disease.description || '';
-        document.getElementById('disease-symptoms').value = disease.symptoms || '';
-        document.getElementById('disease-treatment').value = disease.treatment || '';
-        document.getElementById('disease-active').checked = disease.isActive;
-    } else {
-        title.textContent = 'Add Disease';
-        form.reset();
+
+    // Load animal types for dropdown
+    loadAnimalTypesForDropdown().then(() => {
+        if (disease) {
+            title.textContent = 'Edit Disease';
+            document.getElementById('disease-id').value = disease.id;
+            document.getElementById('disease-name').value = disease.diseaseName;
+            document.getElementById('disease-code').value = disease.diseaseCode || '';
+            
+            // Handle multiple animal types selection in checkbox dropdown
+            if (disease.animalTypeIds && disease.animalTypeIds.length > 0) {
+                setAnimalTypeCheckboxes(disease.animalTypeIds);
+            } else if (disease.animalTypeId) {
+                // Legacy single animal type support
+                setAnimalTypeCheckboxes([disease.animalTypeId]);
+            } else {
+                clearAnimalTypeCheckboxes();
+            }
+            
+            document.getElementById('disease-severity').value = disease.severity;
+            document.getElementById('disease-notifiable').checked = disease.isNotifiable;
+            document.getElementById('disease-description').value = disease.description || '';
+            document.getElementById('disease-symptoms').value = disease.symptoms || '';
+            document.getElementById('disease-treatment').value = disease.treatment || '';
+            document.getElementById('disease-active').checked = disease.isActive;
+        } else {
+            title.textContent = 'Add Disease';
+            form.reset();
+            // Clear checkbox dropdown
+            clearAnimalTypeCheckboxes();
+        }
+
+        // Clear errors
+        form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+        form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+
+        openModal('disease-modal');
+
+        // Initialize custom selects after modal is open (for proper dimensions)
+        initializeDiseaseCustomSelects(disease);
+    });
+}
+
+/**
+ * Initialize custom select components for disease modal.
+ * @param {Object|null} disease - Disease object for editing, or null for new disease
+ */
+function initializeDiseaseCustomSelects(disease) {
+    // Note: For multi-select, we use native HTML multi-select instead of CustomSelect
+    // Only initialize severity as custom select
+    if (typeof CustomSelect !== 'undefined') {
+        CustomSelect.init('disease-severity', {
+            placeholder: 'Select severity...',
+            title: 'Select Severity'
+        });
+
+        // Set severity value after initialization
+        if (disease && disease.severity) {
+            const severityInstance = CustomSelect.getInstance('disease-severity');
+            if (severityInstance) {
+                severityInstance.setValue(disease.severity);
+            }
+        }
     }
+}
+
+/**
+ * Load active animal types for the disease modal dropdown.
+ */
+async function loadAnimalTypesForDropdown() {
+    try {
+        // Use cache if available
+        if (animalTypesCache.length > 0) {
+            populateAnimalTypeDropdown(animalTypesCache);
+            return;
+        }
+
+        const response = await fetch(`${ANIMAL_TYPES_API}/active`);
+        if (!response.ok) throw new Error('Failed to load animal types');
+
+        animalTypesCache = await response.json();
+        populateAnimalTypeDropdown(animalTypesCache);
+    } catch (error) {
+        console.error('Error loading animal types:', error);
+        showError('Failed to load animal types for dropdown');
+    }
+}
+
+/**
+ * Populate the animal type checkbox dropdown with options.
+ */
+function populateAnimalTypeDropdown(animalTypes) {
+    const optionsContainer = document.getElementById('animalTypeOptions');
+    if (!optionsContainer) return;
+
+    // Clear existing options
+    optionsContainer.innerHTML = '';
+
+    // Add animal type options as checkboxes
+    animalTypes.forEach(at => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'dropdown-option';
+        optionDiv.innerHTML = `
+            <input type="checkbox" id="animal-type-${at.id}" value="${at.id}">
+            <label for="animal-type-${at.id}">${at.typeName}</label>
+        `;
+        optionsContainer.appendChild(optionDiv);
+    });
+
+    // Initialize checkbox dropdown event listeners
+    initializeAnimalTypeDropdown();
+}
+
+/**
+ * Initialize the animal type checkbox dropdown event listeners.
+ * Uses event delegation and flags to prevent duplicate listeners.
+ */
+let animalTypeDropdownInitialized = false;
+
+function initializeAnimalTypeDropdown() {
+    const dropdown = document.getElementById('animalTypeDropdown');
+    const toggle = document.getElementById('animalTypeDropdownToggle');
+    const search = document.getElementById('animalTypeSearch');
+    const selectAllBtn = document.getElementById('selectAllAnimalTypes');
+    const clearAllBtn = document.getElementById('clearAllAnimalTypes');
+
+    if (!dropdown || !toggle) return;
+
+    // Only add global listeners once
+    if (!animalTypeDropdownInitialized) {
+        animalTypeDropdownInitialized = true;
+
+        // Toggle dropdown open/close
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+            if (dropdown.classList.contains('open') && search) {
+                search.value = ''; // Clear search
+                // Show all options
+                const options = document.querySelectorAll('#animalTypeOptions .dropdown-option');
+                options.forEach(option => option.classList.remove('hidden'));
+                search.focus();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // Search functionality
+        if (search) {
+            search.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const options = document.querySelectorAll('#animalTypeOptions .dropdown-option');
+                options.forEach(option => {
+                    const label = option.querySelector('label').textContent.toLowerCase();
+                    option.classList.toggle('hidden', !label.includes(searchTerm));
+                });
+            });
+        }
+
+        // Select all
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    if (!cb.closest('.dropdown-option').classList.contains('hidden')) {
+                        cb.checked = true;
+                    }
+                });
+                updateAnimalTypeDropdownText();
+            });
+        }
+
+        // Clear all
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = false);
+                updateAnimalTypeDropdownText();
+            });
+        }
+
+        // Event delegation for checkbox changes on the options container
+        const optionsContainer = document.getElementById('animalTypeOptions');
+        if (optionsContainer) {
+            optionsContainer.addEventListener('change', () => {
+                updateAnimalTypeDropdownText();
+            });
+        }
+    }
+}
+
+/**
+ * Update the dropdown toggle text based on selected checkboxes.
+ */
+function updateAnimalTypeDropdownText() {
+    const dropdownText = document.querySelector('#animalTypeDropdown .dropdown-text');
+    const selectedHint = document.getElementById('animalTypeSelectedCount');
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]:checked');
     
-    // Clear errors
-    form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
-    form.querySelectorAll('.form-control').forEach(el => el.classList.remove('error'));
+    if (!dropdownText) return;
+
+    if (checkboxes.length === 0) {
+        dropdownText.textContent = 'Select animal types...';
+        dropdownText.classList.remove('has-selection');
+        if (selectedHint) selectedHint.textContent = '';
+    } else if (checkboxes.length === 1) {
+        const label = checkboxes[0].nextElementSibling.textContent;
+        dropdownText.textContent = label;
+        dropdownText.classList.add('has-selection');
+        if (selectedHint) selectedHint.textContent = '1 animal type selected';
+    } else {
+        dropdownText.textContent = `${checkboxes.length} animal types selected`;
+        dropdownText.classList.add('has-selection');
+        if (selectedHint) selectedHint.textContent = `${checkboxes.length} animal types selected`;
+    }
+}
+
+/**
+ * Set checkbox selections based on animal type IDs.
+ */
+function setAnimalTypeCheckboxes(animalTypeIds) {
+    // First clear all
+    clearAnimalTypeCheckboxes();
     
-    openModal('disease-modal');
+    // Then check the specified ones
+    animalTypeIds.forEach(id => {
+        const checkbox = document.querySelector(`#animalTypeOptions input[value="${id}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+    
+    updateAnimalTypeDropdownText();
+}
+
+/**
+ * Clear all animal type checkbox selections.
+ */
+function clearAnimalTypeCheckboxes() {
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    updateAnimalTypeDropdownText();
+}
+
+/**
+ * Get selected animal type IDs from checkbox dropdown.
+ */
+function getSelectedAnimalTypeIds() {
+    const checkboxes = document.querySelectorAll('#animalTypeOptions input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
 }
 
 async function handleDiseaseSubmit(e) {
     e.preventDefault();
+
+    // Get selected animal type IDs from checkbox dropdown
+    const animalTypeIds = getSelectedAnimalTypeIds();
     
+    // Validate at least one animal type is selected
+    if (animalTypeIds.length === 0) {
+        showError('Please select at least one animal type');
+        return;
+    }
+
     const formData = {
         diseaseName: document.getElementById('disease-name').value.trim(),
         diseaseCode: document.getElementById('disease-code').value.trim(),
+        animalTypeIds: animalTypeIds,
         severity: document.getElementById('disease-severity').value,
         isNotifiable: document.getElementById('disease-notifiable').checked,
         description: document.getElementById('disease-description').value.trim(),
@@ -583,11 +866,11 @@ async function handleDiseaseSubmit(e) {
         treatment: document.getElementById('disease-treatment').value.trim(),
         isActive: document.getElementById('disease-active').checked
     };
-    
+
     try {
         const url = currentEditId ? `${DISEASES_API}/${currentEditId}` : DISEASES_API;
         const method = currentEditId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -596,12 +879,12 @@ async function handleDiseaseSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to save disease');
         }
-        
+
         showSuccess(`Disease ${currentEditId ? 'updated' : 'created'} successfully`);
         closeModal('disease-modal');
         loadDiseases();
@@ -615,7 +898,7 @@ async function editDisease(id) {
     try {
         const response = await fetch(`${DISEASES_API}/${id}`);
         if (!response.ok) throw new Error('Failed to load disease');
-        
+
         const disease = await response.json();
         openDiseaseModal(disease);
     } catch (error) {
@@ -634,9 +917,9 @@ async function toggleDisease(id, isActive) {
             },
             body: JSON.stringify({ isActive })
         });
-        
+
         if (!response.ok) throw new Error('Failed to toggle status');
-        
+
         showSuccess(`Disease ${isActive ? 'activated' : 'deactivated'} successfully`);
         loadDiseases();
     } catch (error) {
@@ -648,15 +931,19 @@ async function toggleDisease(id, isActive) {
 function deleteDisease(id) {
     currentDeleteId = id;
     currentDeleteType = 'disease';
-    
+
     fetch(`${DISEASES_API}/${id}/usage`)
         .then(response => response.json())
         .then(data => {
             const usageCount = data.usageCount || 0;
             const message = document.getElementById('delete-message');
             const warning = document.getElementById('delete-warning');
+            const diseaseListContainer = document.getElementById('delete-disease-list');
             const deleteBtn = document.getElementById('confirm-delete-btn');
-            
+
+            // Reset disease list (only used for animal types)
+            diseaseListContainer.style.display = 'none';
+
             if (usageCount > 0) {
                 message.textContent = `This disease is currently used in ${usageCount} report(s).`;
                 warning.style.display = 'block';
@@ -666,7 +953,7 @@ function deleteDisease(id) {
                 warning.style.display = 'none';
                 deleteBtn.disabled = false;
             }
-            
+
             openModal('delete-modal');
         })
         .catch(error => {
@@ -681,7 +968,7 @@ function deleteDisease(id) {
 
 async function handleDelete() {
     if (!currentDeleteId || !currentDeleteType) return;
-    
+
     try {
         let url;
         switch (currentDeleteType) {
@@ -697,22 +984,22 @@ async function handleDelete() {
             default:
                 throw new Error('Unknown delete type');
         }
-        
+
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
                 [csrfHeader]: csrfToken
             }
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to delete item');
         }
-        
+
         showSuccess('Item deleted successfully');
         closeModal('delete-modal');
-        
+
         // Reload appropriate data
         switch (currentDeleteType) {
             case 'farm-type':
@@ -720,12 +1007,14 @@ async function handleDelete() {
                 break;
             case 'animal-type':
                 loadAnimalTypes();
+                // Clear cache so disease dropdown refreshes
+                animalTypesCache = [];
                 break;
             case 'disease':
                 loadDiseases();
                 break;
         }
-        
+
         currentDeleteId = null;
         currentDeleteType = null;
     } catch (error) {

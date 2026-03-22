@@ -50,6 +50,42 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
+     * Checks if a user exists with the given username (case-insensitive).
+     *
+     * @param username the username to check
+     * @return true if a user with the username exists, false otherwise
+     */
+    boolean existsByUsernameIgnoreCase(String username);
+
+    /**
+     * Checks if a user exists with the given email (case-insensitive).
+     *
+     * @param email the email to check
+     * @return true if a user with the email exists, false otherwise
+     */
+    boolean existsByEmailIgnoreCase(String email);
+
+    /**
+     * Checks if a user exists with the given username (case-insensitive),
+     * excluding a specific user by ID. Used for update uniqueness checks.
+     *
+     * @param username the username to check
+     * @param id       the user ID to exclude from the check
+     * @return true if another user with the username exists
+     */
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, Long id);
+
+    /**
+     * Checks if a user exists with the given email (case-insensitive),
+     * excluding a specific user by ID. Used for update uniqueness checks.
+     *
+     * @param email the email to check
+     * @param id    the user ID to exclude from the check
+     * @return true if another user with the email exists
+     */
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+
+    /**
      * Finds all users with a specific role.
      *
      * @param role the role to filter by
@@ -185,4 +221,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.district = :district AND u.role = :role AND u.active = true")
     List<User> findActiveUsersByDistrictAndRole(@Param("district") com.adrs.model.District district, @Param("role") User.Role role);
+
+    /**
+     * Count users created within a date range.
+     *
+     * @param startDate the start of the range
+     * @param endDate   the end of the range
+     * @return count of users created in the range
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate AND u.createdAt < :endDate")
+    Long countByCreatedAtBetween(@Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
+
+    /**
+     * Get user distribution by district for all active users (single query).
+     * Returns district and count pairs for all districts that have users.
+     *
+     * @return list of Object[] containing [District, Long count]
+     */
+    @Query("SELECT u.district, COUNT(u) FROM User u WHERE u.active = true AND u.district IS NOT NULL GROUP BY u.district")
+    List<Object[]> countActiveUsersByAllDistricts();
+
+    /**
+     * Get user distribution by district for a specific role (single query).
+     * Returns district and count pairs for all districts that have users with the role.
+     *
+     * @param role the user role to filter by
+     * @return list of Object[] containing [District, Long count]
+     */
+    @Query("SELECT u.district, COUNT(u) FROM User u WHERE u.active = true AND u.role = :role AND u.district IS NOT NULL GROUP BY u.district")
+    List<Object[]> countActiveUsersByAllDistrictsAndRole(@Param("role") User.Role role);
 }

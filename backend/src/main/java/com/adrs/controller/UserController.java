@@ -12,10 +12,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * MVC controller for user management pages.
@@ -72,14 +74,18 @@ public class UserController {
      */
     @PostMapping("/create")
     public String createUser(
-            @Valid @ModelAttribute("userRequest") UserRequest userRequest,
+            @Validated({UserRequest.Create.class, jakarta.validation.groups.Default.class})
+            @ModelAttribute("userRequest") UserRequest userRequest,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
         
         logger.info("Create user request received for: {}", userRequest.getUsername());
 
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed. Please check the form.");
+            String errorDetails = bindingResult.getFieldErrors().stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed: " + errorDetails);
             return REDIRECT_USERS;
         }
 
@@ -108,14 +114,18 @@ public class UserController {
     @PostMapping("/update/{id}")
     public String updateUser(
             @PathVariable Long id,
-            @Valid @ModelAttribute("userRequest") UserRequest userRequest,
+            @Validated(UserRequest.Update.class)
+            @ModelAttribute("userRequest") UserRequest userRequest,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
         
         logger.info("Update user request received for ID: {}", id);
 
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed. Please check the form.");
+            String errorDetails = bindingResult.getFieldErrors().stream()
+                    .map(e -> e.getField() + ": " + e.getDefaultMessage())
+                    .collect(Collectors.joining(", "));
+            redirectAttributes.addFlashAttribute(ERROR_MESSAGE, "Validation failed: " + errorDetails);
             return REDIRECT_USERS;
         }
 

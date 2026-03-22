@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,13 +34,48 @@ public class DiseaseDTO {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
+    private String symptoms;
+
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
+    private String treatment;
+
     private String[] affectedAnimalTypes;
+
+    /**
+     * The ID of the animal type that can contract this disease.
+     * @deprecated Use animalTypeIds for multiple animal types support.
+     */
+    @Deprecated
+    private UUID animalTypeId;
+
+    /**
+     * The name of the animal type (for display purposes).
+     * @deprecated Use animalTypeNames for multiple animal types support.
+     */
+    @Deprecated
+    private String animalTypeName;
+
+    /**
+     * List of animal type IDs that can contract this disease.
+     */
+    private List<UUID> animalTypeIds = new ArrayList<>();
+
+    /**
+     * List of animal type names (for display purposes).
+     */
+    private List<String> animalTypeNames = new ArrayList<>();
 
     private Disease.Severity severity;
 
     private Boolean isNotifiable;
 
     private Boolean isActive;
+
+    /**
+     * Indicates if this disease was created by a vet via the "Other" option.
+     */
+    private Boolean createdByVet;
 
     private LocalDateTime createdAt;
 

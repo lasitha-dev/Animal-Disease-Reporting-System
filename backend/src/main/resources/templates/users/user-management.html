@@ -2,9 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layouts/default}">
+      layout:decorate="~{layouts/default}"
+      lang="en">
 <head>
     <title>User Management</title>
+    <link rel="stylesheet" th:href="@{/css/user-management.css}">
 </head>
 <body>
 <div layout:fragment="content">
@@ -15,93 +17,125 @@
     <div th:if="${errorMessage}" class="alert alert-error mb-md" th:text="${errorMessage}">
         Error message
     </div>
-                
-                <!-- User Table -->
-                <div class="table-container">
-                    <div class="table-header">
-                        <h2 class="table-title">All Users</h2>
-                        <div class="table-actions">
-                            <button class="btn btn-primary" onclick="openCreateModal()">
-                                + Create User
-                            </button>
+    
+    <!-- Header with Search and Add Button -->
+    <div class="user-management-header">
+        <div class="search-box">
+            <i data-lucide="search" class="icon icon-sm search-icon"></i>
+            <input type="text" id="user-search" placeholder="Search users..." />
+        </div>
+        <button class="add-user-btn" onclick="openCreateModal()">
+            <i data-lucide="user-plus" class="icon icon-sm"></i>
+            <span>Add New User</span>
+        </button>
+    </div>
+    
+    <!-- User Table -->
+    <div class="user-table-container">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>User / Role</th>
+                    <th>Contact</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <tr th:if="${#lists.isEmpty(users)}">
+                    <td colspan="5" class="empty-state-cell">
+                        No users found
+                    </td>
+                </tr>
+                <tr th:each="user : ${users}" th:data-username="${user.username}" th:data-name="${user.firstName + ' ' + user.lastName}">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar" 
+                                 th:text="${#strings.substring(user.firstName, 0, 1).toUpperCase() + #strings.substring(user.lastName, 0, 1).toUpperCase()}">
+                                MC
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name" th:text="${user.firstName + ' ' + user.lastName}">John Doe</span>
+                                <span class="user-role-badge" 
+                                      th:classappend="${user.role == 'ADMIN'} ? 'admin' : 'vet'"
+                                      th:text="${user.role == 'ADMIN'} ? 'Admin' : 'Veterinarian'">
+                                    Veterinarian
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr th:if="${#lists.isEmpty(users)}">
-                                    <td colspan="7" style="text-align: center; padding: var(--spacing-xl);">
-                                        No users found
-                                    </td>
-                                </tr>
-                                <tr th:each="user : ${users}">
-                                    <td data-label="Username" th:text="${user.username}">username</td>
-                                    <td data-label="Name" th:text="${user.firstName + ' ' + user.lastName}">Name</td>
-                                    <td data-label="Email" th:text="${user.email}">email@example.com</td>
-                                    <td data-label="Phone" th:text="${user.phoneNumber} ?: '-'">-</td>
-                                    <td data-label="Role">
-                                        <span th:class="${user.role == 'ADMIN'} ? 'badge badge-info' : 'badge badge-success'"
-                                              th:text="${#strings.replace(user.role, '_', ' ')}">
-                                            ROLE
-                                        </span>
-                                    </td>
-                                    <td data-label="Status">
-                                        <span th:class="${user.active} ? 'badge badge-success' : 'badge badge-error'"
-                                              th:text="${user.active} ? 'Active' : 'Inactive'">
-                                            Status
-                                        </span>
-                                    </td>
-                                    <td data-label="Actions">
-                                        <div class="table-actions-cell">
-                                            <button class="btn btn-sm btn-outline btn-edit-user"
-                                                    th:data-user-id="${user.id}"
-                                                    th:data-username="${user.username}"
-                                                    th:data-email="${user.email}"
-                                                    th:data-first-name="${user.firstName}"
-                                                    th:data-last-name="${user.lastName}"
-                                                    th:data-phone="${user.phoneNumber}"
-                                                    th:data-province="${user.province}"
-                                                    th:data-district="${user.district}"
-                                                    th:data-role="${user.role}">
-                                                Edit
-                                            </button>
-                                            <form th:action="@{/users/toggle-status/{id}(id=${user.id})}" method="post" style="display: inline;">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <input type="hidden" name="active" th:value="${!user.active}"/>
-                                                <button type="submit" class="btn btn-sm btn-outline"
-                                                        th:text="${user.active} ? 'Deactivate' : 'Activate'">
-                                                    Toggle
-                                                </button>
-                                            </form>
-                                            <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
-                                                  class="delete-user-form"
-                                                  style="display: inline;"
-                                                  th:data-username="${user.username}">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    </td>
+                    <td>
+                        <div class="contact-cell">
+                            <span class="contact-email" th:text="${user.email}">email@example.com</span>
+                            <span class="contact-id" th:text="'ID: ' + ${user.username}">ID: USR-001</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge" 
+                              th:classappend="${user.active} ? 'active' : 'inactive'"
+                              th:text="${user.active} ? 'Active' : 'Inactive'">
+                            Active
+                        </span>
+                    </td>
+                    <td>
+                        <span class="date-cell" th:text="${user.createdAt != null} ? ${#temporals.format(user.createdAt, 'MMM dd, yyyy')} : '-'">Jan 01, 2024</span>
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-btn edit btn-edit-user"
+                                    th:data-user-id="${user.id}"
+                                    th:data-username="${user.username}"
+                                    th:data-email="${user.email}"
+                                    th:data-first-name="${user.firstName}"
+                                    th:data-last-name="${user.lastName}"
+                                    th:data-phone="${user.phoneNumber}"
+                                    th:data-province="${user.province}"
+                                    th:data-district="${user.district}"
+                                    th:data-role="${user.role}"
+                                    title="Edit user">
+                                <i data-lucide="pencil" class="icon icon-sm"></i>
+                            </button>
+                            <form th:action="@{/users/delete/{id}(id=${user.id})}" method="post" 
+                                  class="delete-user-form"
+                                  th:data-username="${user.username}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="action-btn delete" title="Delete user">
+                                    <i data-lucide="trash-2" class="icon icon-sm"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
+    <script th:src="@{/js/custom-select.js}"></script>
+    <script th:src="@{/js/user-management.js}"></script>
+    <script>
+        // User search functionality
+        document.getElementById('user-search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#user-table-body tr');
+            
+            rows.forEach(row => {
+                const username = row.dataset.username?.toLowerCase() || '';
+                const name = row.dataset.name?.toLowerCase() || '';
+                const email = row.querySelector('.contact-email')?.textContent.toLowerCase() || '';
+                
+                if (username.includes(searchTerm) || name.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</div>
+
+<!-- Modals Portal - Rendered outside dashboard container for proper stacking -->
+<div layout:fragment="modals">
     <!-- Create User Modal -->
     <div id="createModal" class="modal-overlay hidden" onclick="closeCreateModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
@@ -145,21 +179,21 @@
                     
                     <div class="form-group">
                         <label for="create-province" class="form-label">Province</label>
-                        <select id="create-province" name="province" class="form-select">
+                        <select id="create-province" name="province" class="form-select" data-custom-select data-placeholder="Select Province" data-title="Select Province">
                             <option value="">Select Province</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="create-district" class="form-label">District</label>
-                        <select id="create-district" name="district" class="form-select" disabled>
+                        <select id="create-district" name="district" class="form-select" disabled data-custom-select data-placeholder="Select District" data-title="Select District">
                             <option value="">Select District</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="create-role" class="form-label required">Role</label>
-                        <select id="create-role" name="role" class="form-select" required>
+                        <select id="create-role" name="role" class="form-select" required data-custom-select data-placeholder="Select Role" data-title="Select Role">
                             <option value="">Select Role</option>
                             <option value="ADMIN">Admin</option>
                             <option value="VETERINARY_OFFICER">Veterinary Officer</option>
@@ -217,21 +251,21 @@
                     
                     <div class="form-group">
                         <label for="edit-province" class="form-label">Province</label>
-                        <select id="edit-province" name="province" class="form-select">
+                        <select id="edit-province" name="province" class="form-select" data-custom-select data-placeholder="Select Province" data-title="Select Province">
                             <option value="">Select Province</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="edit-district" class="form-label">District</label>
-                        <select id="edit-district" name="district" class="form-select" disabled>
+                        <select id="edit-district" name="district" class="form-select" disabled data-custom-select data-placeholder="Select District" data-title="Select District">
                             <option value="">Select District</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="edit-role" class="form-label required">Role</label>
-                        <select id="edit-role" name="role" class="form-select" required>
+                        <select id="edit-role" name="role" class="form-select" required data-custom-select data-placeholder="Select Role" data-title="Select Role">
                             <option value="">Select Role</option>
                             <option value="ADMIN">Admin</option>
                             <option value="VETERINARY_OFFICER">Veterinary Officer</option>
@@ -245,8 +279,6 @@
             </form>
         </div>
     </div>
-    
-    <script th:src="@{/js/user-management.js}"></script>
 </div>
 </body>
 </html>

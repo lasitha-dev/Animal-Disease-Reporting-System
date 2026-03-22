@@ -8,6 +8,8 @@ import com.adrs.repository.FarmTypeRepository;
 import com.adrs.service.FarmTypeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
     }
 
     @Override
+    @CacheEvict(value = "farmTypes", allEntries = true)
     public FarmTypeDTO createFarmType(FarmTypeDTO farmTypeDTO) {
         logger.info("Creating new farm type: {}", farmTypeDTO.getTypeName());
         
@@ -54,6 +57,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
     }
 
     @Override
+    @CacheEvict(value = "farmTypes", allEntries = true)
     public FarmTypeDTO updateFarmType(UUID id, FarmTypeDTO farmTypeDTO) {
         logger.info("Updating farm type with ID: {}", id);
         
@@ -95,6 +99,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "farmTypes", key = "'all'")
     public List<FarmTypeDTO> getAllFarmTypes() {
         logger.debug("Fetching all farm types");
         
@@ -106,6 +111,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "farmTypes", key = "'active'")
     public List<FarmTypeDTO> getActiveFarmTypes() {
         logger.debug("Fetching active farm types");
         
@@ -127,6 +133,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
     }
 
     @Override
+    @CacheEvict(value = "farmTypes", allEntries = true)
     public FarmTypeDTO toggleFarmTypeStatus(UUID id, Boolean isActive) {
         logger.info("Toggling farm type status for ID: {} to {}", id, isActive);
         
@@ -146,6 +153,7 @@ public class FarmTypeServiceImpl implements FarmTypeService {
     }
 
     @Override
+    @CacheEvict(value = "farmTypes", allEntries = true)
     public void deleteFarmType(UUID id) {
         logger.info("Attempting to delete farm type with ID: {}", id);
         

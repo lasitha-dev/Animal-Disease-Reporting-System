@@ -3,7 +3,7 @@
  * Handles sidebar toggle, mobile navigation, and responsive behaviors
  */
 
-(function() {
+(function () {
     'use strict';
 
     // DOM Elements
@@ -24,30 +24,44 @@
     }
 
     /**
-     * Open sidebar
+     * Open sidebar with CSS transform animation for 60fps
      */
     function openSidebar() {
         if (sidebar && sidebarOverlay) {
-            sidebar.classList.add('active');
-            sidebarOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            // Focus management for accessibility
-            closeSidebarBtn?.focus();
+            // Use requestAnimationFrame for smooth 60fps animation
+            requestAnimationFrame(() => {
+                // Enable transitions before adding active class
+                sidebar.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                sidebarOverlay.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                // Focus management for accessibility
+                closeSidebarBtn?.focus();
+            });
         }
     }
 
     /**
-     * Close sidebar
+     * Close sidebar with CSS transform animation for 60fps
      */
     function closeSidebar() {
         if (sidebar && sidebarOverlay) {
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-            
-            // Return focus to open button
-            openSidebarBtn?.focus();
+            // Use requestAnimationFrame for smooth 60fps animation
+            requestAnimationFrame(() => {
+                // Ensure transitions are enabled
+                sidebar.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                sidebarOverlay.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+
+                // Return focus to open button
+                openSidebarBtn?.focus();
+            });
         }
     }
 
@@ -89,11 +103,11 @@
         if (!isMobile()) return;
 
         const tables = document.querySelectorAll('.data-table');
-        
+
         tables.forEach(table => {
             const headers = Array.from(table.querySelectorAll('thead th'));
             const rows = table.querySelectorAll('tbody tr');
-            
+
             rows.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 cells.forEach((cell, index) => {
@@ -133,12 +147,12 @@
 
         function handleSwipe() {
             const swipeDistance = touchEndX - touchStartX;
-            
+
             // Swipe right from left edge (open sidebar)
             if (swipeDistance > swipeThreshold && touchStartX < 50 && isMobile()) {
                 openSidebar();
             }
-            
+
             // Swipe left (close sidebar)
             if (swipeDistance < -swipeThreshold && sidebar?.classList.contains('active')) {
                 closeSidebar();

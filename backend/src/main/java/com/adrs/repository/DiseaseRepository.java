@@ -77,6 +77,16 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
     List<Disease> findByIsActiveTrueAndIsNotifiableTrue();
 
     /**
+     * Find active diseases for a specific animal type.
+     * Uses the many-to-many relationship via disease_animal_types join table.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of active diseases for the animal type
+     */
+    @Query("SELECT DISTINCT d FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId AND d.isActive = true ORDER BY d.diseaseName")
+    List<Disease> findByAnimalTypeIdAndIsActiveTrue(UUID animalTypeId);
+
+    /**
      * Count active diseases.
      *
      * @return count of active diseases
@@ -121,4 +131,34 @@ public interface DiseaseRepository extends JpaRepository<Disease, UUID> {
      */
     @Query("SELECT COUNT(dr) FROM DiseaseReport dr WHERE dr.disease.id = :diseaseId")
     Long countDiseaseReportsUsingDisease(UUID diseaseId);
+
+    /**
+     * Find all diseases by animal type ID.
+     * Uses the many-to-many relationship via disease_animal_types join table.
+     *
+     * @param animalTypeId the animal type ID
+     * @return list of diseases for the animal type
+     */
+    @Query("SELECT DISTINCT d FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId")
+    List<Disease> findByAnimalTypeId(UUID animalTypeId);
+
+    /**
+     * Count active diseases by animal type ID.
+     * Only counts diseases that are not soft-deleted (isActive = true).
+     * Uses the many-to-many relationship via disease_animal_types join table.
+     *
+     * @param animalTypeId the animal type ID
+     * @return count of active diseases for the animal type
+     */
+    @Query("SELECT COUNT(DISTINCT d) FROM Disease d JOIN d.animalTypes at WHERE at.id = :animalTypeId AND d.isActive = true")
+    Long countByAnimalTypeId(UUID animalTypeId);
+
+    /**
+     * Count diseases grouped by severity level (single query).
+     * Returns severity and count pairs.
+     *
+     * @return list of Object[] containing [Severity, Long count]
+     */
+    @Query("SELECT d.severity, COUNT(d) FROM Disease d GROUP BY d.severity")
+    List<Object[]> countGroupBySeverity();
 }

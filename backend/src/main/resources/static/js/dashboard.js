@@ -1,11 +1,8 @@
 /**
  * Dashboard JavaScript
  * Handles filter controls and data loading for dashboard
+ * Note: CSRF token is handled globally by main.js fetch wrapper
  */
-
-// CSRF Token
-const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
 // API endpoints
 const API_DASHBOARD = '/api/dashboard';
@@ -30,10 +27,12 @@ async function loadDashboardData() {
     await loadSummaryStats();
     await loadOverviewChart();
     
-    // Load overview sections immediately
-    loadFarmTypesData();
-    loadAnimalTypesData();
-    loadDiseasesData();
+    // Load overview sections in parallel (independent API calls)
+    await Promise.all([
+        loadFarmTypesData(),
+        loadAnimalTypesData(),
+        loadDiseasesData()
+    ]);
 }
 
 // Setup overview/users view toggle
@@ -132,11 +131,11 @@ async function loadOverviewChart() {
                     stats.vetCount || 0
                 ],
                 backgroundColor: [
-                    '#3b82f6',
+                    '#4f46e5',
                     '#10b981',
                     '#f59e0b',
-                    '#8b5cf6',
-                    '#06b6d4'
+                    '#818cf8',
+                    '#6366f1'
                 ]
             }]
         },
@@ -567,22 +566,22 @@ function displayDistrictUsers(users, container) {
                 </div>
                 <div class="province-user-details">
                     <div class="province-user-detail">
-                        <span>👤</span>
+                        <i data-lucide="user" class="icon icon-xs"></i>
                         <span>${escapeHtml(user.username)}</span>
                     </div>
                     <div class="province-user-detail">
-                        <span>📧</span>
+                        <i data-lucide="mail" class="icon icon-xs"></i>
                         <span>${escapeHtml(user.email)}</span>
                     </div>
                     ${user.phoneNumber ? `
                     <div class="province-user-detail">
-                        <span>📞</span>
+                        <i data-lucide="phone" class="icon icon-xs"></i>
                         <span>${escapeHtml(user.phoneNumber)}</span>
                     </div>
                     ` : ''}
                     ${user.district ? `
                     <div class="province-user-detail">
-                        <span>📍</span>
+                        <i data-lucide="map-pin" class="icon icon-xs"></i>
                         <span>${escapeHtml(user.district)}</span>
                     </div>
                     ` : ''}
@@ -615,8 +614,8 @@ function loadUsersChart(adminCount, vetCount) {
             datasets: [{
                 data: [adminCount, vetCount],
                 backgroundColor: [
-                    '#8b5cf6',
-                    '#06b6d4'
+                    '#4f46e5',
+                    '#10b981'
                 ]
             }]
         },

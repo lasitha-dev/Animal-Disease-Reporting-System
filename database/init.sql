@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS farm_types (
 -- Farms table
 CREATE TABLE IF NOT EXISTS farms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    farm_name VARCHAR(100) NOT NULL,
+    farm_name VARCHAR(100) UNIQUE NOT NULL,
     farm_type_id UUID NOT NULL REFERENCES farm_types(id),
     owner_name VARCHAR(100) NOT NULL,
     owner_contact VARCHAR(20),
@@ -106,6 +106,15 @@ CREATE TABLE IF NOT EXISTS animals (
     updated_by UUID REFERENCES users(id)
 );
 
+-- Farm Animals table (tracks animal types and counts per farm)
+CREATE TABLE IF NOT EXISTS farm_animals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    farm_id UUID NOT NULL REFERENCES farms(id) ON DELETE CASCADE,
+    animal_type_id UUID NOT NULL REFERENCES animal_types(id),
+    count INTEGER NOT NULL DEFAULT 0 CHECK (count >= 0),
+    CONSTRAINT uk_farm_animals_farm_animal_type UNIQUE (farm_id, animal_type_id)
+);
+
 -- =====================================================
 -- DISEASE MANAGEMENT TABLES
 -- =====================================================
@@ -116,29 +125,47 @@ CREATE TABLE IF NOT EXISTS diseases (
     disease_name VARCHAR(100) UNIQUE NOT NULL,
     disease_code VARCHAR(20) UNIQUE,
     description TEXT,
-    affected_animal_types TEXT[], -- Array of animal type IDs
+    symptoms TEXT,
+    treatment TEXT,
+    affected_animal_types TEXT[], -- Array of animal type IDs (legacy, use disease_animal_types table)
     severity VARCHAR(20) CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
     is_notifiable BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
+    created_by_vet BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by UUID REFERENCES users(id),
     updated_by UUID REFERENCES users(id)
 );
 
+-- Disease-Animal Types junction table (many-to-many relationship)
+-- A disease can affect multiple animal types
+CREATE TABLE IF NOT EXISTS disease_animal_types (
+    disease_id UUID NOT NULL REFERENCES diseases(id) ON DELETE CASCADE,
+    animal_type_id UUID NOT NULL REFERENCES animal_types(id) ON DELETE CASCADE,
+    PRIMARY KEY (disease_id, animal_type_id)
+);
+
 -- Disease Reports table
 CREATE TABLE IF NOT EXISTS disease_reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    animal_id UUID NOT NULL REFERENCES animals(id) ON DELETE CASCADE,
+    animal_id UUID REFERENCES animals(id) ON DELETE CASCADE,
+    animal_type_id UUID REFERENCES animal_types(id),
     disease_id UUID NOT NULL REFERENCES diseases(id),
     farm_id UUID NOT NULL REFERENCES farms(id),
     reported_by UUID NOT NULL REFERENCES users(id),
     report_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    affected_count INTEGER DEFAULT 0,
     symptoms TEXT,
     diagnosis TEXT,
     treatment TEXT,
     outcome VARCHAR(20) CHECK (outcome IN ('RECOVERED', 'DIED', 'ONGOING', 'EUTHANIZED')),
     notes TEXT,
+    image_path VARCHAR(500),
+    override_disease_name VARCHAR(255),
+    override_severity VARCHAR(20),
+    override_description TEXT,
+    override_notifiable BOOLEAN,
     is_confirmed BOOLEAN DEFAULT FALSE,
     confirmed_by UUID REFERENCES users(id),
     confirmed_at TIMESTAMP,
@@ -155,6 +182,8 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_district ON users(district);
 CREATE INDEX IF NOT EXISTS idx_users_province ON users(province);
 CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_users_username_lower ON users (LOWER(username));
+CREATE UNIQUE INDEX IF NOT EXISTS uk_users_email_lower ON users (LOWER(email));
 
 -- Farms indexes
 CREATE INDEX IF NOT EXISTS idx_farms_district ON farms(district);
@@ -172,17 +201,27 @@ CREATE INDEX IF NOT EXISTS idx_animals_farm_id ON animals(farm_id);
 CREATE INDEX IF NOT EXISTS idx_animals_animal_type_id ON animals(animal_type_id);
 CREATE INDEX IF NOT EXISTS idx_animals_is_active ON animals(is_active);
 
+-- Farm Animals indexes
+CREATE INDEX IF NOT EXISTS idx_farm_animals_farm_id ON farm_animals(farm_id);
+CREATE INDEX IF NOT EXISTS idx_farm_animals_animal_type_id ON farm_animals(animal_type_id);
+
 -- Diseases indexes
 CREATE INDEX IF NOT EXISTS idx_diseases_is_active ON diseases(is_active);
 CREATE INDEX IF NOT EXISTS idx_diseases_severity ON diseases(severity);
 
+-- Disease-Animal Types indexes
+CREATE INDEX IF NOT EXISTS idx_disease_animal_types_disease_id ON disease_animal_types(disease_id);
+CREATE INDEX IF NOT EXISTS idx_disease_animal_types_animal_type_id ON disease_animal_types(animal_type_id);
+
 -- Disease Reports indexes
 CREATE INDEX IF NOT EXISTS idx_disease_reports_animal_id ON disease_reports(animal_id);
+CREATE INDEX IF NOT EXISTS idx_disease_reports_animal_type_id ON disease_reports(animal_type_id);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_disease_id ON disease_reports(disease_id);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_farm_id ON disease_reports(farm_id);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_reported_by ON disease_reports(reported_by);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_report_date ON disease_reports(report_date);
 CREATE INDEX IF NOT EXISTS idx_disease_reports_is_confirmed ON disease_reports(is_confirmed);
+CREATE INDEX IF NOT EXISTS idx_disease_reports_duplicate_check ON disease_reports(disease_id, farm_id, report_date, reported_by);
 
 -- =====================================================
 -- AUDIT TRIGGERS

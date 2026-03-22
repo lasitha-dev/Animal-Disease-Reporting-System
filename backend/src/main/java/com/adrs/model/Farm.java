@@ -2,15 +2,22 @@ package com.adrs.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,9 +26,12 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "farms")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"farmType", "farmAnimals", "createdBy", "updatedBy"})
+@EqualsAndHashCode(of = "id")
 public class Farm {
 
     @Id
@@ -30,19 +40,23 @@ public class Farm {
 
     @NotBlank(message = "Farm name is required")
     @Size(max = 100, message = "Farm name must not exceed 100 characters")
-    @Column(name = "farm_name", nullable = false, length = 100)
+    @Column(name = "farm_name", nullable = false, unique = true, length = 100)
     private String farmName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_type_id", nullable = false)
+    @NotNull(message = "Farm type is required")
     private FarmType farmType;
 
-    @NotBlank(message = "Owner name is required")
+    @Size(max = 500, message = "Description must not exceed 500 characters")
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Size(max = 100, message = "Owner name must not exceed 100 characters")
-    @Column(name = "owner_name", nullable = false, length = 100)
+    @Column(name = "owner_name", length = 100)
     private String ownerName;
 
-    @Size(max = 20, message = "Owner contact must not exceed 20 characters")
+    @Pattern(regexp = "^(\\+94[0-9]{9})?$", message = "Contact must be a valid Sri Lankan number (+94XXXXXXXXX)")
     @Column(name = "owner_contact", length = 20)
     private String ownerContact;
 
@@ -50,15 +64,15 @@ public class Farm {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String address;
 
-    @NotBlank(message = "District is required")
-    @Size(max = 50, message = "District must not exceed 50 characters")
-    @Column(nullable = false, length = 50)
-    private String district;
+    @NotNull(message = "Province is required")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Province province;
 
-    @NotBlank(message = "Province is required")
-    @Size(max = 50, message = "Province must not exceed 50 characters")
-    @Column(nullable = false, length = 50)
-    private String province;
+    @NotNull(message = "District is required")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private District district;
 
     @Column(name = "gps_latitude", precision = 10, scale = 8)
     private BigDecimal gpsLatitude;
@@ -71,6 +85,9 @@ public class Farm {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "farm", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FarmAnimal> farmAnimals = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -88,3 +105,4 @@ public class Farm {
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 }
+

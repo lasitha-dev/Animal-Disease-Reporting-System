@@ -69,11 +69,12 @@ public interface AnimalTypeRepository extends JpaRepository<AnimalType, UUID> {
     boolean existsByTypeNameIgnoreCase(String typeName);
 
     /**
-     * Count animals using this animal type.
+     * Count active animals using this animal type.
+     * Only counts animals that are not soft-deleted (isActive = true).
      *
      * @param animalTypeId the animal type ID
-     * @return count of animals using this type
+     * @return count of active animals using this type
      */
-    @Query("SELECT COUNT(a) FROM Animal a WHERE a.animalType.id = :animalTypeId")
+    @Query("SELECT COUNT(a) FROM Animal a WHERE a.animalType.id = :animalTypeId AND a.isActive = true")
     Long countAnimalsUsingAnimalType(UUID animalTypeId);
 }

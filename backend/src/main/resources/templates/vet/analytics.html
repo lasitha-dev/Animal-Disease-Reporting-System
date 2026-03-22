@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Analytics - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/analytics.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2><i data-lucide="bar-chart-3" class="icon icon-lg icon-primary"></i> Analytics</h2>
+                <p class="page-subtitle">Analyze disease contraction trends over time</p>
+            </div>
+        </div>
+
+        <!-- Filters Bar -->
+        <div class="analytics-filters-bar">
+            <!-- Time Period Toggle -->
+            <div class="filter-group">
+                <label class="filter-label">Time Period</label>
+                <div class="period-toggle">
+                    <button type="button" class="period-btn" data-period="WEEKLY">Weekly</button>
+                    <button type="button" class="period-btn active" data-period="MONTHLY">Monthly</button>
+                    <button type="button" class="period-btn" data-period="ANNUALLY">Annually</button>
+                </div>
+            </div>
+
+            <!-- Metric Type Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="metricTypeSelect">
+                    <i data-lucide="trending-up" class="icon icon-xs"></i>
+                    Metric
+                </label>
+                <select id="metricTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="Select Metric" data-title="Select Metric">
+                    <option value="REPORT_COUNT">Report Count</option>
+                    <option value="ANIMAL_COUNT">Animal Count</option>
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="filter-group date-range-group">
+                <label class="filter-label">Date Range</label>
+                <div class="date-inputs">
+                    <input type="date" id="startDate" class="date-input" title="Start Date">
+                    <span class="date-separator">to</span>
+                    <input type="date" id="endDate" class="date-input" title="End Date">
+                </div>
+            </div>
+
+            <!-- Animal Type Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="animalTypeSelect">
+                    <i data-lucide="paw-print" class="icon icon-xs"></i>
+                    Animal Type
+                </label>
+                <select id="animalTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Animal Types" data-title="Select Animal Type">
+                    <option value="">All Animal Types</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Disease Multi-Select Dropdown with Checkboxes -->
+            <div class="filter-group">
+                <label class="filter-label">
+                    <i data-lucide="bug" class="icon icon-xs"></i>
+                    Diseases
+                </label>
+                <div class="checkbox-dropdown" id="diseaseDropdown">
+                    <button type="button" class="dropdown-toggle" id="diseaseDropdownToggle">
+                        <span class="dropdown-text">Select diseases...</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="diseaseDropdownMenu">
+                        <div class="dropdown-search">
+                            <input type="text" placeholder="Search diseases..." id="diseaseSearch">
+                        </div>
+                        <div class="dropdown-options" id="diseaseOptions">
+                            <!-- Dynamically populated with checkboxes -->
+                        </div>
+                        <div class="dropdown-actions">
+                            <button type="button" class="dropdown-action-btn" id="selectAllDiseases">Select All</button>
+                            <button type="button" class="dropdown-action-btn" id="clearAllDiseases">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+                <span class="filter-hint" id="selectedCount">0 diseases selected</span>
+            </div>
+
+            <!-- Apply Button -->
+            <div class="filter-group filter-actions">
+                <button type="button" id="applyFilters" class="btn btn-primary">
+                    Apply Filters
+                </button>
+                <button type="button" id="resetFilters" class="btn btn-outline">
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-wrapper">
+            <div class="chart-header">
+                <h3 id="chartTitle">Disease Trends</h3>
+
+                <!-- Chart View Selector -->
+                <div class="view-filters" id="chartViewFilters">
+                    <label class="view-filter-label">Chart View</label>
+                    <div class="view-toggle" role="group" aria-label="Chart view options">
+                        <button type="button" class="view-btn active" data-view="epi-curve"
+                            title="Raw case counts as bars">
+                            Raw Epi Curve
+                        </button>
+                        <button type="button" class="view-btn" data-view="trend" title="Smoothed moving average line">
+                            Smoothed Trend
+                        </button>
+                        <button type="button" class="view-btn" data-view="control"
+                            title="Control chart with sigma thresholds">
+                            Control Chart
+                        </button>
+                    </div>
+                </div>
+
+                <div class="chart-info">
+                    <span id="chartPeriodInfo" class="period-info"></span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+
+                <!-- Loading Overlay -->
+                <div id="chartLoading" class="chart-loading-overlay">
+                    <div class="spinner"></div>
+                    <p>Loading analytics data...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="chartEmptyState" class="chart-empty-state" style="display: none;">
+                    <div class="empty-icon"><i data-lucide="bar-chart-3" class="icon icon-3xl icon-muted"></i></div>
+                    <h3>No Data Available</h3>
+                    <p>No disease reports found for the selected filters and date range.</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="chartErrorState" class="chart-error-state" style="display: none;">
+                    <div class="error-icon"><i data-lucide="alert-triangle" class="icon icon-3xl icon-warning"></i></div>
+                    <h3>Error Loading Data</h3>
+                    <p id="chartErrorMessage">Failed to load analytics data. Please try again.</p>
+                    <button type="button" id="retryButton" class="btn btn-outline">Retry</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats (optional future enhancement) -->
+        <div class="analytics-summary" id="analyticsSummary" style="display: none;">
+            <div class="summary-card">
+                <div class="summary-value" id="totalReports">0</div>
+                <div class="summary-label">Total Reports</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="peakPeriod">-</div>
+                <div class="summary-label">Peak Period</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="trendDirection">-</div>
+                <div class="summary-label">Overall Trend</div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <!-- Chart.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script th:src="@{/js/custom-select.js}"></script>
+        <script th:src="@{/js/analytics.js(v=7)}"></script>
+        <!-- Fallback initialization in case the automatic one fails -->
+        <script>
+            // The analytics.js now handles DOM ready properly
+            // This is just a safety fallback that retries if needed
+            (function ensureInit() {
+                // Give the main script time to initialize
+                setTimeout(function () {
+                    if (!window.analyticsInitialized && typeof window.initAnalytics === 'function') {
+                        console.log('Fallback: Triggering analytics initialization...');
+                        window.initAnalytics();
+                    }
+                }, 500);
+            })();
+        </script>
+    </div>
+
+</body>
+
+</html>

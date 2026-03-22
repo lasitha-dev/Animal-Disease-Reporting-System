@@ -300,218 +300,167 @@
 }
 
 /* Modal Styles - Override default modal.css for configuration page */
-/* Configuration modals use .modal as the overlay, not .modal-overlay */
-#farm-type-modal,
-#animal-type-modal,
-#disease-modal,
-#delete-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent !important;
-    z-index: 9999;
-    padding: 0;
+/* Configuration modals now use .modal-overlay pattern matching user-management */
+
+/* Modal Portal Container - ensures modals are outside dashboard for proper stacking */
+#modal-portal {
+    position: relative;
+    z-index: 99999;
 }
 
-#farm-type-modal.show,
-#animal-type-modal.show,
-#disease-modal.show,
-#delete-modal.show {
-    display: block !important;
+/* Configuration-specific modal width overrides */
+#disease-modal .modal {
+    max-width: 560px;
 }
 
-/* Override the .modal styles from modal.css that conflict */
-#farm-type-modal.modal,
-#animal-type-modal.modal,
-#disease-modal.modal,
-#delete-modal.modal {
-    max-width: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-}
-
-.configuration-container ~ #farm-type-modal .modal-content,
-.configuration-container ~ #animal-type-modal .modal-content,
-.configuration-container ~ #disease-modal .modal-content,
-.configuration-container ~ #delete-modal .modal-content {
-    background: var(--color-white);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalSlideIn 0.3s ease;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10000;
-}
-
-.configuration-container ~ #delete-modal .modal-content.modal-small {
+#delete-modal .modal {
     max-width: 400px;
 }
 
-@keyframes modalSlideIn {
-    from {
-        transform: translate(-50%, -50%) translateY(-20px) scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, -50%) translateY(0) scale(1);
-        opacity: 1;
-    }
-}
-
-#farm-type-modal .modal-header,
-#animal-type-modal .modal-header,
-#disease-modal .modal-header,
-#delete-modal .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-xl);
-    border-bottom: 2px solid var(--color-border);
-    background: var(--color-bg-secondary);
-}
-
-#farm-type-modal .modal-header h3,
-#animal-type-modal .modal-header h3,
-#disease-modal .modal-header h3,
-#delete-modal .modal-header h3 {
-    margin: 0;
-    color: var(--color-text-primary);
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-}
-
-#farm-type-modal .modal-close,
-#animal-type-modal .modal-close,
-#disease-modal .modal-close,
-#delete-modal .modal-close {
-    background: none;
+/* Danger button for delete modal */
+.btn-danger {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
     border: none;
-    font-size: var(--font-size-2xl);
-    color: var(--color-text-secondary);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: var(--color-white);
     cursor: pointer;
-    padding: var(--spacing-sm);
-    width: 2.5rem;
-    height: 2.5rem;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.2);
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Warning Text */
+.warning-text {
+    color: var(--warning-color);
+    background: var(--warning-light);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
     display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-base);
-}
-
-#farm-type-modal .modal-close:hover,
-#animal-type-modal .modal-close:hover,
-#disease-modal .modal-close:hover,
-#delete-modal .modal-close:hover {
-    background: var(--color-error-light);
-    color: var(--color-error);
-    transform: rotate(90deg);
-}
-
-#farm-type-modal .modal-body,
-#animal-type-modal .modal-body,
-#disease-modal .modal-body,
-#delete-modal .modal-body {
-    padding: var(--spacing-xl);
-    background: var(--color-white);
-}
-
-#farm-type-modal .modal-footer,
-#animal-type-modal .modal-footer,
-#disease-modal .modal-footer,
-#delete-modal .modal-footer {
-    display: flex;
     gap: var(--spacing-md);
-    justify-content: flex-end;
-    padding: var(--spacing-xl);
-    border-top: 2px solid var(--color-border);
-    background: var(--color-bg-secondary);
+    margin-top: var(--spacing-lg);
+    border-left: 4px solid var(--warning-color);
 }
 
 /* Form Styles */
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-lg);
+    gap: 16px;
+    align-items: start;
 }
 
 .form-group {
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: 20px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: var(--spacing-sm);
-    color: var(--text-primary);
-    font-weight: var(--font-weight-semibold);
-    font-size: var(--font-size-sm);
+    margin-bottom: 8px;
+    color: #374151;
+    font-weight: 500;
+    font-size: 14px;
 }
 
 .form-group .required::after {
     content: " *";
-    color: var(--danger-color);
+    color: #ef4444;
 }
 
 .form-control {
     width: 100%;
-    padding: var(--spacing-md);
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    font-size: var(--font-size-base);
-    transition: all var(--transition-base);
-    background: var(--input-bg);
-    color: var(--text-primary);
+    padding: 12px 16px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.15s ease;
+    background: #f9fafb;
+    color: var(--color-text-primary);
     font-family: var(--font-family-primary);
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--primary-light);
+    border-color: var(--color-primary);
+    background: var(--color-white);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-control::placeholder {
+    color: #9ca3af;
+}
+
+textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
 }
 
 .form-control:disabled {
-    background: var(--bg-secondary);
+    background: #f3f4f6;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.7;
+}
+
+/* Select dropdown styling */
+select.form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+select.form-control:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%233b82f6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+select.form-control option {
+    padding: 12px;
 }
 
 .form-control.error {
-    border-color: var(--danger-color);
+    border-color: #ef4444;
 }
 
 .error-message {
     display: block;
-    color: var(--danger-color);
-    font-size: var(--font-size-sm);
-    margin-top: var(--spacing-xs);
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 6px;
 }
 
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 10px;
     cursor: pointer;
-    padding: var(--spacing-sm) 0;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #374151;
 }
 
 .checkbox-label input[type="checkbox"] {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    accent-color: var(--primary-color);
+    accent-color: var(--color-primary);
+    border-radius: 4px;
 }
 
 /* Loading State */
@@ -549,19 +498,6 @@
     font-size: var(--font-size-4xl);
     margin-bottom: var(--spacing-lg);
     opacity: 0.5;
-}
-
-/* Warning Text */
-.warning-text {
-    color: var(--warning-color);
-    background: var(--warning-light);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-md);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
-    border-left: 4px solid var(--warning-color);
 }
 
 /* ========================================
@@ -808,118 +744,10 @@
         background: var(--danger-light);
     }
 
-    /* Configuration modals on mobile */
-    .configuration-container ~ #farm-type-modal .modal-content,
-    .configuration-container ~ #animal-type-modal .modal-content,
-    .configuration-container ~ #disease-modal .modal-content,
-    .configuration-container ~ #delete-modal .modal-content {
-        width: 100%;
-        max-width: 100%;
-        max-height: 100vh;
-        height: 100vh;
-        border-radius: 0;
-        top: 0;
-        left: 0;
-        transform: none;
-        display: flex;
-        flex-direction: column;
-        animation: modalSlideUpMobile 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
-    }
-    
-    @keyframes modalSlideUpMobile {
-        0% {
-            transform: translateY(100%);
-            opacity: 0;
-        }
-        100% {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    
-    /* Modal backdrop animation */
-    #farm-type-modal.show,
-    #animal-type-modal.show,
-    #disease-modal.show,
-    #delete-modal.show {
-        background: rgba(0, 0, 0, 0.5) !important;
-        animation: modalBackdropFade 0.3s ease;
-    }
-    
-    @keyframes modalBackdropFade {
-        from {
-            background: rgba(0, 0, 0, 0);
-        }
-        to {
-            background: rgba(0, 0, 0, 0.5);
-        }
-    }
-
-    #farm-type-modal .modal-header,
-    #animal-type-modal .modal-header,
-    #disease-modal .modal-header,
-    #delete-modal .modal-header {
-        padding: var(--spacing-md);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        flex-shrink: 0;
-    }
-
-    #farm-type-modal .modal-body,
-    #animal-type-modal .modal-body,
-    #disease-modal .modal-body,
-    #delete-modal .modal-body {
-        padding: var(--spacing-md);
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    #farm-type-modal .modal-footer,
-    #animal-type-modal .modal-footer,
-    #disease-modal .modal-footer,
-    #delete-modal .modal-footer {
-        padding: var(--spacing-md);
-        padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
-        display: flex !important;
-        flex-direction: column-reverse;
-        gap: var(--spacing-sm);
-        z-index: 10;
-        flex-shrink: 0;
-        background: var(--color-bg-secondary);
-        border-top: 1px solid var(--color-border);
-    }
-
-    #farm-type-modal .modal-footer .btn,
-    #animal-type-modal .modal-footer .btn,
-    #disease-modal .modal-footer .btn,
-    #delete-modal .modal-footer .btn {
-        display: flex !important;
-        width: 100%;
-        min-height: var(--touch-target-min, 44px);
-        justify-content: center;
-        align-items: center;
-        visibility: visible !important;
-        opacity: 1 !important;
-        flex-shrink: 0;
-    }
-    
-    /* Ensure Cancel button (btn-secondary) is visible with proper styling */
-    #farm-type-modal .modal-footer .btn-secondary,
-    #animal-type-modal .modal-footer .btn-secondary,
-    #disease-modal .modal-footer .btn-secondary,
-    #delete-modal .modal-footer .btn-secondary {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        background-color: var(--color-gray-100, #f3f4f6);
-        color: var(--color-text-primary, #1f2937);
-        border: 1px solid var(--color-border, #e5e7eb);
-        min-height: var(--touch-target-min, 44px);
-        width: 100%;
-        justify-content: center;
-        align-items: center;
+    /* Mobile modal width adjustments */
+    #disease-modal .modal,
+    #delete-modal .modal {
+        max-width: 95%;
     }
 
     .form-row {
@@ -934,6 +762,33 @@
     .form-control {
         min-height: var(--touch-target-min);
         font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    /* Select dropdown responsive styling */
+    select.form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 12px;
+        padding-right: 36px;
+        min-height: var(--touch-target-min, 44px);
+        cursor: pointer;
+    }
+
+    select.form-control:focus {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232563eb' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    }
+
+    /* Animal type dropdown specific styling for disease form */
+    #disease-animal-type {
+        width: 100%;
+        min-height: var(--touch-target-min, 44px);
+        font-size: 16px;
+        padding: var(--spacing-md);
+        padding-right: 36px;
     }
 
     .checkbox-label input[type="checkbox"] {
@@ -1021,3 +876,723 @@
     }
 }
 
+/* ========================================
+   Multi-Select Styles
+   ======================================== */
+
+/* Multi-select dropdown */
+.form-select[multiple] {
+    min-height: 120px;
+    padding: var(--spacing-sm);
+}
+
+.form-select[multiple] option {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    cursor: pointer;
+}
+
+.form-select[multiple] option:checked {
+    background: linear-gradient(0deg, var(--color-primary-light) 0%, var(--color-primary-light) 100%);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
+}
+
+.form-select[multiple] option:hover {
+    background: var(--color-gray-100);
+}
+
+/* Help text below form fields */
+.form-help-text {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* Form hint (for selected count) */
+.form-hint {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+/* ========================================
+   Checkbox Dropdown Component (for modals)
+   ======================================== */
+.checkbox-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.checkbox-dropdown .dropdown-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-white);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: left;
+    min-height: 42px;
+}
+
+.checkbox-dropdown .dropdown-toggle:hover {
+    border-color: var(--color-primary);
+}
+
+.checkbox-dropdown .dropdown-toggle:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-lighter);
+}
+
+.checkbox-dropdown .dropdown-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+}
+
+.checkbox-dropdown .dropdown-text.has-selection {
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-arrow {
+    font-size: 0.7rem;
+    margin-left: var(--spacing-sm);
+    transition: transform var(--transition-fast);
+    color: var(--color-text-secondary);
+}
+
+.checkbox-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.checkbox-dropdown .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    max-height: 280px;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.checkbox-dropdown.open .dropdown-menu {
+    display: flex;
+}
+
+.checkbox-dropdown .dropdown-search {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checkbox-dropdown .dropdown-search input {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    background: var(--color-gray-50);
+    color: var(--color-text-primary);
+}
+
+.checkbox-dropdown .dropdown-search input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-white);
+}
+
+.checkbox-dropdown .dropdown-options {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 180px;
+    padding: var(--spacing-xs) 0;
+}
+
+.checkbox-dropdown .dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.checkbox-dropdown .dropdown-option:hover {
+    background: var(--color-gray-50);
+}
+
+.checkbox-dropdown .dropdown-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.checkbox-dropdown .dropdown-option label {
+    flex: 1;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    user-select: none;
+}
+
+.checkbox-dropdown .dropdown-option.hidden {
+    display: none;
+}
+
+.checkbox-dropdown .dropdown-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-gray-50);
+}
+
+.checkbox-dropdown .dropdown-action-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    background: transparent;
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-sm);
+}
+
+.checkbox-dropdown .dropdown-action-btn:hover {
+    background: var(--color-primary-lighter);
+}
+
+.checkbox-dropdown .dropdown-no-results {
+    padding: var(--spacing-md);
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* ==========================================================================
+   Configuration Page — Clinical-Modern Overrides
+   ========================================================================== */
+
+/* Page Header */
+.config-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.config-header h2 {
+    font-size: var(--font-size-xl, 1.25rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.config-header p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm, 0.875rem);
+}
+
+/* Tabs — underline indicator */
+.config-tabs {
+    display: flex;
+    gap: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+}
+
+.config-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md) 0;
+    background: none;
+    border: none;
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+    min-height: var(--touch-target-min, 48px);
+}
+
+.config-tab:hover {
+    color: var(--color-primary);
+}
+
+.config-tab.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.config-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 1px 1px 0 0;
+}
+
+/* Section Header */
+.config-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.config-section-title {
+    font-size: var(--font-size-lg, 1.125rem);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.add-new-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm, 0.875rem);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: var(--touch-target-min, 48px);
+}
+
+.add-new-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-lighter, #e0e7ff);
+}
+
+/* Item Cards Grid */
+.config-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.config-item-card {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.config-item-card:hover {
+    border-color: var(--color-primary-light, #818cf8);
+    box-shadow: var(--shadow-md);
+}
+
+.config-item-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--color-primary-lighter, #e0e7ff);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-primary);
+}
+
+.config-item-content {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.config-item-name {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-item-description {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+.config-action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--color-text-secondary);
+}
+
+.config-action-btn:hover {
+    background: var(--color-bg-secondary);
+}
+
+.config-action-btn.delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Empty State */
+.config-empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl, 3rem);
+    color: var(--color-text-secondary);
+}
+
+.config-empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+/* Loading State */
+.config-loading {
+    text-align: center;
+    padding: var(--spacing-2xl, 3rem);
+    color: var(--color-text-secondary);
+}
+
+/* Tab Content */
+.config-tab-content {
+    display: none;
+}
+
+.config-tab-content.active {
+    display: block;
+}
+
+/* Disease Modal — wider */
+.disease-modal-wide {
+    max-width: 560px;
+}
+
+/* Form Row Grid */
+.form-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.form-group-flex-end {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* Delete Modal — compact */
+.delete-modal-compact {
+    max-width: 450px;
+}
+
+/* Delete Disease List */
+.delete-disease-list {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: #fffbeb;
+    border: 1px solid #f59e0b;
+    border-radius: var(--border-radius-md);
+}
+
+.disease-list-title {
+    font-weight: 600;
+    color: #92400e;
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-sm, 0.875rem);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.disease-names-list {
+    list-style: disc;
+    margin: 0 0 var(--spacing-sm) var(--spacing-lg);
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.disease-names-list li {
+    font-size: var(--font-size-sm, 0.875rem);
+    color: var(--color-text-primary);
+    padding: 2px 0;
+}
+
+.disease-list-note {
+    font-size: var(--font-size-xs, 0.75rem);
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin: 0;
+}
+
+/* Dropdown Arrow */
+.dropdown-arrow .icon {
+    transition: transform 0.2s ease;
+}
+
+.checkbox-dropdown.open .dropdown-arrow .icon {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Configuration Page — Responsive Overrides
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .config-cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 768px) {
+    .config-header {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .config-header h2 {
+        font-size: var(--font-size-lg, 1.125rem);
+        text-align: center;
+        justify-content: center;
+    }
+
+    .config-header p {
+        text-align: center;
+    }
+
+    .config-tabs {
+        gap: 0;
+        overflow-x: auto;
+        padding-bottom: 0;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .config-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .config-tab {
+        white-space: nowrap;
+        flex: 1 0 auto;
+        min-width: 100px;
+        padding: var(--spacing-md) var(--spacing-sm);
+        font-size: var(--font-size-xs, 0.75rem);
+        text-align: center;
+        justify-content: center;
+    }
+
+    .config-cards-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .config-item-card {
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+    }
+
+    .config-item-actions {
+        opacity: 1;
+    }
+
+    .config-section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+
+    .config-section-title {
+        text-align: center;
+        font-size: var(--font-size-base, 1rem);
+    }
+
+    .add-new-btn {
+        justify-content: center;
+    }
+
+    .config-item-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .config-item-name {
+        font-size: var(--font-size-sm, 0.875rem);
+    }
+
+    .config-item-description {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-action-btn {
+        background: var(--color-bg-secondary);
+    }
+
+    .config-action-btn.delete {
+        background: #fee2e2;
+    }
+
+    .form-row-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .delete-disease-list {
+        padding: var(--spacing-sm);
+    }
+
+    .disease-list-title {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .disease-names-list {
+        max-height: 120px;
+        margin-left: var(--spacing-md);
+    }
+
+    .disease-names-list li {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .disease-list-note {
+        font-size: 0.625rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-header h2 {
+        font-size: var(--font-size-base, 1rem);
+    }
+
+    .config-header p {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-tab {
+        min-width: 80px;
+        padding: var(--spacing-sm);
+        font-size: 0.625rem;
+    }
+
+    .config-section-title {
+        font-size: var(--font-size-sm, 0.875rem);
+    }
+
+    .config-item-card {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .config-item-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .config-item-name {
+        font-size: var(--font-size-xs, 0.75rem);
+    }
+
+    .config-item-description {
+        font-size: 0.625rem;
+    }
+
+    .config-action-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .add-new-btn {
+        font-size: var(--font-size-xs, 0.75rem);
+        padding: var(--spacing-sm);
+    }
+
+    .config-empty-state {
+        padding: var(--spacing-lg);
+    }
+
+    .config-empty-state-icon {
+        font-size: 2rem;
+    }
+
+    .delete-disease-list {
+        padding: var(--spacing-xs);
+    }
+
+    .disease-names-list {
+        max-height: 100px;
+    }
+}
+
+@media (max-width: 360px) {
+    .config-item-card {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    .config-item-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .config-action-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .config-item-name {
+        font-size: 0.625rem;
+    }
+
+    .config-item-description {
+        font-size: 0.5625rem;
+    }
+}

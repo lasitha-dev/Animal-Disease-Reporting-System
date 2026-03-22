@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Farm Map - ADRS</title>
+    <link rel="stylesheet" th:href="@{/css/farms-map.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header-row">
+            <div class="page-header-info">
+                <h2><i data-lucide="map" class="icon icon-lg icon-primary"></i> Farm Map</h2>
+                <p class="page-subtitle">View all registered farm locations and disease outbreaks across Sri Lanka</p>
+            </div>
+        </div>
+
+        <!-- Map Filters Bar -->
+        <div class="map-filters-bar">
+            <!-- Main Toggles Section -->
+            <div class="filter-section filter-toggles">
+                <span class="section-label">Show:</span>
+                <label class="filter-toggle">
+                    <input type="checkbox" id="filterFarms" checked>
+                    <span class="toggle-content">
+                        <i data-lucide="home" class="icon icon-sm toggle-icon"></i>
+                        <span class="toggle-text">Farms</span>
+                        <span class="toggle-count" id="farmCount">0</span>
+                    </span>
+                </label>
+                <label class="filter-toggle filter-toggle-disease">
+                    <input type="checkbox" id="filterDiseases">
+                    <span class="toggle-content">
+                        <i data-lucide="alert-triangle" class="icon icon-sm toggle-icon"></i>
+                        <span class="toggle-text">Disease Outbreaks</span>
+                        <span class="toggle-count" id="diseaseCount">0</span>
+                    </span>
+                </label>
+            </div>
+
+            <!-- Province Filter (shown when Farms checked) -->
+            <div class="filter-section filter-select-group" id="provinceFilterSection">
+                <label class="select-label" for="provinceSelect">
+                    <i data-lucide="map-pin" class="icon icon-xs"></i>
+                    Province
+                </label>
+                <select id="provinceSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Provinces" data-title="Select Province">
+                    <option value="">All Provinces</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Disease Filters (shown when Disease Outbreaks checked) -->
+            <div class="filter-section filter-select-group" id="animalTypeFilterSection" style="display: none;">
+                <label class="select-label" for="animalTypeSelect">
+                    <i data-lucide="paw-print" class="icon icon-xs"></i>
+                    Animal Type
+                </label>
+                <select id="animalTypeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Animal Types" data-title="Select Animal Type">
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <div class="filter-section filter-select-group" id="diseaseFilterSection" style="display: none;">
+                <label class="select-label" for="diseaseSelect">
+                    <i data-lucide="bug" class="icon icon-xs"></i>
+                    Disease
+                </label>
+                <select id="diseaseSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Diseases" data-title="Select Disease">
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Outcome Filter (shown when Disease Outbreaks checked) -->
+            <div class="filter-section filter-select-group" id="outcomeFilterSection" style="display: none;">
+                <label class="select-label" for="outcomeSelect">
+                    <i data-lucide="activity" class="icon icon-xs"></i>
+                    Current Outcome
+                </label>
+                <select id="outcomeSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Outcomes" data-title="Select Outcome">
+                    <option value="">All Outcomes</option>
+                    <option value="RECOVERED">Recovered</option>
+                    <option value="DIED">Died</option>
+                    <option value="ONGOING">Ongoing</option>
+                    <option value="EUTHANIZED">Euthanized</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div class="google-map-container">
+            <div id="farmMap" class="google-map"></div>
+
+            <!-- Loading Overlay -->
+            <div id="mapLoading" class="map-loading-overlay">
+                <div class="spinner"></div>
+                <p>Loading map...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="mapEmptyState" class="map-empty-state" style="display: none;">
+                <div class="empty-icon"><i data-lucide="map" class="icon icon-3xl icon-muted"></i></div>
+                <h3>No Farms with Location Data</h3>
+                <p>No farms have GPS coordinates registered yet. Add location data when registering farms.</p>
+            </div>
+        </div>
+
+        <!-- Map Legend -->
+        <div class="map-legend-bar">
+            <div class="legend-item">
+                <span class="legend-marker farm-marker"></span>
+                <span>Farm Only</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-marker disease-marker"></span>
+                <span>Farm with Diseases</span>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <!-- Map Configuration (from server) -->
+        <script th:inline="javascript">
+            window.mapConfig = {
+                apiKey: /*[[${googleMapsApiKey}]]*/ '',
+                defaultLat: /*[[${mapDefaultLat}]]*/ 7.8731,
+                defaultLng: /*[[${mapDefaultLng}]]*/ 80.7718,
+                defaultZoom: /*[[${mapDefaultZoom}]]*/ 7
+            };
+            window.currentUsername = /*[[${#authentication.name}]]*/ '';
+        </script>
+
+        <!-- Google Maps API -->
+        <script
+            th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${googleMapsApiKey} + '&callback=initFarmMap&loading=async'}"
+            async defer></script>
+        <script th:src="@{/js/custom-select.js}"></script>
+        <script th:src="@{/js/farms-map.js}"></script>
+    </div>
+
+</body>
+
+</html>

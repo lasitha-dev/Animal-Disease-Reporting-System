@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layouts/default}" lang="en">
+
+<head>
+    <title>Vet Dashboard - ADRS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/vet-dashboard.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <!-- Quick Action Bar -->
+        <div class="quick-action-bar">
+            <a th:href="@{/vet/disease-reporting}" class="quick-action-btn quick-action-btn--alert">
+                <i data-lucide="alert-triangle" class="icon icon-md quick-action-icon"></i>
+                <span>Report Case</span>
+            </a>
+            <a th:href="@{/vet/farms}" class="quick-action-btn quick-action-btn--primary">
+                <i data-lucide="home" class="icon icon-md quick-action-icon"></i>
+                <span>Register Farm</span>
+            </a>
+        </div>
+
+        <!-- KPI Cards Section -->
+        <div class="kpi-grid">
+            <div class="kpi-card kpi-card--danger">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Active Outbreaks</span>
+                    <div class="kpi-card-icon kpi-card-icon--danger">
+                        <i data-lucide="alert-circle" class="icon icon-lg"></i>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-outbreaks">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-outbreaks-trend">Current active cases</span>
+                </div>
+            </div>
+
+            <div class="kpi-card kpi-card--warning">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">High-Risk Farms</span>
+                    <div class="kpi-card-icon kpi-card-icon--warning">
+                        <i data-lucide="triangle-alert" class="icon icon-lg"></i>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-high-risk">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-high-risk-trend">Farms requiring attention</span>
+                </div>
+            </div>
+
+            <div class="kpi-card kpi-card--success">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Monthly Coverage</span>
+                    <div class="kpi-card-icon kpi-card-icon--success">
+                        <i data-lucide="check-circle" class="icon icon-lg"></i>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-coverage">0%</div>
+                <div class="kpi-card-trend kpi-card-trend--positive">
+                    <span id="kpi-coverage-trend">Farms inspected this month</span>
+                </div>
+            </div>
+
+            <div class="kpi-card kpi-card--info">
+                <div class="kpi-card-header">
+                    <span class="kpi-card-label">Pending Follow-ups</span>
+                    <div class="kpi-card-icon kpi-card-icon--info">
+                        <i data-lucide="clock" class="icon icon-lg"></i>
+                    </div>
+                </div>
+                <div class="kpi-card-value" id="kpi-followups">0</div>
+                <div class="kpi-card-trend kpi-card-trend--neutral">
+                    <span id="kpi-followups-trend">Actions required</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-content-grid">
+            <!-- District Health Trend Chart -->
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">District Health Trend</h2>
+                    <div class="chart-legend">
+                        <span class="legend-item legend-item--primary">
+                            <span class="legend-dot"></span> Reports
+                        </span>
+                        <span class="legend-item legend-item--secondary">
+                            <span class="legend-dot"></span> Resolved
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="health-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity Feed -->
+            <div class="activity-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Recent Activity</h2>
+                    <a th:href="@{/vet/disease-reporting}" class="panel-link">View All</a>
+                </div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-loading">
+                        <div class="loading-spinner"></div>
+                        <span>Loading activity...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+        <script th:src="@{/js/vet-dashboard.js}"></script>
+    </div>
+</body>
+
+</html>

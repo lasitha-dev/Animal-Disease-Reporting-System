@@ -11,6 +11,7 @@ import com.adrs.repository.*;
 import com.adrs.service.DashboardService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Cacheable(value = "dashboardStats", key = "'statistics'")
     public DashboardStatsDTO getDashboardStatistics() {
         logger.debug("Fetching comprehensive dashboard statistics");
         
@@ -162,11 +164,20 @@ public class DashboardServiceImpl implements DashboardService {
         List<String> labels = new ArrayList<>();
         List<Long> data = new ArrayList<>();
         
-        // Count diseases by severity
+        // Single GROUP BY query instead of loading full entities per severity
+        List<Object[]> severityCounts = diseaseRepository.countGroupBySeverity();
+        Map<String, Long> countMap = new HashMap<>();
+        for (Object[] row : severityCounts) {
+            com.adrs.model.Disease.Severity severity = (com.adrs.model.Disease.Severity) row[0];
+            Long count = (Long) row[1];
+            if (severity != null) {
+                countMap.put(severity.name(), count);
+            }
+        }
+        
         for (var severity : com.adrs.model.Disease.Severity.values()) {
-            List<com.adrs.model.Disease> diseases = diseaseRepository.findBySeverity(severity);
             labels.add(severity.name());
-            data.add((long) diseases.size());
+            data.add(countMap.getOrDefault(severity.name(), 0L));
         }
         
         return new ChartDataDTO(labels, data, "pie");
@@ -176,25 +187,19 @@ public class DashboardServiceImpl implements DashboardService {
     public ChartDataDTO getUserRegistrationTrend(int months) {
         logger.debug("Fetching user registration trend for {} months", months);
         
-        LocalDateTime startDate = LocalDateTime.now().minusMonths(months);
-        
         List<String> labels = new ArrayList<>();
         List<Long> data = new ArrayList<>();
         
-        // Generate monthly labels
+        // Generate monthly labels and use single count query per month
         for (int i = months - 1; i >= 0; i--) {
             LocalDateTime monthDate = LocalDateTime.now().minusMonths(i);
             labels.add(monthDate.format(DateTimeFormatter.ofPattern("MMM yyyy")));
             
-            // Count users created in this month
+            // Single count query instead of loading all users and filtering in-memory
             LocalDateTime monthStart = monthDate.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
             LocalDateTime monthEnd = monthStart.plusMonths(1);
             
-            long count = userRepository.findAll().stream()
-                    .filter(u -> u.getCreatedAt() != null &&
-                            !u.getCreatedAt().isBefore(monthStart) &&
-                            u.getCreatedAt().isBefore(monthEnd))
-                    .count();
+            long count = userRepository.countByCreatedAtBetween(monthStart, monthEnd);
             data.add(count);
         }
         
@@ -246,6 +251,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
+    @Cacheable(value = "dashboardStats", key = "'summaryCounts'")
     public Map<String, Long> getSummaryCounts() {
         logger.debug("Fetching summary counts");
         
@@ -329,11 +335,22 @@ public class DashboardServiceImpl implements DashboardService {
         
         List<DistrictUserDistributionDTO> distribution = new ArrayList<>();
         
-        // Iterate through all 25 districts in the District enum
+        // Single GROUP BY query instead of 25 individual queries per district
+        List<Object[]> districtCounts = (role == null)
+            ? userRepository.countActiveUsersByAllDistricts()
+            : userRepository.countActiveUsersByAllDistrictsAndRole(role);
+        
+        // Build a map for O(1) lookup
+        Map<District, Long> countMap = new HashMap<>();
+        for (Object[] row : districtCounts) {
+            District district = (District) row[0];
+            Long count = (Long) row[1];
+            countMap.put(district, count);
+        }
+        
+        // Build DTOs for all districts (including zeros)
         for (District district : District.values()) {
-            Long count = (role == null) 
-                ? userRepository.countActiveUsersByDistrict(district)
-                : userRepository.countActiveUsersByDistrictAndRole(district, role);
+            Long count = countMap.getOrDefault(district, 0L);
             
             DistrictUserDistributionDTO dto = new DistrictUserDistributionDTO(
                 district.name(),

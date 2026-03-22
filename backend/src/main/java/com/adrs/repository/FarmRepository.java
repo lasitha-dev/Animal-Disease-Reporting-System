@@ -1,8 +1,11 @@
 package com.adrs.repository;
 
 import com.adrs.model.Farm;
+import com.adrs.model.Province;
+import com.adrs.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -14,6 +17,25 @@ import java.util.UUID;
  */
 @Repository
 public interface FarmRepository extends JpaRepository<Farm, UUID> {
+
+    /**
+     * Checks if a farm exists with the given name (case-insensitive).
+     * Used to prevent duplicate farm names on creation.
+     *
+     * @param farmName the farm name to check
+     * @return true if a farm with the name exists
+     */
+    boolean existsByFarmNameIgnoreCase(String farmName);
+
+    /**
+     * Checks if a farm exists with the given name (case-insensitive),
+     * excluding a specific farm by ID. Used for update uniqueness checks.
+     *
+     * @param farmName the farm name to check
+     * @param id       the farm ID to exclude from the check
+     * @return true if another farm with the name exists
+     */
+    boolean existsByFarmNameIgnoreCaseAndIdNot(String farmName, UUID id);
 
     /**
      * Count all active farms.
@@ -31,6 +53,45 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
     Long countByCreatedAtAfter(LocalDateTime date);
 
     /**
+     * Find all farms created by a specific user.
+     *
+     * @param user the user who created the farms
+     * @return list of farms
+     */
+    List<Farm> findByCreatedBy(User user);
+
+    /**
+     * Find all active farms created by a specific user.
+     *
+     * @param user the user who created the farms
+     * @return list of active farms
+     */
+    List<Farm> findByCreatedByAndIsActiveTrue(User user);
+
+    /**
+     * Find all active farms created by a specific user with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param user the user who created the farms
+     * @return list of active farms with associations
+     */
+    @Query("SELECT DISTINCT f FROM Farm f " +
+           "LEFT JOIN FETCH f.farmType " +
+           "LEFT JOIN FETCH f.createdBy " +
+           "LEFT JOIN FETCH f.farmAnimals fa " +
+           "LEFT JOIN FETCH fa.animalType " +
+           "WHERE f.createdBy = :user AND f.isActive = true")
+    List<Farm> findByCreatedByAndIsActiveTrueWithAssociations(@Param("user") User user);
+
+    /**
+     * Count farms created by a specific user.
+     *
+     * @param user the user
+     * @return count of farms
+     */
+    Long countByCreatedBy(User user);
+
+    /**
      * Get farm registrations grouped by date for trend analysis.
      *
      * @param startDate the start date
@@ -41,4 +102,57 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
            "GROUP BY CAST(f.createdAt AS LocalDate) " +
            "ORDER BY CAST(f.createdAt AS LocalDate)")
     List<Object[]> getFarmRegistrationTrend(LocalDateTime startDate);
+
+    /**
+     * Find all active farms NOT created by a specific user.
+     * Used to show farms registered by other vets.
+     *
+     * @param user the user to exclude
+     * @return list of active farms created by other users
+     */
+    List<Farm> findByCreatedByNotAndIsActiveTrue(User user);
+
+    /**
+     * Find all active farms NOT created by a specific user with all associations eagerly loaded.
+     * Eliminates N+1 queries when converting to DTOs.
+     *
+     * @param user the user to exclude
+     * @return list of active farms with associations
+     */
+    @Query("SELECT DISTINCT f FROM Farm f " +
+           "LEFT JOIN FETCH f.farmType " +
+           "LEFT JOIN FETCH f.createdBy " +
+           "LEFT JOIN FETCH f.farmAnimals fa " +
+           "LEFT JOIN FETCH fa.animalType " +
+           "WHERE f.createdBy != :user AND f.isActive = true")
+    List<Farm> findByCreatedByNotAndIsActiveTrueWithAssociations(@Param("user") User user);
+
+    /**
+     * Find distinct provinces that have farms with GPS coordinates.
+     *
+     * @return list of provinces with GPS-enabled farms
+     */
+    @Query("SELECT DISTINCT f.province FROM Farm f WHERE f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL AND f.isActive = true ORDER BY f.province")
+    List<Province> findDistinctProvincesWithGpsCoordinates();
+
+    /**
+     * Find all active farms in a specific province with GPS coordinates, created by a user.
+     *
+     * @param user the user who created the farms
+     * @param province the province to filter by
+     * @return list of farms
+     */
+    @Query("SELECT f FROM Farm f WHERE f.createdBy = :user AND f.isActive = true AND f.province = :province AND f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL")
+    List<Farm> findByCreatedByAndProvinceWithGps(@Param("user") User user, @Param("province") Province province);
+
+    /**
+     * Find all active farms NOT created by a specific user in a specific province with GPS coordinates.
+     *
+     * @param user the user to exclude
+     * @param province the province to filter by
+     * @return list of farms
+     */
+    @Query("SELECT f FROM Farm f WHERE f.createdBy != :user AND f.isActive = true AND f.province = :province AND f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL")
+    List<Farm> findByCreatedByNotAndProvinceWithGps(@Param("user") User user, @Param("province") Province province);
 }
+

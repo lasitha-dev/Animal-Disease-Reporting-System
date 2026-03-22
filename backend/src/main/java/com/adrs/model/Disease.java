@@ -4,12 +4,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,9 +30,12 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "diseases")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"animalTypes", "createdBy", "updatedBy"})
+@EqualsAndHashCode(of = "id")
 public class Disease {
 
     @Id
@@ -46,6 +54,22 @@ public class Disease {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /**
+     * Common symptoms associated with this disease.
+     * Can be used as default values when vets report this disease.
+     */
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
+    @Column(columnDefinition = "TEXT")
+    private String symptoms;
+
+    /**
+     * Recommended treatment for this disease.
+     * Can be used as default values when vets report this disease.
+     */
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
+    @Column(columnDefinition = "TEXT")
+    private String treatment;
 
     /**
      * Array of animal type IDs that can be affected by this disease.
@@ -69,6 +93,13 @@ public class Disease {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    /**
+     * Indicates if this disease was created by a vet via the "Other" option
+     * during disease reporting, rather than by an admin.
+     */
+    @Column(name = "created_by_vet", nullable = false)
+    private Boolean createdByVet = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -76,6 +107,18 @@ public class Disease {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * The animal types that can contract this disease.
+     * A disease can be associated with multiple animal types.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "disease_animal_types",
+        joinColumns = @JoinColumn(name = "disease_id"),
+        inverseJoinColumns = @JoinColumn(name = "animal_type_id")
+    )
+    private Set<AnimalType> animalTypes = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")

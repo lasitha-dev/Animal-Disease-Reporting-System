@@ -4,6 +4,7 @@ import com.adrs.dto.AuthResponse;
 import com.adrs.dto.LoginRequest;
 import com.adrs.dto.UserRequest;
 import com.adrs.dto.UserResponse;
+import com.adrs.exception.DuplicateResourceException;
 import com.adrs.exception.ResourceNotFoundException;
 import com.adrs.model.District;
 import com.adrs.model.Province;
@@ -145,8 +146,8 @@ class UserServiceTest {
     @DisplayName("Should create user successfully")
     void testCreateUser() {
         // Given
-        when(userRepository.existsByUsername(TEST_USERNAME)).thenReturn(false);
-        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(false);
+        when(userRepository.existsByUsernameIgnoreCase(TEST_USERNAME)).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(TEST_EMAIL)).thenReturn(false);
         when(passwordEncoder.encode(TEST_PASSWORD)).thenReturn(HASHED_PASSWORD);
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
@@ -158,8 +159,8 @@ class UserServiceTest {
         assertThat(response.getUsername()).isEqualTo(TEST_USERNAME);
         assertThat(response.getEmail()).isEqualTo(TEST_EMAIL);
 
-        verify(userRepository).existsByUsername(TEST_USERNAME);
-        verify(userRepository).existsByEmail(TEST_EMAIL);
+        verify(userRepository).existsByUsernameIgnoreCase(TEST_USERNAME);
+        verify(userRepository).existsByEmailIgnoreCase(TEST_EMAIL);
         verify(passwordEncoder).encode(TEST_PASSWORD);
         verify(userRepository).save(any(User.class));
     }
@@ -168,14 +169,14 @@ class UserServiceTest {
     @DisplayName("Should throw exception when creating user with duplicate username")
     void testCreateUserDuplicateUsername() {
         // Given
-        when(userRepository.existsByUsername(TEST_USERNAME)).thenReturn(true);
+        when(userRepository.existsByUsernameIgnoreCase(TEST_USERNAME)).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> userService.createUser(userRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Username already exists");
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining("username");
 
-        verify(userRepository).existsByUsername(TEST_USERNAME);
+        verify(userRepository).existsByUsernameIgnoreCase(TEST_USERNAME);
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -183,15 +184,15 @@ class UserServiceTest {
     @DisplayName("Should throw exception when creating user with duplicate email")
     void testCreateUserDuplicateEmail() {
         // Given
-        when(userRepository.existsByUsername(TEST_USERNAME)).thenReturn(false);
-        when(userRepository.existsByEmail(TEST_EMAIL)).thenReturn(true);
+        when(userRepository.existsByUsernameIgnoreCase(TEST_USERNAME)).thenReturn(false);
+        when(userRepository.existsByEmailIgnoreCase(TEST_EMAIL)).thenReturn(true);
 
         // When/Then
         assertThatThrownBy(() -> userService.createUser(userRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Email already exists");
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessageContaining("email");
 
-        verify(userRepository).existsByEmail(TEST_EMAIL);
+        verify(userRepository).existsByEmailIgnoreCase(TEST_EMAIL);
         verify(userRepository, never()).save(any(User.class));
     }
 

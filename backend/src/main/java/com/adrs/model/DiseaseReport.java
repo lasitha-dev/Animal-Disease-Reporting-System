@@ -1,9 +1,13 @@
 package com.adrs.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,18 +21,25 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "disease_reports")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"animalType", "disease", "farm", "reportedBy", "confirmedBy"})
+@EqualsAndHashCode(of = "id")
 public class DiseaseReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    /**
+     * The animal type affected by this disease report.
+     * Reports are made per animal type rather than individual animals.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "animal_id", nullable = false)
-    private Animal animal;
+    @JoinColumn(name = "animal_type_id", nullable = false)
+    private AnimalType animalType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_id", nullable = false)
@@ -45,12 +56,21 @@ public class DiseaseReport {
     @Column(name = "report_date", nullable = false)
     private LocalDate reportDate;
 
+    /**
+     * Number of animals affected by this disease.
+     */
+    @Column(name = "affected_count")
+    private Integer affectedCount;
+
+    @Size(max = 2000, message = "Symptoms must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String symptoms;
 
+    @Size(max = 2000, message = "Diagnosis must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String diagnosis;
 
+    @Size(max = 2000, message = "Treatment must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String treatment;
 
@@ -58,8 +78,16 @@ public class DiseaseReport {
     @Column(length = 20)
     private Outcome outcome;
 
+    @Size(max = 2000, message = "Notes must not exceed 2000 characters")
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * Path to the uploaded image file (relative to storage root).
+     */
+    @Size(max = 255, message = "Image path must not exceed 255 characters")
+    @Column(name = "image_path", length = 255)
+    private String imagePath;
 
     @Column(name = "is_confirmed", nullable = false)
     private Boolean isConfirmed = false;
@@ -70,6 +98,32 @@ public class DiseaseReport {
 
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
+
+    /**
+     * Override for disease name (vet-specific, does not affect admin data).
+     */
+    @Size(max = 255, message = "Override disease name must not exceed 255 characters")
+    @Column(name = "override_disease_name", length = 255)
+    private String overrideDiseaseName;
+
+    /**
+     * Override for severity (vet-specific, does not affect admin data).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "override_severity", length = 20)
+    private Disease.Severity overrideSeverity;
+
+    /**
+     * Override for description (vet-specific, does not affect admin data).
+     */
+    @Column(name = "override_description", columnDefinition = "TEXT")
+    private String overrideDescription;
+
+    /**
+     * Override for notifiable status (vet-specific, does not affect admin data).
+     */
+    @Column(name = "override_notifiable")
+    private Boolean overrideNotifiable;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -89,3 +143,4 @@ public class DiseaseReport {
         EUTHANIZED
     }
 }
+

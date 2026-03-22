@@ -271,16 +271,17 @@ public class ConfigurationController {
     }
 
     /**
-     * Get animal usage count for an animal type.
+     * Get detailed usage info for an animal type.
+     * Returns count of animals using this type and list of linked disease names.
      *
      * @param id the animal type ID
-     * @return usage count
+     * @return usage info including usageCount, diseaseCount, and diseaseNames
      */
     @GetMapping("/animal-types/{id}/usage")
-    public ResponseEntity<Map<String, Long>> getAnimalTypeUsage(@PathVariable UUID id) {
-        logger.info("GET /api/configuration/animal-types/{}/usage - Fetching usage count", id);
-        Long count = animalTypeService.getAnimalUsageCount(id);
-        return ResponseEntity.ok(Map.of("usageCount", count));
+    public ResponseEntity<Map<String, Object>> getAnimalTypeUsage(@PathVariable UUID id) {
+        logger.info("GET /api/configuration/animal-types/{}/usage - Fetching detailed usage info", id);
+        Map<String, Object> usageInfo = animalTypeService.getDetailedUsageInfo(id);
+        return ResponseEntity.ok(usageInfo);
     }
 
     // ========================================

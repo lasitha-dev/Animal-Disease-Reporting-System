@@ -2,12 +2,14 @@ package com.adrs.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,10 +18,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Global exception handler for the application.
- * Provides consistent error responses across all controllers.
+ * Global exception handler for REST API controllers.
+ * Provides consistent JSON error responses across all REST controllers.
+ *
+ * <p>Has higher priority ({@code @Order(1)}) than {@link MvcExceptionHandler}
+ * so that {@code @RestController} endpoints always receive JSON responses,
+ * even though MvcExceptionHandler also matches them.</p>
  */
 @RestControllerAdvice
+@Order(1)
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -200,6 +207,49 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles duplicate resource exceptions when a unique constraint would be violated.
+     *
+     * @param ex the duplicate resource exception
+     * @return error response with 409 Conflict status
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateResourceException(DuplicateResourceException ex) {
+        logger.error("Duplicate resource: {} - field: {}, value: {}", ex.getEntityType(), ex.getFieldName(), ex.getFieldValue());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", "Duplicate Resource");
+        response.put("message", ex.getMessage());
+        response.put("entityType", ex.getEntityType());
+        response.put("field", ex.getFieldName());
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles database integrity constraint violations (e.g., unique constraint violations
+     * that bypass service-layer checks due to race conditions).
+     *
+     * @param ex the data integrity violation exception
+     * @return error response with 409 Conflict status and a user-friendly message
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        logger.error("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+
+        String userMessage = parseConstraintViolationMessage(ex);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", "Data Integrity Violation");
+        response.put("message", userMessage);
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    /**
      * Handles all other exceptions.
      *
      * @param ex the exception
@@ -209,6 +259,46 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGlobalException(Exception ex) {
         logger.error("Unexpected error occurred", ex);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+    }
+
+    /**
+     * Parses a DataIntegrityViolationException to extract a user-friendly message
+     * based on the violated constraint name.
+     *
+     * @param ex the data integrity violation exception
+     * @return a user-friendly error message
+     */
+    private String parseConstraintViolationMessage(DataIntegrityViolationException ex) {
+        String rootCauseMessage = ex.getMostSpecificCause().getMessage();
+        String lowerMessage = rootCauseMessage.toLowerCase();
+
+        // Parse PostgreSQL unique constraint violation messages
+        if (lowerMessage.contains("unique") || lowerMessage.contains("duplicate")) {
+            if (lowerMessage.contains("username") || lowerMessage.contains("uk_users_username")) {
+                return "A user with this username already exists";
+            }
+            if (lowerMessage.contains("email") || lowerMessage.contains("uk_users_email")) {
+                return "A user with this email already exists";
+            }
+            if (lowerMessage.contains("farm_name") || lowerMessage.contains("uk_farms_farm_name")) {
+                return "A farm with this name already exists";
+            }
+            if (lowerMessage.contains("type_name")) {
+                return "An entry with this name already exists";
+            }
+            if (lowerMessage.contains("disease_name")) {
+                return "A disease with this name already exists";
+            }
+            if (lowerMessage.contains("disease_code")) {
+                return "A disease with this code already exists";
+            }
+            if (lowerMessage.contains("tag_number")) {
+                return "An animal with this tag number already exists";
+            }
+            return "A record with this value already exists. Please use a different value.";
+        }
+
+        return "A data integrity error occurred. Please check your input and try again.";
     }
 
     /**
