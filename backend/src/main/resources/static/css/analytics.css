@@ -575,7 +575,7 @@
 
     .filter-group {
         min-width: 140px;
-        flex: 1 1 calc(50% - var(--spacing-md));
+        flex: 1 1 calc(33.333% - var(--spacing-md));
         align-self: stretch;
     }
 

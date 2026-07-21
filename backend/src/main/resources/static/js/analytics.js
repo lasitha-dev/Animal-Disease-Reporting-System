@@ -14,6 +14,9 @@
     let selectedChartView = 'epi-curve'; // 'epi-curve', 'trend', 'control'
     let animalTypes = [];
     let diseases = [];
+    let provinces = [];
+    let districts = [];
+    let farms = [];
 
     // Note: CSRF tokens are handled by main.js which wraps fetch globally
 
@@ -48,6 +51,10 @@
         startDateInput: null,
         endDateInput: null,
         animalTypeSelect: null,
+        // Location filter elements
+        provinceSelect: null,
+        districtSelect: null,
+        farmSelect: null,
         // Disease checkbox dropdown elements
         diseaseDropdown: null,
         diseaseDropdownToggle: null,
@@ -102,6 +109,8 @@
         Promise.all([
             loadAnimalTypes(),
             loadDiseases(),        // Load all diseases initially
+            loadProvinces(),       // Load provinces for location filter
+            loadFarms(),           // Load all farms initially
             fetchAndRenderChart()
         ]);
     }
@@ -135,6 +144,10 @@
         elements.startDateInput = document.getElementById('startDate');
         elements.endDateInput = document.getElementById('endDate');
         elements.animalTypeSelect = document.getElementById('animalTypeSelect');
+        // Location filter elements
+        elements.provinceSelect = document.getElementById('provinceSelect');
+        elements.districtSelect = document.getElementById('districtSelect');
+        elements.farmSelect = document.getElementById('farmSelect');
         // Disease checkbox dropdown elements
         elements.diseaseDropdown = document.getElementById('diseaseDropdown');
         elements.diseaseDropdownToggle = document.getElementById('diseaseDropdownToggle');
@@ -162,6 +175,9 @@
             periodButtons: elements.periodButtons?.length || 0,
             startDateInput: !!elements.startDateInput,
             endDateInput: !!elements.endDateInput,
+            provinceSelect: !!elements.provinceSelect,
+            districtSelect: !!elements.districtSelect,
+            farmSelect: !!elements.farmSelect,
             animalTypeSelect: !!elements.animalTypeSelect,
             diseaseDropdown: !!elements.diseaseDropdown,
             applyButton: !!elements.applyButton,
@@ -205,6 +221,38 @@
             });
         } else {
             console.error('Analytics: Animal type select not found');
+        }
+
+        // Province change - cascade to district and farm
+        if (elements.provinceSelect) {
+            elements.provinceSelect.addEventListener('change', function () {
+                const province = this.value;
+                // Reset district and farm selections
+                if (elements.districtSelect) {
+                    elements.districtSelect.value = '';
+                }
+                if (elements.farmSelect) {
+                    elements.farmSelect.value = '';
+                }
+                // Reload districts filtered by province
+                loadDistricts(province);
+                // Reload farms filtered by province (no district yet)
+                loadFarms(province, '');
+            });
+        }
+
+        // District change - cascade to farm
+        if (elements.districtSelect) {
+            elements.districtSelect.addEventListener('change', function () {
+                const district = this.value;
+                const province = elements.provinceSelect?.value || '';
+                // Reset farm selection
+                if (elements.farmSelect) {
+                    elements.farmSelect.value = '';
+                }
+                // Reload farms filtered by province + district
+                loadFarms(province, district);
+            });
         }
 
         // Disease dropdown toggle
@@ -471,6 +519,139 @@
     }
 
     /**
+     * Load provinces from API
+     */
+    async function loadProvinces() {
+        try {
+            const response = await fetch('/api/locations/provinces', {
+                headers: getHeaders()
+            });
+
+            if (response.ok) {
+                provinces = await response.json();
+                populateProvinceSelect();
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
+        }
+    }
+
+    /**
+     * Populate province select dropdown
+     */
+    function populateProvinceSelect() {
+        if (!elements.provinceSelect) return;
+
+        elements.provinceSelect.innerHTML = '<option value="">All Provinces</option>';
+
+        provinces.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.value;
+            option.textContent = p.label;
+            elements.provinceSelect.appendChild(option);
+        });
+
+        if (window.CustomSelect) {
+            CustomSelect.refresh('provinceSelect');
+        }
+    }
+
+    /**
+     * Load districts from API (optionally filtered by province)
+     */
+    async function loadDistricts(provinceName = '') {
+        try {
+            let url;
+            if (provinceName) {
+                url = `/api/locations/districts?provinceName=${encodeURIComponent(provinceName)}`;
+            } else {
+                url = '/api/locations/districts/all';
+            }
+
+            const response = await fetch(url, {
+                headers: getHeaders()
+            });
+
+            if (response.ok) {
+                districts = await response.json();
+                populateDistrictSelect();
+            }
+        } catch (error) {
+            console.error('Error loading districts:', error);
+        }
+    }
+
+    /**
+     * Populate district select dropdown
+     */
+    function populateDistrictSelect() {
+        if (!elements.districtSelect) return;
+
+        elements.districtSelect.innerHTML = '<option value="">All Districts</option>';
+
+        districts.forEach(d => {
+            const option = document.createElement('option');
+            option.value = d.value;
+            option.textContent = d.label;
+            elements.districtSelect.appendChild(option);
+        });
+
+        if (window.CustomSelect) {
+            CustomSelect.refresh('districtSelect');
+        }
+    }
+
+    /**
+     * Load farms from API (optionally filtered by province and district)
+     */
+    async function loadFarms(province = '', district = '') {
+        try {
+            let url = '/api/vet/farms/list';
+            const params = new URLSearchParams();
+            if (district) {
+                params.append('district', district);
+            } else if (province) {
+                params.append('province', province);
+            }
+            const queryString = params.toString();
+            if (queryString) {
+                url += `?${queryString}`;
+            }
+
+            const response = await fetch(url, {
+                headers: getHeaders()
+            });
+
+            if (response.ok) {
+                farms = await response.json();
+                populateFarmSelect();
+            }
+        } catch (error) {
+            console.error('Error loading farms:', error);
+        }
+    }
+
+    /**
+     * Populate farm select dropdown
+     */
+    function populateFarmSelect() {
+        if (!elements.farmSelect) return;
+
+        elements.farmSelect.innerHTML = '<option value="">All Farms</option>';
+
+        farms.forEach(f => {
+            const option = document.createElement('option');
+            option.value = f.id;
+            option.textContent = f.farmName;
+            elements.farmSelect.appendChild(option);
+        });
+
+        if (window.CustomSelect) {
+            CustomSelect.refresh('farmSelect');
+        }
+    }
+
+    /**
      * Update the selected count display
      */
     function updateSelectedCount() {
@@ -526,6 +707,21 @@
             elements.metricTypeSelect.value = 'REPORT_COUNT';
         }
         selectedMetricType = 'REPORT_COUNT';
+
+        // Reset location filters
+        if (elements.provinceSelect) {
+            elements.provinceSelect.value = '';
+            if (window.CustomSelect) CustomSelect.refresh('provinceSelect');
+        }
+        if (elements.districtSelect) {
+            elements.districtSelect.value = '';
+        }
+        if (elements.farmSelect) {
+            elements.farmSelect.value = '';
+        }
+        // Reload districts (all) and farms (all)
+        loadDistricts('');
+        loadFarms('', '');
 
         // Reset selects
         if (elements.animalTypeSelect) {
@@ -617,6 +813,22 @@
 
         params.append('groupBy', selectedGroupBy);
         params.append('metricType', selectedMetricType);
+
+        // Optional location filters
+        const farmId = elements.farmSelect?.value;
+        if (farmId) {
+            params.append('farmId', farmId);
+        } else {
+            const district = elements.districtSelect?.value;
+            if (district) {
+                params.append('district', district);
+            } else {
+                const province = elements.provinceSelect?.value;
+                if (province) {
+                    params.append('province', province);
+                }
+            }
+        }
 
         // Optional animal type
         const animalTypeId = elements.animalTypeSelect?.value;

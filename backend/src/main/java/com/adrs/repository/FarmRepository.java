@@ -154,5 +154,33 @@ public interface FarmRepository extends JpaRepository<Farm, UUID> {
      */
     @Query("SELECT f FROM Farm f WHERE f.createdBy != :user AND f.isActive = true AND f.province = :province AND f.gpsLatitude IS NOT NULL AND f.gpsLongitude IS NOT NULL")
     List<Farm> findByCreatedByNotAndProvinceWithGps(@Param("user") User user, @Param("province") Province province);
+
+    // ========================================
+    // ANALYTICS FARMS DROPDOWN QUERIES
+    // ========================================
+
+    /**
+     * Find all active farms ordered by name.
+     * Used for the analytics farm dropdown (all farms).
+     *
+     * @return list of active farms
+     */
+    List<Farm> findByIsActiveTrueOrderByFarmNameAsc();
+
+    /**
+     * Find all active farms in a specific province, ordered by name.
+     *
+     * @param province the province to filter by
+     * @return list of active farms in the province
+     */
+    List<Farm> findByProvinceAndIsActiveTrueOrderByFarmNameAsc(Province province);
+
+    /**
+     * Find all active farms in a specific district, ordered by name.
+     *
+     * @param district the district to filter by
+     * @return list of active farms in the district
+     */
+    List<Farm> findByDistrictAndIsActiveTrueOrderByFarmNameAsc(com.adrs.model.District district);
 }
 

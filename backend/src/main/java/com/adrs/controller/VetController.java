@@ -601,6 +601,9 @@ public class VetController {
      *
      * @param animalTypeId optional filter by animal type
      * @param diseaseIds optional filter by disease IDs
+     * @param province optional filter by province
+     * @param district optional filter by district
+     * @param farmId optional filter by farm
      * @param startDate start of date range
      * @param endDate end of date range
      * @param groupBy aggregation period: WEEKLY, MONTHLY, ANNUALLY
@@ -611,17 +614,23 @@ public class VetController {
     public ResponseEntity<AnalyticsResponseDTO> getDiseaseTrends(
             @RequestParam(required = false) UUID animalTypeId,
             @RequestParam(required = false) List<UUID> diseaseIds,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String district,
+            @RequestParam(required = false) UUID farmId,
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate,
             @RequestParam(defaultValue = "MONTHLY") AnalyticsRequestDTO.GroupBy groupBy,
             @RequestParam(defaultValue = "REPORT_COUNT") AnalyticsRequestDTO.MetricType metricType) {
         
-        logger.info("GET /api/vet/analytics/trends - animalTypeId: {}, diseaseIds: {}, startDate: {}, endDate: {}, groupBy: {}, metricType: {}",
-                animalTypeId, diseaseIds, startDate, endDate, groupBy, metricType);
+        logger.info("GET /api/vet/analytics/trends - animalTypeId: {}, diseaseIds: {}, province: {}, district: {}, farmId: {}, startDate: {}, endDate: {}, groupBy: {}, metricType: {}",
+                animalTypeId, diseaseIds, province, district, farmId, startDate, endDate, groupBy, metricType);
         
         AnalyticsRequestDTO request = new AnalyticsRequestDTO();
         request.setAnimalTypeId(animalTypeId);
         request.setDiseaseIds(diseaseIds);
+        request.setProvince(province);
+        request.setDistrict(district);
+        request.setFarmId(farmId);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setGroupBy(groupBy);
@@ -629,6 +638,56 @@ public class VetController {
         
         AnalyticsResponseDTO response = analyticsService.getDiseaseTrends(request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get a lightweight list of active farms for analytics dropdown.
+     * Supports optional filtering by province and district.
+     *
+     * @param province optional province filter
+     * @param district optional district filter
+     * @return list of {id, farmName} objects
+     */
+    @Operation(summary = "Get farms for analytics dropdown", description = "Returns a lightweight list of active farms, optionally filtered by province/district")
+    @GetMapping("/farms/list")
+    public ResponseEntity<List<java.util.Map<String, String>>> getFarmsForDropdown(
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String district) {
+        
+        logger.info("GET /api/vet/farms/list - province: {}, district: {}", province, district);
+        
+        java.util.List<com.adrs.model.Farm> farms;
+        
+        if (district != null && !district.isEmpty()) {
+            try {
+                com.adrs.model.District districtEnum = com.adrs.model.District.valueOf(district);
+                farms = farmRepository.findByDistrictAndIsActiveTrueOrderByFarmNameAsc(districtEnum);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid district value: {}", district);
+                return ResponseEntity.badRequest().build();
+            }
+        } else if (province != null && !province.isEmpty()) {
+            try {
+                Province provinceEnum = Province.valueOf(province);
+                farms = farmRepository.findByProvinceAndIsActiveTrueOrderByFarmNameAsc(provinceEnum);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid province value: {}", province);
+                return ResponseEntity.badRequest().build();
+            }
+        } else {
+            farms = farmRepository.findByIsActiveTrueOrderByFarmNameAsc();
+        }
+        
+        List<java.util.Map<String, String>> result = farms.stream()
+                .map(f -> {
+                    java.util.Map<String, String> farmMap = new java.util.HashMap<>();
+                    farmMap.put("id", f.getId().toString());
+                    farmMap.put("farmName", f.getFarmName());
+                    return farmMap;
+                })
+                .toList();
+        
+        return ResponseEntity.ok(result);
     }
 
     /**

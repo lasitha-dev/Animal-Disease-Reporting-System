@@ -7,9 +7,13 @@ import com.adrs.dto.AnalyticsResponseDTO;
 import com.adrs.dto.AnalyticsResponseDTO.DatasetDTO;
 import com.adrs.model.Disease;
 import com.adrs.model.DiseaseReport;
+import com.adrs.model.District;
+import com.adrs.model.Province;
 import com.adrs.repository.DiseaseReportRepository;
 import com.adrs.repository.DiseaseRepository;
 import com.adrs.service.AnalyticsService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,17 +38,21 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final DiseaseReportRepository diseaseReportRepository;
     private final DiseaseRepository diseaseRepository;
+    private final EntityManager entityManager;
 
     public AnalyticsServiceImpl(DiseaseReportRepository diseaseReportRepository,
-                                DiseaseRepository diseaseRepository) {
+                                DiseaseRepository diseaseRepository,
+                                EntityManager entityManager) {
         this.diseaseReportRepository = diseaseReportRepository;
         this.diseaseRepository = diseaseRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
     public AnalyticsResponseDTO getDiseaseTrends(AnalyticsRequestDTO request) {
-        logger.info("Getting disease trends: animalTypeId={}, diseaseIds={}, startDate={}, endDate={}, groupBy={}, metricType={}",
-                request.getAnimalTypeId(), request.getDiseaseIds(), request.getStartDate(), 
+        logger.info("Getting disease trends: animalTypeId={}, diseaseIds={}, province={}, district={}, farmId={}, startDate={}, endDate={}, groupBy={}, metricType={}",
+                request.getAnimalTypeId(), request.getDiseaseIds(), request.getProvince(),
+                request.getDistrict(), request.getFarmId(), request.getStartDate(), 
                 request.getEndDate(), request.getGroupBy(), request.getMetricType());
 
         // Fetch disease reports based on filters
@@ -71,28 +79,98 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     /**
      * Fetch disease reports based on the request filters.
+     * Uses dynamic JPQL to support the combination of location filters
+     * (province, district, farmId) alongside animal type and disease filters.
      */
     private List<DiseaseReport> fetchReports(AnalyticsRequestDTO request) {
         UUID animalTypeId = request.getAnimalTypeId();
         List<UUID> diseaseIds = request.getDiseaseIds();
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();
+        String provinceStr = request.getProvince();
+        String districtStr = request.getDistrict();
+        UUID farmId = request.getFarmId();
 
         boolean hasAnimalTypeFilter = animalTypeId != null;
         boolean hasDiseaseFilter = diseaseIds != null && !diseaseIds.isEmpty();
+        boolean hasProvinceFilter = provinceStr != null && !provinceStr.isEmpty();
+        boolean hasDistrictFilter = districtStr != null && !districtStr.isEmpty();
+        boolean hasFarmFilter = farmId != null;
+        boolean hasLocationFilter = hasProvinceFilter || hasDistrictFilter || hasFarmFilter;
 
-        if (hasAnimalTypeFilter && hasDiseaseFilter) {
-            return diseaseReportRepository.findByAnimalTypeIdAndDiseaseIdInAndReportDateBetween(
-                    animalTypeId, diseaseIds, startDate, endDate);
-        } else if (hasAnimalTypeFilter) {
-            return diseaseReportRepository.findByAnimalTypeIdAndReportDateBetween(
-                    animalTypeId, startDate, endDate);
-        } else if (hasDiseaseFilter) {
-            return diseaseReportRepository.findByDiseaseIdInAndReportDateBetween(
-                    diseaseIds, startDate, endDate);
-        } else {
-            return diseaseReportRepository.findByReportDateBetween(startDate, endDate);
+        // If no location filters, use the existing optimized repository methods
+        if (!hasLocationFilter) {
+            if (hasAnimalTypeFilter && hasDiseaseFilter) {
+                return diseaseReportRepository.findByAnimalTypeIdAndDiseaseIdInAndReportDateBetween(
+                        animalTypeId, diseaseIds, startDate, endDate);
+            } else if (hasAnimalTypeFilter) {
+                return diseaseReportRepository.findByAnimalTypeIdAndReportDateBetween(
+                        animalTypeId, startDate, endDate);
+            } else if (hasDiseaseFilter) {
+                return diseaseReportRepository.findByDiseaseIdInAndReportDateBetween(
+                        diseaseIds, startDate, endDate);
+            } else {
+                return diseaseReportRepository.findByReportDateBetween(startDate, endDate);
+            }
         }
+
+        // Dynamic JPQL for location-based filtering
+        StringBuilder jpql = new StringBuilder(
+                "SELECT dr FROM DiseaseReport dr " +
+                "JOIN FETCH dr.disease d " +
+                "JOIN FETCH dr.animalType at " +
+                "JOIN FETCH dr.farm f " +
+                "WHERE dr.reportDate >= :startDate AND dr.reportDate <= :endDate");
+
+        if (hasAnimalTypeFilter) {
+            jpql.append(" AND at.id = :animalTypeId");
+        }
+        if (hasDiseaseFilter) {
+            jpql.append(" AND d.id IN :diseaseIds");
+        }
+        if (hasFarmFilter) {
+            jpql.append(" AND f.id = :farmId");
+        } else {
+            if (hasDistrictFilter) {
+                jpql.append(" AND f.district = :district");
+            } else if (hasProvinceFilter) {
+                jpql.append(" AND f.province = :province");
+            }
+        }
+
+        jpql.append(" ORDER BY dr.reportDate");
+
+        TypedQuery<DiseaseReport> query = entityManager.createQuery(jpql.toString(), DiseaseReport.class);
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+
+        if (hasAnimalTypeFilter) {
+            query.setParameter("animalTypeId", animalTypeId);
+        }
+        if (hasDiseaseFilter) {
+            query.setParameter("diseaseIds", diseaseIds);
+        }
+        if (hasFarmFilter) {
+            query.setParameter("farmId", farmId);
+        } else if (hasDistrictFilter) {
+            try {
+                District district = District.valueOf(districtStr);
+                query.setParameter("district", district);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid district value for analytics filter: {}", districtStr);
+                return Collections.emptyList();
+            }
+        } else if (hasProvinceFilter) {
+            try {
+                Province province = Province.valueOf(provinceStr);
+                query.setParameter("province", province);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Invalid province value for analytics filter: {}", provinceStr);
+                return Collections.emptyList();
+            }
+        }
+
+        return query.getResultList();
     }
 
     /**

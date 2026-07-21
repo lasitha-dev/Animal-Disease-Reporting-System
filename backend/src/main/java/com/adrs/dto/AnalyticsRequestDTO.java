@@ -32,6 +32,24 @@ public class AnalyticsRequestDTO {
     private List<UUID> diseaseIds;
 
     /**
+     * Optional filter by province (enum name, e.g. "WESTERN").
+     * If null, all provinces are included.
+     */
+    private String province;
+
+    /**
+     * Optional filter by district (enum name, e.g. "COLOMBO").
+     * If null, all districts are included.
+     */
+    private String district;
+
+    /**
+     * Optional filter by specific farm ID.
+     * If null, all farms are included.
+     */
+    private UUID farmId;
+
+    /**
      * Start date for the analytics period (inclusive).
      */
     @NotNull(message = "Start date is required")

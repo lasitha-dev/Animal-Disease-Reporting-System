@@ -52,6 +52,45 @@
                 </div>
             </div>
 
+            <!-- Province Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="provinceSelect">
+                    <i data-lucide="map-pin" class="icon icon-xs"></i>
+                    Province
+                </label>
+                <select id="provinceSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Provinces" data-title="Select Province">
+                    <option value="">All Provinces</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- District Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="districtSelect">
+                    <i data-lucide="map" class="icon icon-xs"></i>
+                    District
+                </label>
+                <select id="districtSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Districts" data-title="Select District">
+                    <option value="">All Districts</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Farm Filter -->
+            <div class="filter-group">
+                <label class="filter-label" for="farmSelect">
+                    <i data-lucide="home" class="icon icon-xs"></i>
+                    Farm
+                </label>
+                <select id="farmSelect" class="filter-select"
+                    data-custom-select data-placeholder="All Farms" data-title="Select Farm" data-searchable>
+                    <option value="">All Farms</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
             <!-- Animal Type Filter -->
             <div class="filter-group">
                 <label class="filter-label" for="animalTypeSelect">
@@ -178,7 +217,7 @@
         <!-- Chart.js CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <script th:src="@{/js/custom-select.js}"></script>
-        <script th:src="@{/js/analytics.js(v=7)}"></script>
+        <script th:src="@{/js/analytics.js(v=8)}"></script>
         <!-- Fallback initialization in case the automatic one fails -->
         <script>
             // The analytics.js now handles DOM ready properly
